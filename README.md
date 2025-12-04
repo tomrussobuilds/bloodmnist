@@ -10,14 +10,14 @@
 
 This repository contains a complete, reproducible training pipeline for the **BloodMNIST** (from MedMNIST v2) using a carefully adapted pretrained ResNet-18, achieving **state-of-the-art-level performance** with minimal tricks.
 
-### Confusion Matrix  
-![Confusion Matrix](figures/confusion_matrix_resnet18.png)
+### Confusion Matrix
+<img src="figures/confusion_matrix_resnet18.png" width="400">
 
-### Training Curves  
-![Training Curves](figures/training_curves.png)
+### Training Curves
+<img src="figures/training_curves.png" width="400">
 
-### Sample Predictions  
-![Sample Predictions](figures/sample_predictions.png)
+### Sample Predictions
+<img src="figures/sample_predictions.png" width="400">
 
 ### Final Results (60 epochs, seed 42)
 | Metric                  | Value     |
