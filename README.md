@@ -88,7 +88,7 @@ Install dependencies easily with pip, or check the full list here:
 ### Usage
 
 ```bash
-git clone https://github.com/yourusername/bloodmnist-resnet18.git
+git clone https://github.com/tomrussobuilds/bloodmnist.git
 cd bloodmnist-resnet18
 python train_bloodmnist.py
 ```
