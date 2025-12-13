@@ -284,7 +284,7 @@ def save_sample_predictions(data: BloodMNISTData, all_preds: np.ndarray, out_pat
 #                               REPORT GENERATION
 # =========================================================================== #
 
-def generate_all_reports(
+def run_final_evaluation(
     model: nn.Module,
     test_loader: DataLoader,
     data: BloodMNISTData,
@@ -294,7 +294,8 @@ def generate_all_reports(
     use_tta: bool = False
 ) -> Tuple[float, float]:
     """
-    Executes the full evaluation pipeline, generating all figures and metrics.
+    Executes the full evaluation pipeline, generating all figures and metrics and
+    generating all figures (Confusion Matrix, Training Curves, Sample Predictions).
 
     Args:
         model (nn.Module): The trained model.
@@ -419,7 +420,7 @@ class TrainingReport:
         logger.info(f"Training report saved → {path}")
 
 
-def build_training_report(
+def create_structured_report(
     val_accuracies: Sequence[float],
     macro_f1: float,
     test_acc: float,
