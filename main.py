@@ -33,7 +33,7 @@ from scripts.data_handler import load_bloodmnist, get_dataloaders
 from scripts.models import get_model
 from scripts.trainer import ModelTrainer
 from scripts.evaluation import (
-    generate_all_reports, build_training_report, show_sample_images
+    run_final_evaluation, create_structured_report, show_sample_images
 )
 
 # Global logger instance
@@ -69,7 +69,7 @@ def main() -> None:
     # 2. Environment Initialization
     kill_duplicate_processes()
     device = get_device(logger=logger)
-    
+
     logger.info(
         f"Hyperparameters: LR={cfg.learning_rate:.4f}, Momentum={cfg.momentum:.2f}, WeightDecay={cfg.weight_decay:.1e}, "
         f"Batch={cfg.batch_size}, Epochs={cfg.epochs}, "
@@ -110,7 +110,7 @@ def main() -> None:
     logger.info(f"Best model loaded from {best_path}")
 
     # 6. Final Evaluation and Reporting Generation
-    macro_f1, test_acc = generate_all_reports(
+    macro_f1, test_acc = run_final_evaluation(
         model=model,
         test_loader=test_loader,
         data=data,
@@ -121,7 +121,7 @@ def main() -> None:
     )
 
     # 7. Build and Save Structured Report
-    report = build_training_report(
+    report = create_structured_report(
         val_accuracies=val_accuracies,
         macro_f1=macro_f1,
         test_acc=test_acc,
