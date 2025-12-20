@@ -13,13 +13,13 @@ This repository provides a highly reproducible training pipeline for the BloodMN
 The results reflect the latest successful training run (early stopping at epoch 44).
 
 ### Confusion Matrix
-<img src="figures/confusion_matrix_resnet18.png" width="400">
+<img src="figures/confusion_matrix_ResNet-18 Adapted.png" width="400">
 
 ### Training Curves
 <img src="figures/training_curves.png" width="400">
 
 ### Sample Predictions
-<img src="figures/sample_predictions.png" width="400">
+<img src="figures/sample_predictions_ResNet-18 Adapted.png" width="400">
 
 ### Final Results (60 epochs, seed 42)
 | Metric                  | Value     |
@@ -40,9 +40,10 @@ Spoiler: a carefully adapted ResNet-18 performs surprisingly well, even on 28×2
 
 ### Key Features & Design Choices (Post-Refactoring)
 
-- **Modularity and Structure**: Code has been separated into clean, modular components (`scripts/`) to enforce single responsibility principle and decouple execution (`main.py`) from business logic.
+- **Modularity and Structure**: Fully decoupled logic using specialized sub-packages (`core`, `data_handler`, `models`, `trainer`, `evaluation`).
 - **Robust Pathing**: Implemented dynamic `PROJECT_ROOT` detection in `utils.py` to ensure all outputs (models, logs, figures) are correctly saved relative to the project root, regardless of where the script is executed (local or Docker container).
 - **Accuracy vs. Reproducibility Balance**: **The pipeline prioritizes fully deterministic reproducibility.** While running in "Fast Mode" (`num_workers > 0`) is faster, the "Strict Reproducibility" mode (`num_workers=0`) guarantees bit-per-bit identical results at the expense of a longer training time. This trade-off is managed automatically via `DOCKER_REPRODUCIBILITY_MODE` environment variable.
+- **Automated Reporting**: Generates high-resolution plots and comprehensive Excel reports (`.xlsx`) for every run.
 
 ---
 
@@ -72,21 +73,17 @@ A few tiny helpers included in `utils.py` were added after real debugging incide
 
 ```bash
 bloodmnist/
-│
 ├── main.py                   # Main execution entry point
-│
-├── scripts/                  # Core modules (data loading, models, trainer, utils)
-│   ├── data_handler.py       # Handles data download, Dataset, and DataLoader setup
-│   ├── models.py             # Defines the adapted ResNet-18 model
-│   ├── trainer.py            # Contains the training logic (loop, MixUp, Early Stopping)
-│   ├── utils.py              # Configuration (Config), Logger, and general utilities
-│   └── evaluation.py         # Reporting and final evaluation logic
-│
-├── dataset/                  # BloodMNIST dataset files
-├── logs/                     # File logs
-├── figures/                  # Auto-generated plots
-├── reports/                  # Excel report + final logs
-└── models/                   # Saved model checkpoints
+├── scripts/                  # Modular logic
+│   ├── core/                 # Config, Logging and Project Constants
+│   ├── data_handler/         # Data downloading and DataLoader pipeline
+│   ├── models/               # Architecture definitions (Adapted ResNet)
+│   ├── trainer/              # Training loop, MixUp and Early Stopping
+│   └── evaluation/           # Evaluation engine, Plots and Excel reporting
+├── dataset/                  # BloodMNIST source files
+├── figures/                  # Auto-generated plots (linked to model name)
+├── reports/                  # Structured Excel training reports
+└── models/                   # Saved model checkpoints (.pth)
 ```
 
 ### 1. Requirements

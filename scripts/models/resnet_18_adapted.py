@@ -35,7 +35,7 @@ logger: Final[logging.Logger] = Logger().get_logger()
 #                               MODEL DEFINITION
 # =========================================================================== #
 
-def get_model(
+def build_resnet18_adapted(
         device: torch.device,
         num_classes: int = len(BLOODMNIST_CLASSES),
         cfg: Config | None = None
