@@ -1,88 +1,75 @@
-# ========================
-# Python
-# ========================
+# =========================================================================== #
+#                                PYTHON & ENV
+# =========================================================================== #
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-*.so
-
-# Virtual environments
+*$py.class
 .venv/
 venv/
 env/
 
-# Build artifacts
-build/
-dist/
-*.egg-info/
-*.egg
-
-# ========================
-# IDE / Editor files
-# ========================
+# =========================================================================== #
+#                                IDE & SYSTEM
+# =========================================================================== #
 .vscode/
 .idea/
-
-# Jupyter
-.ipynb_checkpoints/
-
-# ========================
-# Logs & temp files
-# ========================
-logs/
-*.log
-*.tmp
-*.temp
+.DS_Store
+Thumbs.db
 *.bak
+*~
 
-# ========================
-# Cache / artifacts
-# ========================
-.cache/
-*.pth
-*.pt
-*.ckpt
-wandb/
-runs/
-
-# ========================
-# Project-specific folders
-# ========================
-figures/*
-reports/*
+# =========================================================================== #
+#                            PROJECT ARTIFACTS
+# =========================================================================== #
+# Ignore all generated outputs by default
 models/*
+reports/*
+figures/*
 dataset/
 data/
 
-# Keep empty folders or important generated files
-!figures/.gitkeep
-!reports/.gitkeep
+# Keep directories structure
 !models/.gitkeep
-!figures/confusion_matrix_resnet18.png
+!reports/.gitkeep
+!figures/.gitkeep
+
+# SPECIFIC EXCEPTIONS: Track only these specific successful run files
+# (Everything else in figures/ remains ignored)
+!figures/ResNet-18 Adapted_samples.png
+!figures/confusion_matrix_ResNet-18 Adapted.png
 !figures/training_curves.png
-!figures/sample_predictions.png
+!figures/sample_predictions_ResNet-18 Adapted.png
 
+# =========================================================================== #
+#                          ML SPECIFIC (WEIGHTS & LOGS)
+# =========================================================================== #
+*.pth
+*.pt
+*.ckpt
+*.log
+*.npz
+wandb/
+runs/
 
-# ========================
-# OS files
-# ========================
-.DS_Store
-Thumbs.db
-desktop.ini
-*~
-
-# ========================
-# Misc / Profiling / Temporary scripts / Older Versions
-# ========================
-.prof
-.profile
+# =========================================================================== #
+#                       LEGACY & DEVELOPMENT SCRIPTS
+# =========================================================================== #
+# Temporary and utility scripts
 check_pytorch.py
 check_ram.py
 checksum.py
+patch.py
+.prof
+.profile
+
+# Older pipeline versions (Legacy)
 pipeline*.py
 cnn_bloodmnist.py
 _legacy_train_bloodmnist.py
+
+# Modules removed during refactoring
 scripts/core/utils.py
 scripts/evaluation/evaluation.py
 scripts/data_handler/data_handler.py
+scripts/models/models.py
+scripts/trainer/trainer.py

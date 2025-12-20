@@ -22,7 +22,7 @@ from torch.utils.data import DataLoader
 #                                Internal Imports
 # =========================================================================== #
 from scripts.core import Logger, Config, FIGURES_DIR
-from scripts.data_handler.data_handler import BloodMNISTData
+from scripts.data_handler import BloodMNISTData
 from .engine import evaluate_model
 from .visualization import (
     plot_confusion_matrix, save_training_curves, save_sample_predictions
@@ -72,7 +72,7 @@ def run_final_evaluation(
     save_sample_predictions(
         data,
         all_preds,
-        FIGURES_DIR / "sample_predictions.png",
+        FIGURES_DIR / f"sample_predictions_{cfg.model_name}.png",
         cfg=cfg
     )
 

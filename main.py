@@ -5,11 +5,10 @@ This script orchestrates the entire training and evaluation pipeline:
 1. Parses command-line arguments and sets up configuration.
 2. Ensures environment reproducibility and prevents duplicate runs.
 3. Loads the BloodMNIST dataset and creates PyTorch DataLoaders.
-4. Initializes and adapts the ResNet-18 model.
+4. Initializes and adapts the model via the Models Factory.
 5. Executes the training loop with the ModelTrainer.
 6. Loads the best checkpoint and performs final evaluation, including TTA.
-7. Generates visualization reports (plots, confusion matrix).
-8. Builds and saves the final structured training report to Excel.
+7. Generates visualization reports and saves structured Excel data.
 """
 # =========================================================================== #
 #                                Standard Imports
@@ -31,7 +30,7 @@ from scripts.core import (
 )
 from scripts.data_handler import (
     load_bloodmnist, get_dataloaders, show_sample_images
-    )
+)
 from scripts.models import get_model
 from scripts.trainer import ModelTrainer
 from scripts.evaluation import (
@@ -61,15 +60,14 @@ def main() -> None:
         epochs=args.epochs,
         patience=args.patience,
         mixup_alpha=args.mixup_alpha,
-        # Argument --no_tta means use_tta is False
         use_tta=not args.no_tta,
         hflip=args.hflip,
         rotation_angle=args.rotation_angle,
         jitter_val=args.jitter_val
     )
+    
+    # Initialize Logger and Seed
     Logger.setup(name=cfg.model_name)
-
-    # Seed
     set_seed(cfg.seed)
 
     # 2. Environment Initialization
@@ -77,30 +75,26 @@ def main() -> None:
     device = get_device(logger=logger)
 
     logger.info(
-        f"Hyperparameters: LR={cfg.learning_rate:.4f}, Momentum={cfg.momentum:.2f}, WeightDecay={cfg.weight_decay:.1e}, "
-        f"Batch={cfg.batch_size}, Epochs={cfg.epochs}, Rot={cfg.rotation_angle}, Jitter={cfg.jitter_val}, HFlip={cfg.hflip}, "
-        f"MixUp={cfg.mixup_alpha}, Seed={cfg.seed}, TTA={'Enabled' if cfg.use_tta else 'Disabled'}"
+        f"Hyperparameters: LR={cfg.learning_rate:.4f}, Momentum={cfg.momentum:.2f}, "
+        f"Batch={cfg.batch_size}, Epochs={cfg.epochs}, MixUp={cfg.mixup_alpha}, "
+        f"TTA={'Enabled' if cfg.use_tta else 'Disabled'}"
     )
 
     # 3. Data Loading and Preparation
     data = load_bloodmnist(NPZ_PATH, cfg=cfg)
-    logger.info(
-        f"Dataset loaded → Train:{len(data.X_train)} | "
-        f"Val:{len(data.X_val)} | "
-        f"Test:{len(data.X_test)}"
-    )
-
-    # Optional visualization of sample images (saved to figures directory)
+    
+    # Optional: Visual check of samples (saved to figures/)
     show_sample_images(data, cfg=cfg)
 
-    # Create PyTorch DataLoaders
+    # Create DataLoaders
     train_loader, val_loader, test_loader = get_dataloaders(data, cfg)
 
-    # 4. Model Initialization
-    model = get_model(device=device)
+    # 4. Model Initialization (Factory Pattern)
+    # Corrected: Passing both device and cfg as required by our __init__.py factory
+    model = get_model(device=device, cfg=cfg)
 
     # 5. Training Execution
-    logger.info("Starting training".center(60, "="))
+    logger.info("Starting training pipeline".center(60, "="))
 
     trainer = ModelTrainer(
         model=model,
@@ -111,11 +105,11 @@ def main() -> None:
     )
     best_path, train_losses, val_accuracies = trainer.train()
 
-    # Load the state dictionary of the best performing model (from validation)
+    # Load the best weights found during training
     model.load_state_dict(torch.load(best_path, map_location=device))
-    logger.info(f"Best model loaded from {best_path}")
+    logger.info(f"Loaded best checkpoint weights from: {best_path}")
 
-    # 6. Final Evaluation and Reporting Generation
+    # 6. Final Evaluation (Metrics & Plots)
     macro_f1, test_acc = run_final_evaluation(
         model=model,
         test_loader=test_loader,
@@ -137,18 +131,18 @@ def main() -> None:
         cfg=cfg
     )
 
-    # Log final metrics cleanly
+    # Final Summary Logging
     logger.info(
-        f"FINAL RESULTS → "
-        f"Test Accuracy: {report.test_accuracy:.4f} | "
-        f"Macro F1: {report.test_macro_f1:.4f} | "
-        f"Best Val Accuracy: {report.best_val_accuracy:.4f}"
+        f"PIPELINE COMPLETED → "
+        f"Test Acc: {test_acc:.4f} | "
+        f"Macro F1: {macro_f1:.4f} | "
+        f"Best Val Acc: {report.best_val_accuracy:.4f}"
     )
-    logger.info("Training & evaluation completed successfully!")
 
-    # Save Excel report
-    excel_path = REPORTS_DIR / "training_report.xlsx"
-    report.save(excel_path)
+    # Save to Excel
+    excel_filename = f"report_{cfg.model_name.replace(' ', '_')}.xlsx"
+    report.save(REPORTS_DIR / excel_filename)
+    logger.info(f"Excel report saved successfully in: {REPORTS_DIR}")
 
 
 # =========================================================================== #
