@@ -121,7 +121,7 @@ def create_structured_report(
         TrainingReport: The fully populated report object.
     """
     # Local import to avoid circular dependency
-    from scripts.data_handler import get_augmentations_transforms
+    from scripts.data_handler.data_handler import get_augmentations_transforms
 
     return TrainingReport(
         timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
