@@ -84,3 +84,4 @@ pipeline*.py
 cnn_bloodmnist.py
 _legacy_train_bloodmnist.py
 scripts/core/utils.py
+scripts/evaluation/evaluation.py
