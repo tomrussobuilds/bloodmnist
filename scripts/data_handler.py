@@ -31,7 +31,7 @@ from torchvision import transforms
 # =========================================================================== #
 #                                Internal Imports
 # =========================================================================== #
-from .utils import (
+from scripts.core import (
     Config, Logger,
     md5_checksum, validate_npz_keys,
     BLOODMNIST_CLASSES, EXPECTED_MD5, URL, NPZ_PATH, FIGURES_DIR

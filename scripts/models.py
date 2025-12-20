@@ -25,7 +25,7 @@ from torchvision import models
 # =========================================================================== #
 #                                Internal Imports
 # =========================================================================== #
-from .utils import Logger, BLOODMNIST_CLASSES
+from scripts.core import Logger, BLOODMNIST_CLASSES
 
 # Global logger instance
 logger: Final[logging.Logger] = Logger().get_logger()
