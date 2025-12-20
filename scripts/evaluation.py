@@ -33,7 +33,7 @@ import torchvision.transforms.functional as TF
 # =========================================================================== #
 #                                Internal Imports
 # =========================================================================== #
-from .utils import (
+from scripts.core import (
     Logger, Config, FIGURES_DIR, BLOODMNIST_CLASSES, log_file
 )
 from .data_handler import BloodMNISTData

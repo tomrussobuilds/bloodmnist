@@ -25,7 +25,7 @@ import torch
 # =========================================================================== #
 #                                Internal Imports
 # =========================================================================== #
-from scripts.utils import (
+from scripts.core import (
     Config, Logger, parse_args, set_seed, kill_duplicate_processes, get_device, 
     NPZ_PATH, REPORTS_DIR
 )
@@ -72,7 +72,7 @@ def main() -> None:
     set_seed(cfg.seed)
 
     # 2. Environment Initialization
-    kill_duplicate_processes()
+    kill_duplicate_processes(logger=logger)
     device = get_device(logger=logger)
 
     logger.info(

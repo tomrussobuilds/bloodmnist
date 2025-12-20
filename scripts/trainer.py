@@ -26,7 +26,7 @@ from tqdm import tqdm
 # =========================================================================== #
 #                                Internal Imports
 # =========================================================================== #
-from .utils import Logger, Config, MODELS_DIR
+from scripts.core import Logger, Config, MODELS_DIR
 
 # Global logger instance
 logger: Final[logging.Logger] = Logger().get_logger()
