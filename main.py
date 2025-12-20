@@ -67,7 +67,6 @@ def main() -> None:
         rotation_angle=args.rotation_angle,
         jitter_val=args.jitter_val
     )
-    from scripts.core import Logger
     Logger.setup(name=cfg.model_name)
 
     # Seed
