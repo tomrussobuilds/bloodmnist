@@ -13,20 +13,18 @@ This repository provides a highly reproducible training pipeline for the BloodMN
 The results reflect the latest successful training run (early stopping at epoch 44).
 
 ### Confusion Matrix
-<img src="docs/media/confusion_matrix_ResNet-18 Adapted.png" width="400">
+<img src="docs/media/confusion_matrix.png" width="400">
 
 ### Training Curves
 <img src="docs/media/training_curves.png" width="400">
 
-### Sample Predictions
-<img src="docs/media/sample_predictions_ResNet-18 Adapted.png" width="400">
 
 ### Final Results (60 epochs, seed 42)
 | Metric                  | Value     |
 |-------------------------|-----------|
 | Best Validation Accuracy| **96.96%** |
-| Test Accuracy (with TTA)| **97.19%** |
-| Test Macro F1 (with TTA)| **0.9693** |
+| Test Accuracy (with TTA)| **97.78%** |
+| Test Macro F1 (with TTA)| **0.9752** |
 
 → Confusion matrix, training curves, sample predictions and Excel report are automatically saved.
 
