@@ -132,22 +132,29 @@ def save_report_as_yaml(
         run_paths: 'RunPaths'
 ) -> Path:
     """
-    Saves the configuration dictionary as a YAML file in the specified run paths.
-
-    Args:
-        config_dict (Dict[str, Any]): The configuration dictionary to save.
-        run_paths (RunPaths): The RunPaths object containing directory paths.
-
-    Returns:
-        Path: The path to the saved YAML file.
+    Saves the configuration dictionary as a YAML file, ensuring Python-specific 
+    types like tuples are converted to standard lists for better compatibility.
     """
     yaml_path = run_paths.get_config_path()
     
     try:
         config_data = asdict(config) if hasattr(config, '__dataclass_fields__') else vars(config)
 
-        with open(yaml_path, 'w') as yaml_file:
-            yaml.dump(config_data, yaml_file, default_flow_style=False)
+        def clean_config(data: Any) -> Any:
+            """Recursively converts tuples to lists and Paths to strings."""
+            if isinstance(data, dict):
+                return {k: clean_config(v) for k, v in data.items()}
+            elif isinstance(data, (list, tuple)):
+                return [clean_config(i) for i in data]
+            elif isinstance(data, Path):
+                return str(data)
+            return data
+        
+        cleaned_data = clean_config(config_data)
+        
+        with open(yaml_path, 'w', encoding='utf-8') as yaml_file:
+            # default_flow_style=False rende lo YAML leggibile riga per riga
+            yaml.dump(cleaned_data, yaml_file, default_flow_style=False, sort_keys=False)
 
         logger.info(f"Configuration saved to YAML at → {yaml_path}")
         return yaml_path
@@ -155,7 +162,9 @@ def save_report_as_yaml(
         logger.error(f"Failed to save configuration YAML: {str(e)}", exc_info=True)
         raise e
     
-def load_config_from_yaml(yaml_path: Path) -> Dict[str, Any]:
+def load_config_from_yaml(
+        yaml_path: Path
+    ) -> Dict[str, Any]:
     """
     Loads a configuration dictionary from a YAML file.
 
