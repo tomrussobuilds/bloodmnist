@@ -81,9 +81,11 @@ Standard ResNet-18 is designed for 224×224 inputs. To handle the small-scale Me
 To retain the representational power of the pretrained backbone, we do not initialize the new $3 \times 3$ kernel randomly. Instead, we perform a spatial transformation on the weight tensor:
 
 **Source Tensor**: Pretrained ImageNet weights 
+
 $$W_{src} \in \mathbb{R}^{C_{out} \times C_{in} \times 7 \times 7}$$
 
 **Interpolation**: Application of a bicubic resizing function $f$ across spatial dimensions:
+
 $$W_{dest} = f(W_{src}, \text{size}=(3, 3))$$
 
 **Result**: A $3 \times 3$ kernel that preserves the edge-detection patterns learned on ImageNet but optimized for a tighter receptive field.
