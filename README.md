@@ -14,7 +14,7 @@
 * [🔬 Training Regularization](#-training-regularization)
 * [📁 Project Structure](#-project-structure)
 * [⚙️ Requirements & Installation](#️-requirements--installation)
-* [💻 Usage (Local & Docker)](#-usage-local--docker)
+* [💻 Usage (Local )](#-usage-local)
 * [✅ Environment Verification (Smoke Test)](#-environment-verification-smoke-test)
 * [📊 Command Line Arguments](#-command-line-arguments)
 * [🗺 Research Goals](#-research-goals)
@@ -37,6 +37,7 @@ This repository provides a highly reproducible, robust training framework for th
 <img src="docs/media/training_curves.png" width="400">
 
 → Confusion matrix, training curves, sample predictions and Excel report are automatically saved.
+
 ---
 
 
@@ -149,7 +150,7 @@ Install dependencies easily with pip, or check the full list here:
 [📦 See Full Requirements](requirements.txt)
 
 
-### 💻 Usage (Local & Docker)
+### 💻 Usage (Local)
 
 Run the script from the project root. It will default to the fast mode (`num_workers=4`).
 
@@ -180,7 +181,7 @@ This will run a 1-epoch training on a tiny subset of a MedMNIST dataset and veri
 
 ---
 
-### Docker Execution (Recommended for Portability & Reproducibility)
+### 🐳 Docker Execution (Recommended for Portability)
 
 The pipeline is containerized using the included `Dockerfile`.
 
