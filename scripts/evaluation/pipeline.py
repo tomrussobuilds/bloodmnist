@@ -29,7 +29,7 @@ from .visualization import (
     plot_training_curves, 
     show_predictions
 )
-from .reporting import create_structured_report
+from .reporting import create_structured_report, save_report_as_yaml
 
 # =========================================================================== #
 #                               EVALUATION PIPELINE                           #
@@ -110,6 +110,11 @@ def run_final_evaluation(
     )
 
     # --- 3) Structured Reporting ---
+    # Save YAML summary of the run
+    save_report_as_yaml(
+        config=cfg,
+        run_paths=paths,
+    )
     # Create and save the Excel report
     report = create_structured_report(
         val_accuracies=val_accuracies,
