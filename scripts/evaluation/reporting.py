@@ -2,7 +2,7 @@
 Reporting Module
 
 This module defines the structured training report and utilities for generating
-final experiment summaries in Excel format.
+final experiment summaries in Excel format and YAML configuration files.
 """
 
 # =========================================================================== #
@@ -11,8 +11,9 @@ final experiment summaries in Excel format.
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Sequence
+from typing import Sequence, Any, Dict, TYPE_CHECKING
 import logging
+import yaml
 
 # =========================================================================== #
 #                                Third-Party Imports
@@ -23,6 +24,8 @@ import pandas as pd
 #                                Internal Imports
 # =========================================================================== #
 from scripts.core import Config
+if TYPE_CHECKING:
+    from scripts.core import RunPaths
 
 # =========================================================================== #
 #                               EXCEL REPORTS
@@ -123,3 +126,47 @@ def create_structured_report(
         log_path=str(log_path),
         seed=cfg.seed,
     )
+
+def save_report_as_yaml(
+        config: Config,
+        run_paths: 'RunPaths'
+) -> Path:
+    """
+    Saves the configuration dictionary as a YAML file in the specified run paths.
+
+    Args:
+        config_dict (Dict[str, Any]): The configuration dictionary to save.
+        run_paths (RunPaths): The RunPaths object containing directory paths.
+
+    Returns:
+        Path: The path to the saved YAML file.
+    """
+    yaml_path = run_paths.get_config_path()
+    
+    try:
+        config_data = asdict(config) if hasattr(config, '__dataclass_fields__') else vars(config)
+
+        with open(yaml_path, 'w') as yaml_file:
+            yaml.dump(config_data, yaml_file, default_flow_style=False)
+
+        logger.info(f"Configuration saved to YAML at → {yaml_path}")
+        return yaml_path
+    except Exception as e:
+        logger.error(f"Failed to save configuration YAML: {str(e)}", exc_info=True)
+        raise e
+    
+def load_config_from_yaml(yaml_path: Path) -> Dict[str, Any]:
+    """
+    Loads a configuration dictionary from a YAML file.
+
+    Args:
+        yaml_path (Path): The path to the YAML configuration file.
+    
+    Returns:
+        Dict[str, Any]: The loaded configuration dictionary.
+    """
+    if not yaml_path.exists():
+        raise FileNotFoundError(f"YAML configuration file not found at: {yaml_path}")
+    
+    with open(yaml_path, 'r', encoding='utf-8') as yaml_file:
+        return yaml.safe_load(yaml_file)
