@@ -44,44 +44,54 @@ def run_smoke_test() -> None:
     Orchestrates a lightweight version of the main pipeline to ensure 
     code stability and prevent regression bugs.
     """
-    print("\n" + "="*60)
-    print("INITIALIZING SMOKE TEST".center(60))
-    print("="*60 + "\n")
-
     # 1. Minimal Configuration Setup
     dataset_key = "bloodmnist"
     ds_meta = DATASET_REGISTRY[dataset_key]
 
+    # 2. Environment Initialization
+    setup_static_directories()
+    
+    # Define cfg
     cfg = Config(
         model_name="ResNet-18 Adapted",
         dataset_name=ds_meta.name,
         seed=42,
         batch_size=4,
+        num_classes=len(ds_meta.classes),
+        in_channels=ds_meta.in_channels,
+        mean=ds_meta.mean,
+        std=ds_meta.std,
         epochs=1,
         patience=1,
+        learning_rate=0.001,
+        momentum=0.9,
+        weight_decay=0.0,
         use_tta=True,
         normalization_info="Smoke Test Normalization",
     )
-    
-    set_seed(cfg.seed)
 
-    # 2. Environment Initialization
-    setup_static_directories()
-    
-    # Prefix the run ID to distinguish smoke tests from real experiments
+    # Define paths
     paths = RunPaths(f"SMOKE_TEST_{cfg.model_name}", cfg.dataset_name)
-    
+
+    # Setup Logger
     Logger.setup(
         name=paths.project_id,
         log_dir=paths.logs
     )
     run_logger = logging.getLogger(paths.project_id)
-    device = torch.device("cpu") # Force CPU for universal smoke test compatibility
+    
+    run_logger.info("\n" + "="*60)
+    run_logger.info("INITIALIZING SMOKE TEST".center(60))
+    run_logger.info("="*60 + "\n")
+
+    # Initialize Seed
+    set_seed(cfg.seed)
+    
+    device = torch.device("cpu")
     
     run_logger.info("Starting Smoke Test: Environment verified.")
 
     # 3. Data Loading and Mocking
-    # Load the dataset and truncate it using replace() for frozen dataclass support
     data = load_medmnist(ds_meta)
     
     run_logger.info("Mocking data subsets for rapid testing...")
@@ -117,7 +127,7 @@ def run_smoke_test() -> None:
 
     # 6. Final Evaluation & Visualization Verification
     run_logger.info("Running final evaluation and reporting...")
-    model.load_state_dict(torch.load(best_path, map_location=device))
+    model.load_state_dict(torch.load(best_path, map_location=device, weights_only=True))
     
     aug_info = get_augmentations_transforms(cfg)
 
@@ -137,7 +147,7 @@ def run_smoke_test() -> None:
     )
 
     run_logger.info(f"SMOKE TEST PASSED: Acc {test_acc:.4f} | F1 {macro_f1:.4f}")
-    print(f"\nSmoke test completed. Check outputs in: {paths.root}\n")
+    run_logger.info(f"\nSmoke test completed. Check outputs in: {paths.root}\n")
 
 
 # =========================================================================== #
@@ -148,6 +158,6 @@ if __name__ == "__main__":
     try:
         run_smoke_test()
     except Exception as e:
-        # Using a generic logger check to handle potential setup failures
+        # Usiamo il logging di base come fallback se run_logger non fosse inizializzato
         logging.error(f"SMOKE TEST FAILED: {str(e)}", exc_info=True)
         raise

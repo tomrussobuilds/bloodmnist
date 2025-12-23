@@ -114,7 +114,7 @@ def kill_duplicate_processes(logger: logging.Logger, script_name: Optional[str] 
                 killed += 1
                 logger.warning(f"Terminated duplicate process: PID {pinfo['pid']}")
         
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             continue
     
     if killed:

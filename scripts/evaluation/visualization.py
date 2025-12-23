@@ -154,7 +154,11 @@ def plot_training_curves(
 
     if save_npz:
         npz_path = out_path.with_suffix('.npz')
-        np.savez(npz_path, train_losses=train_losses, val_accuracies=val_accuracies)
+        np.savez(
+            npz_path,
+            train_losses=train_losses,
+            val_accuracies=val_accuracies
+        )
         logger.info(f"Raw training data saved → {npz_path}")
 
     plt.close()
@@ -183,7 +187,7 @@ def plot_confusion_matrix(
         labels=np.arange(len(classes)),
         normalize='true',
     )
-    
+
     cm = np.nan_to_num(cm)
 
     disp = ConfusionMatrixDisplay(
@@ -192,8 +196,13 @@ def plot_confusion_matrix(
     )
 
     fig, ax = plt.subplots(figsize=(11, 9))
-    # Using a clean color map for the matrix
-    disp.plot(ax=ax, cmap="Blues", xticks_rotation=45, colorbar=False, values_format='.3f')
+    disp.plot(
+        ax=ax,
+        cmap="Blues",
+        xticks_rotation=45,
+        colorbar=False,
+        values_format='.3f'
+    )
 
     model_name = cfg.model_name if cfg else "Model"
     plt.title(f"Confusion Matrix – {model_name}", fontsize=14, pad=20)

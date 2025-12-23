@@ -1,12 +1,18 @@
 """
-Model Definition Module
+Model Orchestration and Architecture Definition Module
 
-This module defines the architecture of the deep learning model used for the
-BloodMNIST classification task. It leverages a pre-trained ResNet-18 model from
-torchvision and adapts it specifically to handle the 28x28 pixel input size of
-the BloodMNIST dataset. The primary modifications include adjusting the initial
-convolutional layer and removing the first pooling layer to preserve spatial
-resolution, as well as replacing the final classification head.
+This module provides a factory for deep learning architectures adapted for 
+the MedMNIST ecosystem. It specializes in fine-tuning standard Torchvision 
+models to handle low-resolution biomedical images (28x28 pixels).
+
+Key Architectural Adaptations:
+1. Spatial Preservation: Replaces the standard ResNet 7x7 (stride 2) entry 
+   convolution with a 3x3 (stride 1) layer and removes initial pooling. This 
+   prevents excessive information loss in the early stages of feature extraction.
+2. Cross-Modal Weight Transfer: Implements bicubic interpolation of pre-trained 
+   ImageNet weights and handles channel-depth conversion (e.g., RGB to Grayscale).
+3. Dynamic Head Reconfiguration: Automatically adjusts the final linear 
+   layers based on the target dataset's class cardinality.
 """
 # =========================================================================== #
 #                                Standard Imports

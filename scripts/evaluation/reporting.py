@@ -58,7 +58,6 @@ class TrainingReport:
 
     def save(self, path: Path) -> None:
         """Saves the report DataFrame to an Excel file with professional formatting."""
-        # The parent directory is handled by RunPaths, but we keep this for safety
         path.parent.mkdir(parents=True, exist_ok=True)
 
         df = self.to_vertical_df()
@@ -153,7 +152,6 @@ def save_report_as_yaml(
         cleaned_data = clean_config(config_data)
         
         with open(yaml_path, 'w', encoding='utf-8') as yaml_file:
-            # default_flow_style=False rende lo YAML leggibile riga per riga
             yaml.dump(cleaned_data, yaml_file, default_flow_style=False, sort_keys=False)
 
         logger.info(f"Configuration saved to YAML at → {yaml_path}")
