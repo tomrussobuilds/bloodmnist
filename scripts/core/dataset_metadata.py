@@ -21,38 +21,49 @@ from .constants import DATASET_DIR
 #                                DATASET METADATA                             #
 # =========================================================================== #
 
-class DatasetMetadata(NamedTuple):
-    """
-    Immutable container for dataset-specific metadata.
 
-    Attributes:
-        name (str): Lowercase unique identifier (e.g., 'bloodmnist').
-        display_name (str): Human-readable name for plots and reports.
-        md5_checksum (str): MD5 hash to verify file integrity.
-        url (str): Direct download link to the .npz file.
-        classes (List[str]): Ordered list of class labels.
-    """
+class DatasetMetadata(NamedTuple):
+    """Metadata container for a MedMNIST dataset."""
     name: str
     display_name: str
     md5_checksum: str
     url: str
     path: Path
     classes: List[str]
-    mean: tuple 
+    mean: tuple
     std: tuple
     in_channels: int
 
-    @property
-    def num_classes(self) -> int:
-        """Infers the number of classes."""
-        return len(self.classes)
-
+# =========================================================================== #
+#                                DATASET REGISTRY                             #
+# =========================================================================== #
 DATASET_REGISTRY: Final[Dict[str, DatasetMetadata]] = {
+    "pathmnist": DatasetMetadata(
+        name="pathmnist",
+        display_name="PathMNIST",
+        md5_checksum="a8b06965200029087d5bd730944a56c1",
+        url="https://zenodo.org/records/5208230/files/pathmnist.npz",
+        path=DATASET_DIR / "pathmnist.npz",
+        classes=[
+            "adipose",
+            "background",
+            "debris",
+            "lymphocytes",
+            "mucus",
+            "smooth muscle",
+            "normal colon mucosa",
+            "cancer-associated stroma",
+            "colorectal adenocarcinoma epithelium"
+        ],
+        mean=(0.485, 0.456, 0.406),
+        std=(0.229, 0.224, 0.225),
+        in_channels=3,
+    ),
     "bloodmnist": DatasetMetadata(
         name="bloodmnist",
         display_name="BloodMNIST",
         md5_checksum="7053d0359d879ad8a5505303e11de1dc",
-        url="https://zenodo.org/record/5208230/files/bloodmnist.npz?download=1",
+        url="https://zenodo.org/records/5208230/files/bloodmnist.npz",
         path=DATASET_DIR / "bloodmnist.npz",
         classes=[
             "basophil",
@@ -68,7 +79,6 @@ DATASET_REGISTRY: Final[Dict[str, DatasetMetadata]] = {
         std=(0.2023, 0.1994, 0.2010),
         in_channels=3,
     ),
-    
     "dermamnist": DatasetMetadata(
         name="dermamnist",
         display_name="DermaMNIST",
@@ -87,5 +97,131 @@ DATASET_REGISTRY: Final[Dict[str, DatasetMetadata]] = {
         mean=(0.485, 0.456, 0.406),
         std=(0.229, 0.224, 0.225),
         in_channels=3,
+    ),
+    "octmnist": DatasetMetadata(
+        name="octmnist",
+        display_name="OCTMNIST",
+        md5_checksum="c68d92d5b585d8d81f7112f81e2d0842",
+        url="https://zenodo.org/records/5208230/files/octmnist.npz",
+        path=DATASET_DIR / "octmnist.npz",
+        classes=[
+            "choroidal neovascularization",
+            "diabetic macular edema",
+            "drusen",
+            "normal"
+        ],
+        mean=(0.5, 0.5, 0.5), # Uniformato a 3 per Pydantic
+        std=(0.5, 0.5, 0.5),
+        in_channels=1,
+    ),
+    "pneumoniamnist": DatasetMetadata(
+        name="pneumoniamnist",
+        display_name="PneumoniaMNIST",
+        md5_checksum="28209eda62fecd6e6a2d98b1501bb15f",
+        url="https://zenodo.org/records/5208230/files/pneumoniamnist.npz",
+        path=DATASET_DIR / "pneumoniamnist.npz",
+        classes=[
+            "normal",
+            "pneumonia"
+        ],
+        mean=(0.5, 0.5, 0.5),
+        std=(0.5, 0.5, 0.5),
+        in_channels=1,
+    ),
+    "retinamnist": DatasetMetadata(
+        name="retinamnist",
+        display_name="RetinaMNIST",
+        md5_checksum="bd4c0672f1bba3e3a89f0e4e876791e4", # MD5 AGGIORNATO
+        url="https://zenodo.org/records/5208230/files/retinamnist.npz",
+        path=DATASET_DIR / "retinamnist.npz",
+        classes=[
+            "No DR",
+            "Mild DR",
+            "Moderate DR",
+            "Severe DR",
+            "Proliferative DR"
+        ],
+        mean=(0.485, 0.456, 0.406),
+        std=(0.229, 0.224, 0.225),
+        in_channels=3,
+    ),
+    "breastmnist": DatasetMetadata(
+        name="breastmnist",
+        display_name="BreastMNIST",
+        md5_checksum="750601b1f35ba3300ea97c75c52ff8f6",
+        url="https://zenodo.org/records/5208230/files/breastmnist.npz",
+        path=DATASET_DIR / "breastmnist.npz",
+        classes=[
+            "malignant",
+            "benign"
+        ],
+        mean=(0.5, 0.5, 0.5),
+        std=(0.5, 0.5, 0.5),
+        in_channels=1,
+    ),
+    "organamnist": DatasetMetadata(
+        name="organamnist",
+        display_name="OrganAMNIST",
+        md5_checksum="866b832ed4eeba67bfb9edee1d5544e6",
+        url="https://zenodo.org/records/5208230/files/organamnist.npz",
+        path=DATASET_DIR / "organamnist.npz",
+        classes=["bladder",
+                 "femur-left",
+                 "femur-right",
+                 "heart",
+                 "kidney-left",
+                 "kidney-right",
+                 "liver",
+                 "lung-left",
+                 "lung-right",
+                 "pancreas",
+                 "spleen"
+                ],
+        mean=(0.5, 0.5, 0.5),
+        std=(0.5, 0.5, 0.5),
+        in_channels=1,
+    ),
+    "tissuemnist": DatasetMetadata(
+        name="tissuemnist",
+        display_name="TissueMNIST",
+        md5_checksum="ebe78ee8b05294063de985d821c1c34b",
+        url="https://zenodo.org/records/5208230/files/tissuemnist.npz",
+        path=DATASET_DIR / "tissuemnist.npz",
+        classes=[
+            "Collecting Duct",
+            "Distal Tubule",
+            "Glomerulus",
+            "Medulla",
+            "Proximal Tubule",
+            "Capsule",
+            "Large Vessel",
+            "Small Vessel"
+        ],
+        mean=(0.5, 0.5, 0.5),
+        std=(0.5, 0.5, 0.5),
+        in_channels=1,
+    ),
+    "organcmnist": DatasetMetadata(
+        name="organcmnist",
+        display_name="OrganCMNIST",
+        md5_checksum="0afa5834fb105f7705a7d93372119a21",
+        url="https://zenodo.org/records/5208230/files/organcmnist.npz",
+        path=DATASET_DIR / "organcmnist.npz",
+        classes=[
+            "bladder",
+            "femur-left",
+            "femur-right",
+            "heart",
+            "kidney-left",
+            "kidney-right",
+            "liver",
+            "lung-left",
+            "lung-right",
+            "pancreas",
+            "spleen"
+        ],
+        mean=(0.5, 0.5, 0.5),
+        std=(0.5, 0.5, 0.5),
+        in_channels=1,
     ),
 }

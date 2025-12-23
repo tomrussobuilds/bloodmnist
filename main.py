@@ -56,43 +56,18 @@ def main() -> None:
     
     # 1. Configuration Setup
     args = parse_args()
-
-    dataset_key = args.dataset.lower()
-    if dataset_key not in DATASET_REGISTRY:
-        raise ValueError(f"Dataset '{args.dataset}' is not recognized. "
-                         f"Available datasets: {list(DATASET_REGISTRY.keys())}")
-    
-    ds_meta = DATASET_REGISTRY[dataset_key]
-
-    cfg = Config(
-        model_name=args.model_name,
-        dataset_name=ds_meta.name,
-        seed=args.seed,
-        batch_size=args.batch_size,
-        learning_rate=args.lr,
-        momentum=args.momentum,
-        weight_decay=args.weight_decay,
-        epochs=args.epochs,
-        patience=args.patience,
-        mixup_alpha=args.mixup_alpha,
-        use_tta=args.use_tta,
-        hflip=args.hflip,
-        rotation_angle=args.rotation_angle,
-        jitter_val=args.jitter_val,
-        num_classes=ds_meta.num_classes,
-        mean=ds_meta.mean,
-        std=ds_meta.std,
-        normalization_info=f"Mean={ds_meta.mean}, Std={ds_meta.std}",
-    )
+    # Initialize configuration from command-line arguments
+    cfg = Config.from_args(args)
     
     # Initialize Seed
     set_seed(cfg.seed)
 
-    # 2. Environment Initialization
-    lock_path = Path("/tmp/bloodmnist_training.lock")
-    
     # Setup base project structure
     setup_static_directories()
+
+    # 2. Environment Initialization
+    lock_path = Path("/tmp/bloodmnist_training.lock")
+
     
     # Initialize dynamic paths for the current run
     paths = RunPaths(cfg.model_name, cfg.dataset_name)
@@ -120,7 +95,7 @@ def main() -> None:
 
     # Retrieve dataset metadata from registry
     ds_meta = DATASET_REGISTRY[cfg.dataset_name.lower()]
-    run_logger.info(f"Dataset selected: {cfg.dataset_name} with {ds_meta.num_classes} classes.")
+    run_logger.info(f"Dataset selected: {cfg.dataset_name} with {cfg.num_classes} classes.")
 
     # 3. Data Loading and Preparation
     data = load_medmnist(ds_meta)

@@ -73,6 +73,42 @@ class Config(BaseModel):
     mean: tuple[float, float, float] = (0.5, 0.5, 0.5)
     std: tuple[float, float, float] = (0.5, 0.5, 0.5)
 
+    @classmethod
+    def from_args(cls, args: argparse.Namespace):
+        """
+        Factory method to create a Config instance from CLI arguments
+        and the central DATASET_REGISTRY.
+        """
+        from .dataset_metadata import DATASET_REGISTRY
+
+        dataset_key = args.dataset.lower()
+        if dataset_key not in DATASET_REGISTRY:
+            raise ValueError(f"Dataset '{args.dataset}' not found in DATASET_REGISTRY.")
+        
+        ds_meta = DATASET_REGISTRY[dataset_key]
+        
+        return cls(
+            model_name=args.model_name,
+            dataset_name=ds_meta.name,
+            in_channels=ds_meta.in_channels,
+            seed=args.seed,
+            batch_size=args.batch_size,
+            learning_rate=args.lr,
+            momentum=args.momentum,
+            weight_decay=args.weight_decay,
+            epochs=args.epochs,
+            patience=args.patience,
+            mixup_alpha=args.mixup_alpha,
+            use_tta=args.use_tta,
+            hflip=args.hflip,
+            rotation_angle=args.rotation_angle,
+            jitter_val=args.jitter_val,
+            num_classes=len(ds_meta.classes),
+            mean=ds_meta.mean,
+            std=ds_meta.std,
+            normalization_info=f"Mean={ds_meta.mean}, Std={ds_meta.std}",
+        )
+
 # =========================================================================== #
 #                                ARGUMENT PARSING
 # =========================================================================== #
@@ -88,7 +124,7 @@ def parse_args() -> argparse.Namespace:
 
     parser = argparse.ArgumentParser(
         description="MedMNIST training pipeline based on adapted ResNet-18.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter # Aggiunge i default automaticamente nell'help
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     
     default_cfg = Config()
