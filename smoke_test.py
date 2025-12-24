@@ -3,11 +3,13 @@ Smoke Test Module for MedMNIST Pipeline
 
 This script performs a rapid, end-to-end execution of the training and 
 evaluation pipeline. It uses a minimal subset of data and a single epoch 
-to verify:
-1. Model initialization and forward/backward passes.
-2. Checkpoint saving and loading.
-3. Visualization utility compatibility (specifically training curves and matrices).
-4. Reporting and directory structure integrity.
+to verify the 6 core pillars of the system:
+1. Model initialization and forward/backward passes (ResNet-18 Adaptation).
+2. Checkpoint saving and loading (Atomic Weight Persistence).
+3. Visualization utility compatibility (Training curves and Confusion Matrices).
+4. Reporting and directory structure integrity (Excel & Path Orchestration).
+5. Data Flow integrity (Torchvision V2 Transforms & RGB/Gray handling).
+6. System Safeguards (Kernel-level locking and Hardware abstraction).
 """
 
 # =========================================================================== #

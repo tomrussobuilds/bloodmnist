@@ -1,11 +1,13 @@
 """
 Health Check and Integrity Module
 
-This script iterates through all registered MedMNIST datasets to:
-1. Initialize the environment and security locks via RootOrchestrator.
-2. Download and verify MD5 checksums for each .npz file (where applicable).
-3. Validate internal keys and data consistency.
-4. Generate visual samples to confirm correct mapping of labels/classes.
+This script performs a global integrity scan across all registered MedMNIST 
+datasets by executing a 5-step verification protocol for each:
+1. Raw Data Access: Verification of .npz file presence and key-level accessibility.
+2. Metadata Validation: Consistency check between tensor shapes and registry classes.
+3. DataLoader Compatibility: Verification of temporary loader creation and sampling.
+4. Config Validation: Pydantic-driven check for dataset-specific parameters.
+5. Visual Confirmation: Generation of sample grids to verify label-image mapping.
 """
 
 # =========================================================================== #
