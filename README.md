@@ -44,48 +44,16 @@ This repository provides a highly reproducible, robust training framework for th
 # 📊 Experiment Artifacts & Reporting
 
 Every run is fully documented through a suite of automatically generated artifacts. This ensures total traceability and rapid qualitative assessment.
-1. Qualitative Results (Sample Predictions)
 
-The pipeline generates a high-resolution grid of test samples with their corresponding predictions. Correct classifications are marked in green, while errors are highlighted in red to facilitate error analysis.
+* **Qualitative Results**: High-resolution grids with correct/incorrect label highlighting.
+* **Quantitative Performance**: Comprehensive `.xlsx` reports (Single Source of Truth) containing epoch logs and class-wise metrics.
+* **Traceability**: Every run mirrors its exact Pydantic configuration state.
 
-2. Quantitative Performance (Automated Excel)
+> [!IMPORTANT]
+> ### 📂 [Explore All Experiment Artifacts & Samples](./docs/media)
+> Click the link above to view sample Excel reports, YAML configs, and full-resolution diagnostic plots.
 
-Beyond console logs, the orchestrator exports a comprehensive .xlsx report. This is the Single Source of Truth for each experiment, containing:
-
-  - Epoch-by-epoch logs: Loss, Accuracy, and Learning Rate curves.
-
-  - Class-wise metrics: Precision, Recall, and F1-score for every medical category.
-
-  - System Telemetry: Hardware used, total training time, and library versions.
-
-3. Traceability & Reproducibility (YAML Config)
-
-To ensure 100% bit-perfect replication, a config.yaml is mirrored in the run folder. This file captures the exact state of the Pydantic configuration at the moment of execution.
-
-<details>
-<summary><b>Click to expand example config.yaml</b></summary>
-
-```yaml
-# Actual artifact generated in outputs/config.yaml
-system:
-  device: cpu
-  data_dir: "~/med_mnist/dataset"
-  output_dir: "~/med_mnist/outputs"
-  save_model: true
-
-training:
-  seed: 42
-  batch_size: 128
-  epochs: 60
-  learning_rate: 0.008
-  mixup_alpha: 0.002
-  use_tta: true
-
-dataset:
-  dataset_name: "bloodmnist"
-  in_channels: 3
-  num_classes: 8
-```
+---
 
 ### Visual Diagnostics
 
@@ -104,8 +72,8 @@ dataset:
 
 ### Sample Predictions
 
-<p align="center">
-  <img src="docs/media/sample_predictions.png" width="800">
+<p>
+<img src="docs/media/sample_predictions.png" width="500">
 </p>
 
 ## 🚀 Getting Started
