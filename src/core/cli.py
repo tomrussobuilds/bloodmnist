@@ -41,6 +41,22 @@ def parse_args() -> argparse.Namespace:
     # We use a default Config instance to access the default values defined in sub-configs
     default_cfg = Config()
 
+    # Group: Global Strategy
+    strat_group = parser.add_argument_group("Global Strategy")
+
+    strat_group.add_argument(
+        '--config', 
+        type=str, 
+        default=None, 
+        help="Path to a YAML configuration file. If provided, all other CLI arguments are ignored."
+    )
+    strat_group.add_argument(
+        '--project_name',
+        type=str,
+        default=default_cfg.system.project_name,
+        help="Logical name for the experiment suite (used for logging and locks)."
+    )
+
     # Group: System & Hardware
     sys_group = parser.add_argument_group("System & Hardware")
     
@@ -91,13 +107,7 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Path to a .pth checkpoint to resume training or run evaluation."
     )
-    path_group.add_argument(
-        '--project_name',
-        type=str,
-        default=default_cfg.system.project_name,
-        help="Logical name for the experiment suite."
-    )
-    
+
     # Group: Training Hyperparameters
     train_group = parser.add_argument_group("Training Hyperparameters")
     

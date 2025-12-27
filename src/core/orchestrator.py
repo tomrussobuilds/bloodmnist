@@ -59,6 +59,7 @@ class RootOrchestrator:
         self.cfg = cfg
         self.paths = None
         self.run_logger = None
+        self._device_cache = None
     
     def __enter__(self) -> "RootOrchestrator":
         """
@@ -139,7 +140,7 @@ class RootOrchestrator:
         
         # 7. Metadata preservation: Save validated config as SSOT reference
         save_config_as_yaml(
-            config=self.cfg,
+            data=self.cfg.model_dump(mode='json'),
             yaml_path=self.paths.get_config_path()
         )
         
@@ -165,13 +166,16 @@ class RootOrchestrator:
 
     def get_device(self) -> torch.device:
         """
-        Converts the configuration device string into a live torch.device.
-
+        Resolves and caches the optimal computation device based on configuration.
+        
         Returns:
-            torch.device: The active computing device (CPU/CUDA/MPS).
+            torch.device: The PyTorch device object for model execution.
         """
-        return to_device_obj(self.cfg.system.device)
-    
+        if self._device_cache is None:
+            self._device_cache = to_device_obj(
+                device_str=self.cfg.system.device
+            )
+        return self._device_cache
 
     def load_weights(self, model: torch.nn.Module, path: Path) -> None:
         """

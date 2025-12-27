@@ -36,6 +36,7 @@ from pydantic import (
 # =========================================================================== #
 from .system import detect_best_device, get_num_workers
 from .paths import DATASET_DIR, OUTPUTS_ROOT
+from .io import load_config_from_yaml
 
 # =========================================================================== #
 #                                SUB-CONFIGURATIONS                           #
@@ -250,6 +251,24 @@ class Config(BaseModel):
     def check_cpu_count(cls, v: int) -> int:
         cpu_count = os.cpu_count() or 1
         return min(v, cpu_count)
+    
+    @classmethod
+    def from_yaml(cls, yaml_path: Path) -> "Config":
+        """
+        Factory method to create a validated Config instance from a YAML file.
+        
+        This method loads the YAML file, parses it into a dictionary, and then 
+        constructs the Config object, ensuring all validations and defaults 
+        are applied.
+
+        Args:
+            yaml_path (Path): Path to the YAML configuration file.
+
+        Returns:
+            Config: The validated configuration object.
+        """
+        raw_data = load_config_from_yaml(yaml_path)
+        return cls(**raw_data)        
             
     @classmethod
     def from_args(cls, args: argparse.Namespace):
@@ -261,6 +280,9 @@ class Config(BaseModel):
         early-stage logic checks (e.g., RGB promotion for grayscale datasets) 
         before instantiating the immutable configuration object.
         """
+        if hasattr(args, 'config') and args.config:
+            return cls.from_yaml(Path(args.config))
+        # -------------------------------------------------------------------------- #
         from .metadata import DATASET_REGISTRY
 
         # 1. Dataset metadata lookup
@@ -273,15 +295,11 @@ class Config(BaseModel):
         if hasattr(args, 'force_rgb') and args.force_rgb is not None:
             should_force_rgb = args.force_rgb
         else:
-            # Auto-promote to RGB if dataset is grayscale but model is pretrained (ImageNet expects 3ch)
             should_force_rgb = (ds_meta.in_channels == 1) and args.pretrained
 
         # 3. Hardware-aware logic: Resolve device and validate AMP support
-        # Device resolution 'auto' -> 'cuda'/'mps'/'cpu' is handled by SystemConfig validator
         final_device_str = args.device if hasattr(args, 'device') else "auto"
         
-        # Only enable AMP if CUDA is requested/available (AMP is primarily for NVIDIA GPUs)
-        # Note: True hardware availability is re-checked inside SystemConfig.resolve_device
         actual_use_amp = args.use_amp and ("cuda" in final_device_str.lower() or final_device_str == "auto")
 
         # 4. Dataset limits
