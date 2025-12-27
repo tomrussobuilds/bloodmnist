@@ -12,18 +12,13 @@ import logging
 import yaml
 import hashlib
 from pathlib import Path
-from typing import Any, Dict, TYPE_CHECKING
+from typing import Any, Dict
 
 # =========================================================================== #
 #                                Third-Party Imports                          #
 # =========================================================================== #
 import numpy as np
 
-# =========================================================================== #
-#                                Internal Imports                             #
-# =========================================================================== #
-if TYPE_CHECKING:
-    from .config import Config
 
 # =========================================================================== #
 #                                  I/O UTILITIES                              #
@@ -31,16 +26,11 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("medmnist_pipeline")
 
-def save_config_as_yaml(config: "Config", yaml_path: Path) -> Path:
+def save_config_as_yaml(data: Dict[str, Any], yaml_path: Path) -> Path:
     """
-    Serializes a Pydantic configuration object to a clean YAML file.
-
-    Uses Pydantic's json-mode dumping to ensure complex types (Paths, Enums, 
-    Tuples) are converted to standard primitives, avoiding Python-specific 
-    tags in the output.
-
+    Serializes a configuration dictionary to a YAML file.
     Args:
-        config (Config): The validated configuration object.
+        data (Dict[str, Any]): The configuration data to serialize.
         yaml_path (Path): Destination path for the YAML file.
 
     Returns:
@@ -49,12 +39,9 @@ def save_config_as_yaml(config: "Config", yaml_path: Path) -> Path:
     try:
         yaml_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Converts to standard types: Path -> str, Tuple -> list
-        cleaned_data = config.model_dump(mode='json')
-        
         with open(yaml_path, 'w', encoding='utf-8') as f:
             yaml.dump(
-                cleaned_data, 
+                data,
                 f, 
                 default_flow_style=False, 
                 sort_keys=False,
