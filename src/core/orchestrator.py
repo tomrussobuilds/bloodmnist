@@ -37,16 +37,27 @@ class RootOrchestrator:
     """
     High-level lifecycle controller for the experiment environment.
     
-    The RootOrchestrator serves as the Single Source of Truth (SSOT) for the 
-    transition between static configuration (Pydantic models) and the live 
-    execution state. It enforces system-level constraints, manages directory 
-    atomicity, and synchronizes telemetry (logging) across the pipeline.
+    The RootOrchestrator acts as the central state machine for the pipeline. It
+    manages the transition from static configuration (Pydantic models) to a 
+    live execution environment, ensuring atomicity in directory creation, 
+    hardware synchronization, and telemetry initialization.
 
-    Responsibilities:
-        - Enforcement of execution exclusivity (Kernel-level locking).
-        - Management of run-specific filesystem hierarchies.
-        - Global RNG synchronization for bit-perfect reproducibility.
-        - Hardware abstraction and stateful weight restoration.
+    By leveraging the Context Manager pattern, it guarantees that system-level 
+    resources (like file locks) are acquired before execution and safely 
+    released upon termination, even in the event of unhandled exceptions.
+
+    Workflow Sequence:
+        1. Library & RNG Seeding (Reproducibility)
+        2. Filesystem Layout (RunPaths generation)
+        3. Telemetry setup (Logger hot-swap)
+        4. Resource Guarding (Process locking)
+        5. Config Persistence (Metadata tracking)
+
+    Attributes:
+        cfg (Config): The immutable global configuration manifest.
+        paths (Optional[RunPaths]): Orchestrator for session-specific directories.
+        run_logger (Optional[logging.Logger]): Active logger instance for the run.
+        _device_cache (Optional[torch.device]): Memoized compute device.
     """
     
     def __init__(self, cfg):
@@ -190,47 +201,55 @@ class RootOrchestrator:
             f"Checkpoint weights successfully restored from: {path.name}"
         )
 
-
     def _log_initial_status(self) -> None:
         """
         Logs the verified baseline environment configuration upon initialization.
-        Organizzato per sezioni: Hardware, Dataset, Training.
         """
-        device_obj = self.get_device()
-        device_str_requested = self.cfg.system.device
-        
         self.run_logger.info(f"--- Environment Status Report ---")
         
-        # 1. Hardware & System
-        self.run_logger.info(f"Execution Device: {str(device_obj).upper()}")
-        if device_str_requested != "cpu" and device_obj.type == "cpu":
-            self.run_logger.warning(f"HARDWARE FALLBACK: Requested {device_str_requested} is unavailable.")
-        
-        if device_obj.type == 'cuda':
-            gpu_name = get_cuda_name()
-            if gpu_name: self.run_logger.info(f"GPU Model: {gpu_name}")
-        elif device_obj.type == 'cpu':
-            opt_threads = apply_cpu_threads(self.cfg.num_workers)
-            self.run_logger.info(f"CPU Threads: {opt_threads} (Workers: {self.cfg.num_workers})")
-
-        # 2. Dataset & Domain - High Fidelity Logic
-        if self.cfg.dataset.effective_in_channels == 3:
-            mode_str = "NATIVE-RGB" if self.cfg.dataset.in_channels == 3 else "RGB-PROMOTED"
-        else:
-            mode_str = "NATIVE-GRAY"
-
-        self.run_logger.info(f"Dataset: {self.cfg.dataset.dataset_name} ({self.cfg.dataset.img_size}px)")
-        self.run_logger.info(f"Data Mode: {mode_str}")
-        self.run_logger.info(f"Anatomical Constraints: {self.cfg.dataset.is_anatomical}")
-        self.run_logger.info(f"Texture-Based Logic: {self.cfg.dataset.is_texture_based}")
-
-        # 3. Training Strategy
-        tta_status = determine_tta_mode(self.cfg.training.use_tta, device_obj.type)
-        self.run_logger.info(f"TTA Status: {tta_status}")
-        self.run_logger.info(
-            f"Hyperparameters: Epochs={self.cfg.training.epochs}, "
-            f"Batch={self.cfg.training.batch_size}, LR={self.cfg.training.learning_rate:.4f}"
-        )
+        self._log_hardware_section()
+        self._log_dataset_section()
+        self._log_strategy_section()
         
         self.run_logger.info(f"Run Directory: {self.paths.root}")
         self.run_logger.info(f"---------------------------------")
+
+    def _log_hardware_section(self):
+        device_obj = self.get_device()
+        device_str_requested = self.cfg.system.device
+        
+        self.run_logger.info(f"[HARDWARE]")
+        self.run_logger.info(f"  Device: {str(device_obj).upper()}")
+        
+        if device_str_requested != "cpu" and device_obj.type == "cpu":
+            self.run_logger.warning(f"  (!) FALLBACK: Requested {device_str_requested} is unavailable.")
+        
+        if device_obj.type == 'cuda':
+            gpu_name = get_cuda_name()
+            if gpu_name: self.run_logger.info(f"  GPU: {gpu_name}")
+        elif device_obj.type == 'cpu':
+            opt_threads = apply_cpu_threads(self.cfg.num_workers)
+            self.run_logger.info(f"  Threads: {opt_threads} (Workers: {self.cfg.num_workers})")
+
+    def _log_dataset_section(self):
+        ds = self.cfg.dataset
+        # Logica di determinazione del modo estratta per chiarezza
+        if ds.effective_in_channels == 3:
+            mode_str = "NATIVE-RGB" if ds.in_channels == 3 else "RGB-PROMOTED"
+        else:
+            mode_str = "NATIVE-GRAY"
+
+        self.run_logger.info(f"[DATASET]")
+        self.run_logger.info(f"  Name: {ds.dataset_name} ({ds.img_size}px)")
+        self.run_logger.info(f"  Mode: {mode_str}")
+        self.run_logger.info(f"  Anatomical: {ds.is_anatomical} | Texture: {ds.is_texture_based}")
+
+    def _log_strategy_section(self):
+        train = self.cfg.training
+        tta_status = determine_tta_mode(train.use_tta, self.get_device().type)
+        
+        self.run_logger.info(f"[STRATEGY]")
+        self.run_logger.info(f"  TTA: {tta_status}")
+        self.run_logger.info(
+            f"  Params: Epochs={train.epochs}, Batch={train.batch_size}, LR={train.learning_rate:.4f}"
+        )

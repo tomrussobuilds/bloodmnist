@@ -358,10 +358,22 @@ class Config(BaseModel):
 
         def resolve_dataset_metadata():
             """Retrieve static metadata for the dataset from the central registry."""
-            key = args.dataset.lower()
+            dataset_raw = getattr(args, 'dataset', "BloodMNIST")
+            key = dataset_raw.lower()
             if key not in DATASET_REGISTRY:
-                raise ValueError(f"Dataset '{args.dataset}' not supported in DATASET_REGISTRY.")
+                raise ValueError(f"Dataset '{dataset_raw}' not supported in DATASET_REGISTRY.")
             return DATASET_REGISTRY[key]
+
+        def build_system_subconfig():
+            """Map infrastructure and hardware settings."""
+            return SystemConfig(
+                device=getattr(args, 'device', "auto"),
+                data_dir=Path(getattr(args, 'data_dir', "./data")),
+                output_dir=Path(getattr(args, 'output_dir', "./outputs")),
+                save_model=getattr(args, 'save_model', True),
+                log_interval=getattr(args, 'log_interval', 10),
+                project_name=getattr(args, 'project_name', "medmnist_experiment")
+            )
 
         def build_training_subconfig():
             """Map training parameters ensuring defaults are present."""
@@ -395,35 +407,19 @@ class Config(BaseModel):
                 tta_blur_sigma=getattr(args, 'tta_blur_sigma', 0.4)
             )
 
-        # --- LOGIC EXECUTION ---
+        def build_dataset_subconfig():
+            """Map dataset-specific metadata and resolve conditional RGB/sampling logic."""
+            ds_meta = resolve_dataset_metadata()
+            
+            # Determine RGB logic: User override or automatic for pretrained grayscale
+            force_rgb_arg = getattr(args, 'force_rgb', None)
+            should_force_rgb = force_rgb_arg if force_rgb_arg is not None else \
+                              (ds_meta.in_channels == 1 and getattr(args, 'pretrained', False))
+            
+            # Determine final max_samples value
+            final_max_samples = args.max_samples if (getattr(args, 'max_samples', 0) > 0) else None
 
-        ds_meta = resolve_dataset_metadata()
-        
-        # Determine RGB logic: User override or automatic for pretrained grayscale
-        force_rgb_arg = getattr(args, 'force_rgb', None)
-        should_force_rgb = force_rgb_arg if force_rgb_arg is not None else \
-                          (ds_meta.in_channels == 1 and getattr(args, 'pretrained', False))
-        
-        # Determine final max_samples value
-        final_max_samples = args.max_samples if (getattr(args, 'max_samples', 0) > 0) else None
-
-        # --- CONFIGURATION BUILDING ---
-
-        return cls(
-            model_name=getattr(args, 'model_name', "ResNet-18 Adapted"),
-            pretrained=getattr(args, 'pretrained', True),
-            num_workers=getattr(args, 'num_workers', 4),
-            system=SystemConfig(
-                device=getattr(args, 'device', "auto"),
-                data_dir=Path(getattr(args, 'data_dir', "./data")),
-                output_dir=Path(getattr(args, 'output_dir', "./outputs")),
-                save_model=getattr(args, 'save_model', True),
-                log_interval=getattr(args, 'log_interval', 10),
-                project_name=getattr(args, 'project_name', "medmnist_experiment")
-            ),
-            training=build_training_subconfig(),
-            augmentation=build_augmentation_subconfig(),
-            dataset=DatasetConfig(
+            return DatasetConfig(
                 dataset_name=ds_meta.name,
                 max_samples=final_max_samples,
                 use_weighted_sampler=getattr(args, 'use_weighted_sampler', True),
@@ -436,11 +432,26 @@ class Config(BaseModel):
                 is_texture_based=ds_meta.is_texture_based,
                 force_rgb=should_force_rgb,
                 img_size=getattr(args, 'img_size', 28)
-            ),
-            evaluation=EvaluationConfig(
+            )
+
+        def build_evaluation_subconfig():
+            """Map evaluation and reporting preferences."""
+            return EvaluationConfig(
                 n_samples=getattr(args, 'n_samples', 12),
                 fig_dpi=getattr(args, 'fig_dpi', 200),
                 plot_style=getattr(args, 'plot_style', "seaborn-v0_8-muted"),
                 report_format=getattr(args, 'report_format', "xlsx")
             )
+
+        # --- LOGIC EXECUTION & ASSEMBLY ---
+
+        return cls(
+            model_name=getattr(args, 'model_name', "ResNet-18 Adapted"),
+            pretrained=getattr(args, 'pretrained', True),
+            num_workers=getattr(args, 'num_workers', 4),
+            system=build_system_subconfig(),
+            training=build_training_subconfig(),
+            augmentation=build_augmentation_subconfig(),
+            dataset=build_dataset_subconfig(),
+            evaluation=build_evaluation_subconfig()
         )
