@@ -15,7 +15,6 @@ to verify the 6 core pillars of the system:
 # =========================================================================== #
 #                                Standard Imports                             #
 # =========================================================================== #
-import logging
 import argparse
 
 # =========================================================================== #
@@ -28,15 +27,16 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 # =========================================================================== #
 #                                Internal Imports                             #
 # =========================================================================== #
-from src.core import (
-    Config, RootOrchestrator, DATASET_REGISTRY, parse_args
-)
-from src.data_handler import (
-    load_medmnist, get_dataloaders, get_augmentations_description
-)
-from src.models import get_model
-from src.trainer import ModelTrainer
-from src.evaluation import run_final_evaluation
+from src.core.config import Config
+from src.core.cli import parse_args
+from src.core.metadata import DATASET_REGISTRY
+from src.core.orchestrator import RootOrchestrator
+from src.data_handler.fetcher import load_medmnist
+from src.data_handler.factory import get_dataloaders
+from src.data_handler.transforms import get_augmentations_description
+from src.models.factory import get_model
+from src.trainer.trainer import ModelTrainer
+from src.evaluation.pipeline import run_final_evaluation
 
 # =========================================================================== #
 #                               SMOKE TEST EXECUTION                          #

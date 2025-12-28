@@ -222,7 +222,7 @@ Run the script from the project root. It will default to the fast mode (`num_wor
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
 # 2. Verify System
-python health_check.py
+python -m tools.health_check
 
 # 3. Run Training (Registry handles automated download)
 python main.py --dataset bloodmnist
@@ -243,7 +243,7 @@ The script will automatically:
 Before starting a full training session, it is highly recommended to run the diagnostic smoke test. This ensures that your local environment, PyTorch versions, and visualization libraries are fully compatible:
 
 ```bash
-python smoke_test.py
+python -m tools.smoke_test
 ```
 
 This will run a 1-epoch training on a tiny subset of a MedMNIST dataset and verify the generation of all output files.

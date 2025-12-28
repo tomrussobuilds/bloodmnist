@@ -14,16 +14,16 @@ datasets by executing a 5-step verification protocol for each:
 #                                Standard Imports                             #
 # =========================================================================== #
 from pathlib import Path
+import numpy as np
 
 # =========================================================================== #
 #                                Internal Imports                             #
 # =========================================================================== #
-from src.core import (
-    Config, SystemConfig, DatasetConfig, DATASET_REGISTRY, RootOrchestrator
-)
-from src.data_handler import (
-    show_sample_images, create_temp_loader
-)
+from src.core.config import Config, DatasetConfig, SystemConfig
+from src.core.orchestrator import RootOrchestrator
+from src.core.metadata.medmnist_v2_28x28 import DATASET_REGISTRY
+from src.data_handler.factory import create_temp_loader
+from src.data_handler.data_explorer import show_sample_images
 
 # =========================================================================== #
 #                               HEALTH CHECK LOGIC                            #
@@ -31,24 +31,20 @@ from src.data_handler import (
 
 def health_check() -> None:
     """
-    Performs a global integrity scan across all datasets defined in the registry.
-    Leveerages the RootOrchestrator context manager for lifecycle safeguards.
+    Scans all datasets in the registry using a standardized verification protocol.
     """
     
-    # 1. Minimal Config for Orchestration
-    # We create a base config to satisfy the Orchestrator's requirements
+    # 1. Initialize minimal config for the Orchestrator lifecycle
     base_cfg = Config(
         model_name="HealthCheck-Probe",
         pretrained=True,
         system=SystemConfig(
             output_dir=Path("outputs/health_checks"),
             project_name="HealthCheck"
-            ),
-        training={"seed": 42}
+        )
     )
 
-    # 2. Root Orchestration via Context Manager
-    # This ensures the .lock file is automatically cleared even if a dataset check crashes
+    # 2. Use Orchestrator as Context Manager to handle logs and system locks
     with RootOrchestrator(base_cfg) as orchestrator:
         logger = orchestrator.run_logger
         
@@ -61,16 +57,18 @@ def health_check() -> None:
             logger.info(f"--- Checking Dataset: {ds_meta.display_name} ({key}) ---")
             
             try:
-                # 1. Raw Data Access
-                if not ds_meta.path.exists():
-                    raise FileNotFoundError(f"Dataset file not found at {ds_meta.path}")
-                    
-                raw_data = orchestrator.load_raw_dataset(ds_meta.path)
+                # STEP 1: Raw Data Access
+                target_path = ds_meta.path
+                if not target_path.exists():
+                    raise FileNotFoundError(f"NPZ file missing at: {target_path}")
                 
-                # 2. DataLoader Compatibility
+                # Direct load to bypass potential Orchestrator path mismatches
+                raw_data = np.load(target_path)
+                
+                # STEP 2: DataLoader Compatibility
                 temp_loader = create_temp_loader(raw_data, batch_size=16)
 
-                # 3. Validation of Config & RGB Promotion Logic
+                # STEP 3: Config Validation & Channel Promotion Logic
                 temp_cfg = Config(
                     model_name="HealthCheck-Probe",
                     pretrained=True, 
@@ -79,15 +77,16 @@ def health_check() -> None:
                         in_channels=ds_meta.in_channels,
                         num_classes=len(ds_meta.classes),
                         mean=ds_meta.mean,
-                        std=ds_meta.std
+                        std=ds_meta.std,
+                        force_rgb=(ds_meta.in_channels == 1) # Auto-promote grayscale
                     )
                 )
 
-                # Log effective channel status (Core of our recent fixes)
+                # Log effective input status (the core of our recent fixes)
                 mode_str = "RGB-PROMOTED" if temp_cfg.dataset.force_rgb else "NATIVE"
-                logger.info(f"Mode: {mode_str} | Effective Channels: {temp_cfg.dataset.effective_in_channels}")
+                logger.info(f"Mode: {mode_str} | Target Channels: {temp_cfg.dataset.effective_in_channels}")
 
-                # 4. Visual Confirmation
+                # STEP 4: Visual Confirmation (Saves a sample grid)
                 sample_output_path = base_cfg.system.output_dir / f"samples_{ds_meta.name}.png"
                 show_sample_images(
                     loader=temp_loader,

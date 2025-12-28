@@ -29,7 +29,7 @@ from typing import Annotated, Optional
 # =========================================================================== #
 import torch
 from pydantic import (
-    BaseModel, Field, ConfigDict, field_validator, model_validator
+    BaseModel, Field, ConfigDict, field_validator, model_validator, AfterValidator
     )
 
 # =========================================================================== #
@@ -43,11 +43,21 @@ from .io import load_config_from_yaml
 #                                TYPE ALIASES                                 #
 # =========================================================================== #
 
+def _ensure_dir(v: Path) -> Path:
+    "Ensure paths are absolute and create folders if missing."
+    v.mkdir(parents=True, exist_ok=True)
+    return v.resolve()
+
+ValidatedPath = Annotated[Path, AfterValidator(_ensure_dir)]
 PositiveInt = Annotated[int, Field(gt=0)]
 NonNegativeInt = Annotated[int, Field(ge=0)]
 PositiveFloat = Annotated[float, Field(gt=0)]
 NonNegativeFloat = Annotated[float, Field(ge=0.0)]
 Probability = Annotated[float, Field(ge=0.0, le=1.0)]
+SmoothingValue = Annotated[float, Field(ge=0.0, le=0.3)]
+LearningRate = Annotated[float, Field(gt=1e-7, lt=1.0)]
+Percentage = Annotated[float, Field(gt=0.0, le=1.0)]
+Degrees = Annotated[int, Field(ge=0, le=180)]
 
 # =========================================================================== #
 #                                SUB-CONFIGURATIONS                           #
@@ -59,9 +69,12 @@ class SystemConfig(BaseModel):
         frozen=True,
         extra="forbid"
     )
-    device: str = Field(default_factory=detect_best_device)
-    data_dir: Path = Field(default=DATASET_DIR)
-    output_dir: Path = Field(default=OUTPUTS_ROOT)
+    device: str = Field(
+        default_factory=detect_best_device,
+        description="Computing device (cpu, cuda, mps or auto)."
+    )
+    data_dir: ValidatedPath = Field(default=DATASET_DIR)
+    output_dir: ValidatedPath = Field(default=OUTPUTS_ROOT)
     save_model: bool = True
     log_interval: PositiveInt = Field(default=10)
     project_name: str = "medmnist_experiment"
@@ -70,13 +83,6 @@ class SystemConfig(BaseModel):
     def lock_file_path(self) -> Path:
         """Dynamically generates a cross-platform lock file path."""
         return Path(tempfile.gettempdir()) / f"{self.project_name}.lock"
-
-    @field_validator("data_dir", "output_dir", mode="after")
-    @classmethod
-    def ensure_directories_exist(cls, v: Path) -> Path:
-        "Ensure paths are absolute and create folders if missing."
-        v.mkdir(parents=True, exist_ok=True)
-        return v.resolve()
 
     @field_validator("device")
     @classmethod
@@ -102,15 +108,18 @@ class TrainingConfig(BaseModel):
         extra="forbid"
     )
     
-    seed: int = 42
+    seed: int = Field(
+        default=42,
+        description="Random seed for reproducibility"
+    )
     batch_size: PositiveInt = Field(default=128)
     epochs: PositiveInt = Field(default=60)
     patience: NonNegativeInt = Field(default=15)
     learning_rate: PositiveFloat = Field(default=0.008)
-    min_lr: PositiveFloat = Field(default=1e-6)
+    min_lr: LearningRate = Field(default=1e-6)
     momentum: Probability = Field(default=0.9)
     weight_decay: NonNegativeFloat = Field(default=5e-4)
-    label_smoothing: Annotated[float, Field(default=0.0, ge=0.0, le=0.2)]
+    label_smoothing: SmoothingValue = 0.0
     mixup_alpha: NonNegativeFloat = Field(
         default=0.002,
         description="Mixup interpolation coefficient"
@@ -163,18 +172,31 @@ class DatasetConfig(BaseModel):
     dataset_name: str = "BloodMNIST"
     max_samples: Optional[PositiveInt] = Field(default=20000)
     use_weighted_sampler: bool = True
-    in_channels: PositiveInt = Field(default=3)
-    num_classes: PositiveInt = Field(default=8)
+    in_channels: Annotated[PositiveInt, Field(ge=1, le=3)] = 3
+    num_classes: PositiveInt = Field(
+        default=8,
+        description="Number of target classes in the dataset"
+    )
     img_size: PositiveInt = Field(
         default=28,
         description="Target square resolution for the model input"
-        )
+    )
     force_rgb: bool = Field(
         default=True,
         description="Convert grayscale to 3-channel to enable ImageNet weights"
     )
-    mean: tuple[float, ...] = (0.5, 0.5, 0.5)
-    std: tuple[float, ...] = (0.5, 0.5, 0.5)
+    mean: tuple[float, ...] = Field(
+        default=(0.5, 0.5, 0.5),
+        description="Channel-wise mean for normalization",
+        min_length=1,
+        max_length=3
+    )
+    std: tuple[float, ...] = Field(
+        default=(0.5, 0.5, 0.5),
+        description="Channel-wise std for normalization",
+        min_length=1,
+        max_length=3
+    )
     normalization_info: str = "N/A"
     is_anatomical: bool = True
     is_texture_based: bool = True
@@ -259,7 +281,11 @@ class Config(BaseModel):
                 "Pretrained models require 3-channel input. "
                 "Set force_rgb=True in dataset config."
             )
-        
+        if self.training.min_lr >= self.training.learning_rate:
+            raise ValueError(
+                f"min_lr ({self.training.min_lr}) must be less than "
+                f"learning_rate ({self.training.learning_rate})."
+            )
         return self
 
     @field_validator("num_workers")
@@ -328,7 +354,7 @@ class Config(BaseModel):
             )
 
         def build_augmentation_subconfig():
-            """Mappa i parametri relativi alle data augmentations."""
+            """Map augmentation parameters ensuring defaults are present."""
             return AugmentationConfig(
                 hflip=getattr(args, 'hflip', 0.5),
                 rotation_angle=getattr(args, 'rotation_angle', 10),
