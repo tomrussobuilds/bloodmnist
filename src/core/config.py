@@ -1,23 +1,23 @@
 """
-Main Configuration Manifest for the MedMNIST Pipeline.
-    
-This root container aggregates specialized sub-configurations (System, Training, 
-Augmentation, Dataset, Evaluation) into a unified, immutable schema. It acts 
-as the central validator for cross-module logic, ensuring that hardware 
-capabilities (AMP, Device) align with training strategies (MixUp, Pretraining).
+MedMNIST Configuration Engine.
 
-The class provides robust factory methods (`from_args`, `from_yaml`) to 
-seamlessly bridge external inputs into a type-safe, validated environment.
+This module defines the schema and validation logic for the MedMNIST training 
+pipeline. It leverages Pydantic for type-safe configuration management, 
+handling hardware abstraction, hyperparameter validation, and dataset 
+metadata resolution.
 
-Attributes:
-    system (SystemConfig): Infrastructure and hardware settings.
-    training (TrainingConfig): Optimization and regularization hyperparameters.
-    augmentation (AugmentationConfig): Data transformation and TTA parameters.
-    dataset (DatasetConfig): Metadata and constraints for the specific MedMNIST task.
-    evaluation (EvaluationConfig): Visualization and reporting preferences.
-    num_workers (int): Validated CPU worker count for data loading.
-    model_name (str): Architecture identifier.
-    pretrained (bool): Flag to enable/disable ImageNet weight transfer.
+The module provides:
+    * Custom Type Aliases: Validated constraints for DL metrics (LR, Probabilities).
+    * Sub-Configurations: Modular schemas for System, Training, Augmentation, 
+      Dataset, and Evaluation settings.
+    * Main Config Manifest: A unified entry point with cross-field validation 
+      logic (e.g., ensuring AMP compatibility with CPU).
+    * Multi-Source Factories: Support for initializing experiments via 
+      CLI arguments (argparse) or YAML manifests.
+
+Hardware and environment states (device detection, worker counts) are 
+automatically synchronized during instantiation to ensure reproducibility 
+across different compute environments.
 """
 
 # =========================================================================== #
