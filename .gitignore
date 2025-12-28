@@ -51,14 +51,12 @@ runs/
 legacy/
 
 # Track the tools/ folder scripts but ignore their local outputs
-!tools/
-tools/
-tools/__pycache__/
-tools/*.log
+# !tools/
+# tools/
+# tools/__pycache__/
+# tools/*.log
 
 # =========================================================================== #
 #                       DOCUMENTATION & RESULTS
 # =========================================================================== #
-# If you want to keep specific summary reports, place them in a 'results/' 
-# folder and uncomment the line below. Otherwise, keep it ignored.
 # !results/

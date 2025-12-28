@@ -1,12 +1,23 @@
+# --- Core Deep Learning ---
 torch>=2.0
 torchvision>=0.15
+
+# --- Data & Math ---
 numpy>=1.23
 pandas>=1.5
-pydantic>=2.0
 scikit-learn>=1.2
+Pillow>=9.4.0
+
+# --- Configuration & Validation ---
+pydantic>=2.0
+pyyaml>=6.0
+
+# --- Visualization & Reporting ---
 matplotlib>=3.6
+xlsxwriter>=3.0
+openpyxl>=3.1
+
+# --- Utilities ---
 tqdm>=4.64
 requests>=2.28
 psutil>=5.9
-xlsxwriter>=3.0
-openpyxl>=3.1
