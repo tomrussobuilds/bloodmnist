@@ -43,54 +43,6 @@ class MedMNISTData:
     num_classes: int
 
 # =========================================================================== #
-#                                HELPERS                                      #
-# =========================================================================== #
-
-def _is_valid_npz(path: Path, expected_md5: str) -> bool:
-    """Checks file existence, header (ZIP/NPZ), and MD5 checksum."""
-    if not path.exists():
-        return False
-    try:
-        # Check for ZIP header (NPZ files are ZIP archives)
-        with open(path, "rb") as f:
-            if f.read(2) != b"PK":
-                return False
-    except IOError:
-        return False
-        
-    return md5_checksum(path) == expected_md5
-
-
-def _stream_download(url: str, tmp_path: Path):
-    """Executes the streaming GET request and writes to a temporary file."""
-    headers = {
-        "User-Agent": "Wget/1.0",
-        "Accept": "application/octet-stream",
-        "Accept-Encoding": "identity",
-    }
-    
-    with requests.get(
-        url,
-        headers=headers,
-        timeout=60,
-        stream=True,
-        allow_redirects=True
-    ) as r:
-        r.raise_for_status()
-
-        content_type = r.headers.get("Content-Type", "")
-        if 'text/html' in content_type:
-            raise ValueError(
-                "Downloaded file is an HTML page, not the expected NPZ file."
-            )
-
-        with open(tmp_path, "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
-
-
-# =========================================================================== #
 #                                FETCHING LOGIC                               #
 # =========================================================================== #
 # Global logger instance
@@ -173,6 +125,10 @@ def ensure_dataset_npz(
     raise RuntimeError("Unexpected error in dataset download logic.")
 
 
+# =========================================================================== #
+#                                LOADING INTERFACE                            #
+# =========================================================================== #
+
 def load_medmnist(metadata: DatasetMetadata) -> MedMNISTData:
     """
     Ensures the dataset is present and returns its metadata container.
@@ -193,3 +149,51 @@ def load_medmnist(metadata: DatasetMetadata) -> MedMNISTData:
             is_rgb=is_rgb,
             num_classes=num_classes
         )
+
+
+# =========================================================================== #
+#                                PRIVATE HELPERS                              #
+# =========================================================================== #
+
+def _is_valid_npz(path: Path, expected_md5: str) -> bool:
+    """Checks file existence, header (ZIP/NPZ), and MD5 checksum."""
+    if not path.exists():
+        return False
+    try:
+        # Check for ZIP header (NPZ files are ZIP archives)
+        with open(path, "rb") as f:
+            if f.read(2) != b"PK":
+                return False
+    except IOError:
+        return False
+        
+    return md5_checksum(path) == expected_md5
+
+
+def _stream_download(url: str, tmp_path: Path):
+    """Executes the streaming GET request and writes to a temporary file."""
+    headers = {
+        "User-Agent": "Wget/1.0",
+        "Accept": "application/octet-stream",
+        "Accept-Encoding": "identity",
+    }
+    
+    with requests.get(
+        url,
+        headers=headers,
+        timeout=60,
+        stream=True,
+        allow_redirects=True
+    ) as r:
+        r.raise_for_status()
+
+        content_type = r.headers.get("Content-Type", "")
+        if 'text/html' in content_type:
+            raise ValueError(
+                "Downloaded file is an HTML page, not the expected NPZ file."
+            )
+
+        with open(tmp_path, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
