@@ -94,6 +94,17 @@ class DatasetConfig(BaseModel):
         if key not in DATASET_REGISTRY:
             raise ValueError(f"Dataset '{dataset_raw}' not supported in DATASET_REGISTRY.")
         return DATASET_REGISTRY[key]
+    
+    @property
+    def processing_mode(self) -> str:
+        """
+        Determina la modalità di elaborazione canali in base al dataset e alla config.
+        """
+        if self.in_channels == 3:
+            return "NATIVE-RGB"
+        if self.effective_in_channels == 3:
+            return "RGB-PROMOTED"
+        return "NATIVE-GRAY"
 
     @classmethod
     def from_args(cls, args: argparse.Namespace) -> "DatasetConfig":
