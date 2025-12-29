@@ -62,13 +62,6 @@ class RootOrchestrator:
     resources (like file locks) are acquired before execution and safely 
     released upon termination, even in the event of unhandled exceptions.
 
-    Workflow Sequence:
-        1. Library & RNG Seeding (Reproducibility)
-        2. Filesystem Layout (RunPaths generation)
-        3. Telemetry setup (Logger hot-swap)
-        4. Resource Guarding (Process locking)
-        5. Config Persistence (Metadata tracking)
-
     Attributes:
         cfg (Config): The immutable global configuration manifest.
         paths (Optional[RunPaths]): Orchestrator for session-specific directories.
@@ -102,16 +95,15 @@ class RootOrchestrator:
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         """
         Context Manager exit point.
-        Ensures that system resources are released and lock files are unlinked
-        regardless of whether the pipeline succeeded or raised an exception.
+        Ensures that system resources are released and lock files are unlinked.
 
         Args:
-            exc_type: The type of the exception raised (if any).
-            exc_val: The instance of the exception raised (if any).
-            exc_tb: The traceback of the exception raised (if any).
+            exc_type: The type of the exception raised.
+            exc_val: The instance of the exception raised.
+            exc_tb: The traceback of the exception raised.
 
         Returns:
-            bool: Always False to allow exception propagation to the caller.
+            bool: Always False to allow exception propagation.
         """
         self.cleanup()
         return False
@@ -121,94 +113,72 @@ class RootOrchestrator:
         Triggers the deterministic sequence of core service initializations.
 
         This method synchronizes the environment following a strict order of 
-        operations:
-            1. System Libraries: Configures matplotlib for headless operation.
-            2. RNG Seeding: Locks global state for reproducibility.
-            3. Static Layout: Ensures baseline project structure.
-            4. Path Mapping: Generates unique session-specific workspace.
-            5. Telemetry: Hot-swaps logger to file-persistent handlers.
-            6. Guarding: Acquires system locks and purges zombie processes.
-            7. Persistence: Saves the validated configuration for reference.
-            8. Reporting: Logs the verified environment baseline.
+        operations to ensure reproducibility and system safety.
 
         Returns:
             RunPaths: The verified path orchestrator for the current session.
         """
-        # 1. Configure System Libraries for the current environment
+        # 1. Configure System Libraries
         configure_system_libraries()
 
-        # 2. Reproducibility Setup: Lock global random state
+        # 2. Reproducibility Setup
         set_seed(self.cfg.training.seed)
 
-        # 3. Static Environment Setup: Prepare global folder structure
+        # 3. Static Environment Setup
         setup_static_directories()
 
-        # 4. Dynamic Path Initialization: Create run-specific folder
+        # 4. Dynamic Path Initialization
         self.paths = RunPaths(
             dataset_slug=self.cfg.dataset.dataset_name,
             model_name=self.cfg.model.name,
             base_dir=self.cfg.system.output_dir
         )
 
-        # 5. Logger Initialization: Start file and console logging
-        Logger.setup(
-            name=LOGGER_NAME,
-            log_dir=self.paths.logs
-        )
+        # 5. Logger Initialization
+        Logger.setup(name=LOGGER_NAME, log_dir=self.paths.logs)
         self.run_logger = logging.getLogger(LOGGER_NAME)
 
-        # 6. Environment Initialization & Safety: Lock instance and clean zombies
+        # 6. Environment Initialization & Safety
         self.cfg.system.manage_environment()
-
-        ensure_single_instance(
-            lock_file=self.cfg.system.lock_file_path,
-            logger=self.run_logger
-        )
+        ensure_single_instance(lock_file=self.cfg.system.lock_file_path, logger=self.run_logger)
         
-        # 7. Metadata Preservation: Save validated config as SSOT reference
-        save_config_as_yaml(
-            data=self.cfg.model_dump(mode='json'),
-            yaml_path=self.paths.get_config_path()
-        )
+        # 7. Metadata Preservation
+        save_config_as_yaml(data=self.cfg.model_dump(mode='json'), yaml_path=self.paths.get_config_path())
         
-        # 8. Environment Reporting: Log the verified baseline status
+        # 8. Environment Reporting
         self._log_initial_status()
         
         return self.paths
 
     def cleanup(self) -> None:
         """
-        Releases system resources and removes the lock file.
-        To be called in the 'finally' block of main.py or via __exit__.
+        Releases system resources and removes the execution lock file.
+        Guarantees a clean state for subsequent pipeline runs.
         """
         try:
             release_single_instance(self.cfg.system.lock_file_path)
-            message = "System lock released cleanly."
-            if self.run_logger:
-                self.run_logger.info(message)
-            else:
-                logging.info(message)
+            msg = "System resource lock released successfully."
+            if self.run_logger: self.run_logger.info(f" » {msg}")
+            else: logging.info(msg)
         except Exception as e:
-            logging.error(f"Error releasing system lock: {e}")
+            err_msg = f"Failed to release system lock: {e}"
+            if self.run_logger: self.run_logger.error(f" [!] {err_msg}")
+            else: logging.error(err_msg)
 
     def get_device(self) -> torch.device:
         """
-        Resolves and caches the optimal computation device based on configuration.
+        Resolves and caches the optimal computation device (CUDA/CPU).
         
         Returns:
             torch.device: The PyTorch device object for model execution.
         """
         if self._device_cache is None:
-            self._device_cache = to_device_obj(
-                device_str=self.cfg.system.device
-            )
+            self._device_cache = to_device_obj(device_str=self.cfg.system.device)
         return self._device_cache
 
     def load_weights(self, model: torch.nn.Module, path: Path) -> None:
         """
         Coordinates weight restoration by bridging the model with system utilities.
-        Delegates the low-level weight loading to system utilities while
-        providing telemetry.
 
         Args:
             model (torch.nn.Module): The model instance to populate.
@@ -216,63 +186,57 @@ class RootOrchestrator:
         """
         device = self.get_device()
         load_model_weights(model, path, device)
-        
         if self.run_logger:
-            self.run_logger.info(
-                f"Checkpoint weights successfully restored from: {path.name}"
-            )
+            self.run_logger.info(f" » Checkpoint weights restored from: {path.name}")
 
     def _log_initial_status(self) -> None:
         """
         Logs the verified baseline environment configuration upon initialization.
+        Uses formatted headers for visual consistency with the main pipeline.
         """
-        self.run_logger.info(f"--- Environment Status Report ---")
+        self.run_logger.info(f"\n{'━' * 80}\n{' ENVIRONMENT INITIALIZATION ':^80}\n{'━' * 80}")
         
         self._log_hardware_section()
         self._log_dataset_section()
         self._log_strategy_section()
         
-        self.run_logger.info(f"Run Directory: {self.paths.root}")
-        self.run_logger.info(f"---------------------------------")
+        self.run_logger.info(f" » Run Directory: {self.paths.root}")
+        self.run_logger.info(f"{'━' * 80}\n")
 
     def _log_hardware_section(self):
+        """Logs hardware-specific configuration and fallback warnings."""
         device_obj = self.get_device()
-        device_str_requested = self.cfg.system.device
+        req_dev = self.cfg.system.device
         
         self.run_logger.info(f"[HARDWARE]")
-        self.run_logger.info(f"  Device: {str(device_obj).upper()}")
+        self.run_logger.info(f"  » Device:      {str(device_obj).upper()}")
         
-        if device_str_requested != "cpu" and device_obj.type == "cpu":
-            self.run_logger.warning(f"  (!) FALLBACK: Requested {device_str_requested} is unavailable.")
+        if req_dev != "cpu" and device_obj.type == "cpu":
+            self.run_logger.warning(f"  [!] FALLBACK: Requested {req_dev} is unavailable.")
         
         if device_obj.type == 'cuda':
             gpu_name = get_cuda_name()
-            if gpu_name: self.run_logger.info(f"  GPU: {gpu_name}")
+            if gpu_name: self.run_logger.info(f"  » GPU:         {gpu_name}")
         elif device_obj.type == 'cpu':
             opt_threads = apply_cpu_threads(self.cfg.num_workers)
-            self.run_logger.info(f"  Threads: {opt_threads} (Workers: {self.cfg.num_workers})")
+            self.run_logger.info(f"  » Threads:     {opt_threads} (Workers: {self.cfg.num_workers})")
 
     def _log_dataset_section(self):
+        """Logs dataset metadata and channel processing modes."""
         ds = self.cfg.dataset
-        if ds.effective_in_channels == 3:
-            mode_str = "NATIVE-RGB" if ds.in_channels == 3 else "RGB-PROMOTED"
-        else:
-            mode_str = "NATIVE-GRAY"
+
 
         self.run_logger.info(f"[DATASET]")
-        self.run_logger.info(f"  Name: {ds.dataset_name} ({ds.img_size}px)")
-        self.run_logger.info(f"  Mode: {mode_str}")
-        self.run_logger.info(f"  Anatomical: {ds.is_anatomical} | Texture: {ds.is_texture_based}")
+        self.run_logger.info(f"  » Name:        {ds.dataset_name} ({ds.img_size}px)")
+        self.run_logger.info(f"  » Mode:        {ds.processing_mode}")
+        self.run_logger.info(f"  » Features:    Anatomical={ds.is_anatomical}, Texture={ds.is_texture_based}")
 
     def _log_strategy_section(self):
+        """Logs high-level training and augmentation strategies."""
         train = self.cfg.training
         tta_status = determine_tta_mode(train.use_tta, self.get_device().type)
         
         self.run_logger.info(f"[STRATEGY]")
-        self.run_logger.info(
-            f"  Model: {self.cfg.model.name} | Pretrained: {self.cfg.model.pretrained}"
-        )
-        self.run_logger.info(f"  TTA: {tta_status}")
-        self.run_logger.info(
-            f"  Params: Epochs={train.epochs}, Batch={train.batch_size}, LR={train.learning_rate:.4f}"
-        )
+        self.run_logger.info(f"  » Model:       {self.cfg.model.name} (Pretrained: {self.cfg.model.pretrained})")
+        self.run_logger.info(f"  » TTA:         {tta_status}")
+        self.run_logger.info(f"  » Hyperparams: Epochs={train.epochs}, Batch={train.batch_size}, LR={train.learning_rate:.4f}")
