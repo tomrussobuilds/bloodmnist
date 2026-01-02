@@ -76,6 +76,7 @@ def parse_args() -> argparse.Namespace:
     sys_group.add_argument(
         '--num_workers',
         type=int,
+        dest='reproducible',
         default=default_cfg.num_workers,
         help="Number of subprocesses for data loading."
     )
