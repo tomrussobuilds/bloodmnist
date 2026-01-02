@@ -185,29 +185,28 @@ med_mnist/
 │   ├── health_check.py          # Global diagnostic: MD5 integrity, NPZ keys, & samples.
 │   ├── smoke_test.py            # Rapid E2E verification: 1-epoch diagnostic.
 │   └── unit_test.py             # Initial unit testing suite (WIP).
-├── src/                         # Modular package: Core classification framework logic.
+├── src/                         # Modular package: Core framework logic.
 │   ├── core/                    # System Hub: Centralized SSOT.
-│   │   ├── config/              # Granular Pydantic Modules (9-module schema).
-│   │   ├── logger/              # Telemetry: Logger init & Reporter engine.
-│   │   ├── metadata/            # Dataset Registry: Schema & Class mappings.
+│   │   ├── config/              # Configuration & Schema Hub:
+│   │   │   ├── engine.py        # Logic for YAML parsing & validation.
+│   │   │   └── types.py         # Custom Pydantic types & annotations.
+│   │   ├── logger/              # Telemetry & Artifact Tracking:
+│   │   │   ├── logger.py        # Console & File logging setup.
+│   │   │   └── reporter.py      # Experiment reporting engine.
+│   │   ├── metadata/            # Dataset Registry & Class mappings.
 │   │   ├── environment/         # Infrastructure Layer:
-│   │   │   ├── __init__.py      # Facade for clean hardware/reproducibility access.
-│   │   │   ├── device.py        # Hardware discovery (CUDA/MPS) & threading sync.
-│   │   │   └── reproducibility.py # Global seeding & strict determinism protocols.
-│   │   ├── orchestrator.py      # Lifecycle Master: Context Manager & Coordination.
-│   │   └── processes.py         # Resource Guard: Kernel-level locking (fcntl) & process safety.
+│   │   │   ├── hardware.py      # Hardware discovery (CUDA/MPS) & threading.
+│   │   │   └── reproducibility.py # Determinism & Seeding protocols.
+│   │   ├── orchestrator.py      # Lifecycle Master & Coordination.
+│   │   └── processes.py         # Resource Guard: Kernel-level locking (fcntl).
 │   ├── data_handler/            # Loading & Augmentation:
-│   │   ├── dataset.py           # MedMNIST logic: RAM caching and index management.
-│   │   └── transforms.py        # V2 Augmentations: Optimized RGB/Gray pipelines.
+│   │   ├── dataset.py           # MedMNIST logic: RAM caching & indexing.
+│   │   └── transforms.py        # V2 Augmentations: Optimized pipelines.
 │   ├── models/                  # Model Factory:
-│   │   └── resnet_18_adapted.py # Adapted ResNet-18 with Bicubic Weight Interpolation.
-│   ├── trainer/                 # Training Loop:
-│   │   ├── trainer.py           # Main Trainer class: Early stopping and checkpointing.
-│   │   └── engine.py            # Functional core: MixUp and epoch-level logic.
-│   └── evaluation/              # Analytics & Reporting:
-│       ├── engine.py            # Performance scoring (Macro F1, Accuracy).
-│       └── reporting.py         # Automated Excel and visualization generation.
-└── outputs/                     # Results (ignored): Isolated workspace for each run.
+│   │   └── resnet_18_adapted.py # Adapted ResNet-18 with Weight Interpolation.
+│   ├── trainer/                 # Training Loop & MixUp logic.
+│   └── evaluation/              # Analytics, Scoring & Reporting.
+└── outputs/                     # Results: Isolated workspace for each run.
 ```
 ---
 
