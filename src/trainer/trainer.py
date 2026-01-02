@@ -133,6 +133,9 @@ class ModelTrainer:
 
             # --- 3. Scheduling Phase ---
             self._smart_step_scheduler(val_loss)
+
+            if val_acc > self.best_acc:
+                self.best_acc = val_acc
             
             # Logging progress
             current_lr = self.optimizer.param_groups[0]['lr']
@@ -188,13 +191,18 @@ class ModelTrainer:
         Returns:
             bool: True if early stopping criteria are met, False otherwise.
         """
-        if val_auc > self.best_auc:
-            self.best_auc = val_auc
+    
+        if val_acc > self.best_acc:
             self.best_acc = val_acc
+
+        if val_auc > self.best_auc:
+            logger.info(f"New best model! Val AUC: {val_auc:.4f} ↑ Checkpoint saved.")
+            self.best_auc = val_auc
             self.epochs_no_improve = 0
             torch.save(self.model.state_dict(), self.best_path)
-            logger.info(f"New best model! Val AUC: {val_auc:.4f} ↑ Checkpoint saved.")
-        else:
-            self.epochs_no_improve += 1
-            
+            return False
+
+        self.epochs_no_improve += 1
+        
         return self.epochs_no_improve >= self.patience
+    

@@ -133,17 +133,19 @@ class Config(BaseModel):
         Transforms raw argparse parameters into the hierarchical Pydantic schema, 
         triggering the full validation suite (field, validator, and model levels).
         """
-        
-        # Short-circuit: If a --config YAML is provided, load directly from it
         if hasattr(args, 'config') and args.config:
             return cls.from_yaml(Path(args.config))
         
-        return cls(
-            num_workers=getattr(args, 'num_workers', 4),
-            system=SystemConfig.from_args(args),
-            training=TrainingConfig.from_args(args),
-            augmentation=AugmentationConfig.from_args(args),
-            dataset=DatasetConfig.from_args(args),
-            evaluation=EvaluationConfig.from_args(args),
-            model=ModelConfig.from_args(args)
-        )
+        config_data = {
+            "system": SystemConfig.from_args(args),
+            "training": TrainingConfig.from_args(args),
+            "augmentation": AugmentationConfig.from_args(args),
+            "dataset": DatasetConfig.from_args(args),
+            "evaluation": EvaluationConfig.from_args(args),
+            "model": ModelConfig.from_args(args)
+        }
+
+        if hasattr(args, 'num_workers') and args.num_workers is not None:
+            config_data["num_workers"] = args.num_workers
+
+        return cls(**config_data)

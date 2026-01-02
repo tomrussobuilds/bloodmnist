@@ -57,7 +57,8 @@ class Reporter(BaseModel):
         cfg: "Config", 
         paths: "RunPaths", 
         device: "torch.device",
-        applied_threads: int
+        applied_threads: int,
+        num_workers: int
     ) -> None:
         """
         Logs the verified baseline environment configuration upon initialization.
@@ -77,7 +78,9 @@ class Reporter(BaseModel):
         )
         logger.info(header)
         
-        self._log_hardware_section(logger, cfg, device, applied_threads)
+        self._log_hardware_section(
+            logger, cfg, device, applied_threads, num_workers
+        )
         logger.info("")
         
         self._log_dataset_section(logger, cfg)
@@ -95,7 +98,8 @@ class Reporter(BaseModel):
         logger: logging.Logger, 
         cfg: "Config", 
         device: "torch.device", 
-        applied_threads: int
+        applied_threads: int,
+        num_workers: int
     ) -> None:
         """
         Logs hardware-specific configuration, GPU metadata, and threading state.
@@ -127,7 +131,6 @@ class Reporter(BaseModel):
             if gpu_name: 
                 logger.info(f"  » GPU Model:      {gpu_name}")
         
-        num_workers = getattr(cfg.training, "num_workers", 0)
         logger.info(f"  » DataLoader:     {num_workers} workers")
         logger.info(f"  » Compute Fabric: {applied_threads} threads")
 

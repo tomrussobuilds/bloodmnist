@@ -94,8 +94,10 @@ class RootOrchestrator:
         self.paths: Optional[RunPaths] = None
         self.run_logger: Optional[logging.Logger] = None
         self._device_cache: Optional[torch.device] = None
-        self.repro_mode: bool = False
-        self.num_workers: int = 0
+        self.repro_mode = is_repro_mode_requested(
+            cli_flag=getattr(self.cfg.training, "reproducible", False)
+        )
+        self.num_workers: int = 0 if self.repro_mode else self.cfg.num_workers
     
     def __enter__(self) -> "RootOrchestrator":
         """
@@ -138,13 +140,9 @@ class RootOrchestrator:
             RunPaths: The verified and provisioned path orchestrator for the session.
         """
         # --- PHASE 1: DETERMINISM & REPRODUCIBILITY ---
-        self.repro_mode = is_repro_mode_requested(
-            cli_flag=getattr(self.cfg.training, "reproducible", False)
-        )
         set_seed(self.cfg.training.seed, strict=self.repro_mode)
 
         # --- PHASE 2: HARDWARE & SYSTEM OPTIMIZATION ---
-        self.num_workers = 0 if self.repro_mode else get_num_workers()
         applied_threads = apply_cpu_threads(self.num_workers)
         configure_system_libraries()
 
@@ -182,7 +180,8 @@ class RootOrchestrator:
             cfg=self.cfg,
             paths=self.paths,
             device=self.get_device(),
-            applied_threads=applied_threads
+            applied_threads=applied_threads,
+            num_workers=self.num_workers
         )
         
         return self.paths
