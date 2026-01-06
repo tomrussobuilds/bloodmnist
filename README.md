@@ -61,11 +61,21 @@ Every run is fully documented through a suite of automatically generated artifac
   </tr>
 </table>
 
-### Sample Predictions
 
-<p>
-<img src="docs/artifacts/sample_predictions.png" width="500">
-</p>
+### Sample Predictions & Reporting
+
+<table style="width: 100%; border: none;">
+  <tr>
+    <td style="width: 50%; text-align: center; border: none; vertical-align: top;">
+      <b>Sample Predictions</b><br>
+      <img src="docs/artifacts/sample_predictions.png" style="width: 100%; border-radius: 5px;">
+    </td>
+    <td style="width: 50%; text-align: center; border: none; vertical-align: top;">
+      <b>Quantitative Report (Excel)</b><br>
+      <img src="docs/artifacts/excel_report_preview.png" style="width: 100%; border-radius: 5px;">
+    </td>
+  </tr>
+</table>
 
 ## 🚀 Getting Started
 
@@ -224,27 +234,26 @@ Install dependencies easily with pip, or check the full list here:
 
 ### 💻 Usage (Local)
 
-Run the script from the project root. It will default to the fast mode (`num_workers=4`).
+#### Option A: Running with a Recipe (Recommended)
+
+This is the preferred way to ensure full reproducibility. The YAML file acts as the Single Source of Truth (SSOT).
 
 ```bash
-# 1. Setup Environment (Required to resolve src package)
+# Ensure PYTHONPATH is set
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 
-# 2. Verify System
-python -m tools.health_check
-
-# 3. Run Training (Registry handles automated download)
-python main.py --dataset bloodmnist
+# Launch using the configuration recipe
+python main.py --config recipes/config.yaml
 ```
-Note: The entry point script is now `main.py`.
 
-The script will automatically:
+#### Option B: Standard CLI (Quick Tests)
 
-- Download BloodMNIST if missing
-- Train for max 60 epochs with early stopping (`patience=15`)
-- Save the best model → `outputs/YYYYMMDD_HHMMSS_bloodmnist_resnet18/models/best_model.pth`
-- Generate figures, confusion matrix, Excel report → `figures/` and `reports/`
+```bash
+python main.py --dataset dermamnist --epochs 10
+```
 
+> [!TIP] 
+> When `--config` is provided, the `YAML` file takes precedence over `CLI` arguments to prevent configuration drift.
 ---
 
 ### ✅ Environment Verification (Smoke Test)
@@ -379,14 +388,13 @@ If you use this repository in academic work or derivative projects:
   url    = {https://github.com/tomrussobuilds/medmnist}
 }
 ```
+
 ### 🗺 Research Goals & Roadmap
 
-This project serves as a sandbox for medical imaging experimentation. While the Adapted ResNet-18 has demonstrated that classic architectures—when paired with modern training techniques like MixUp and Stem-Adaptation—remain extremely competitive for MedMNIST, it is only the starting point.
+- **Phase 1: Architecture Optimization (Completed)** Implementation of kernel stem resizing ($3 \times 3$) and MaxPool removal to preserve critical morphological details on the $28 \times 28$ MedMNIST manifold.
 
-  - Phase 1 (Completed): Optimization on 28×28 BloodMNIST. Implementation of kernel stem resizing and MaxPool removal to preserve spatial resolution.
+- **Phase 2: Configuration-Driven Engine (Completed)** Transition to a fully declarative execution model using **YAML Recipes**. Total decoupling of experiment logic from the core engine for version-controlled, reproducible research.
 
-  - Phase 2 (Near Term): Scaling the pipeline across the entire MedMNIST v2 suite (e.g., DermaMNIST, OrganMNIST) via the DATASET_REGISTRY to validate hyperparameter robustness.
+- **Phase 3: High-Resolution & Modern Backbones (Near Term)** Scaling the pipeline to handle high-resolution inputs ($224 \times 224$ and beyond). Integration of state-of-the-art architectures including **Vision Transformers (ViT)**, **EfficientNet-V2**, and **ConvNeXt** to benchmark global vs. local feature extraction.
 
-  - Phase 3 (Mid Term): Moving beyond ResNet to evaluate how modern backbones like EfficientNet-V2 and ConvNeXt handle the small-scale medical manifold.
-
-  - Phase 4 (Long Term): Transitioning the repo into a versatile benchmarking framework, extending support for high-resolution formats (224×224) and multi-modal integration.
+- **Phase 4: Domain Transcendence & Universal Framework (Long Term)** Evolving the codebase into a domain-agnostic Computer Vision framework. This includes abstracting the Data Registry to support diverse manifolds (Natural Images, Satellite, Industrial Inspection) and implementing multi-modal hooks for broader vision tasks.
