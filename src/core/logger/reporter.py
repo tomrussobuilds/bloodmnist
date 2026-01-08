@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 #                                Third-Party Imports                          #
 # =========================================================================== #
 from pydantic import BaseModel, ConfigDict
+import torch
 
 # =========================================================================== #
 #                                Internal Imports                             #
@@ -34,7 +35,6 @@ from ..environment import (
 if TYPE_CHECKING:
     from core.config import Config
     from core.paths import RunPaths
-    import torch
 
 # =========================================================================== #
 #                             REPORTER DEFINITION                             #

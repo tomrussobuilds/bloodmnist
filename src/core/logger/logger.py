@@ -45,15 +45,12 @@ class Logger:
         self.name = name
         self.log_dir = log_dir
         self.log_to_file = log_to_file and (log_dir is not None)
-        self.level = logging.DEBUG if os.getenv("DEBUG") == "1" else level
+        self.level = level
         self.max_bytes = max_bytes
         self.backup_count = backup_count
         
-        # Retrieve the system logger instance
         self.logger = logging.getLogger(name)
         
-        # Configure if it's the first time or if a new log directory is provided
-        # This allows the "re-configuration" once RootOrchestrator creates the run folder
         if name not in Logger._configured_names or log_dir is not None:
             self._setup_logger()
             Logger._configured_names[name] = True
@@ -69,7 +66,7 @@ class Logger:
         self.logger.setLevel(self.level)
         self.logger.propagate = False
 
-        # Clean up existing handlers to prevent duplicates (Crucial for reconfiguration)
+        # Clean up existing handlers to prevent duplicates during reconfiguration
         if self.logger.hasHandlers():
             for handler in self.logger.handlers[:]:
                 handler.close()
@@ -84,7 +81,6 @@ class Logger:
         if self.log_to_file and self.log_dir:
             self.log_dir.mkdir(parents=True, exist_ok=True)
             
-            # File name with timestamp for uniqueness
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             filename = self.log_dir / f"{self.name}_{timestamp}.log"
 
@@ -97,7 +93,6 @@ class Logger:
             file_h.setFormatter(formatter)
             self.logger.addHandler(file_h)
             
-            # Update class-level reference for global tracking
             Logger._active_log_file = filename
 
     def get_logger(self) -> logging.Logger:
@@ -106,20 +101,37 @@ class Logger:
     
     @classmethod
     def get_log_file(cls) -> Optional[Path]:
-        """Returns the current active log file path."""
+        """Returns the current active log file path for auditing."""
         return cls._active_log_file
     
     @classmethod
-    def setup(cls, name: str, **kwargs) -> logging.Logger:
+    def setup(
+        cls,
+        name: str,
+        log_dir: Optional[Path] = None,
+        level: str = "INFO",
+        **kwargs
+    ) -> logging.Logger:
         """
-        Main entry point for configuring the logger, typically called from RootOrchestrator.
+        Main entry point for configuring the logger, called by RootOrchestrator.
+        Bridges semantic LogLevel strings to Python logging constants.
         """
-        return cls(name=name, **kwargs).get_logger()
+        if os.getenv("DEBUG") == "1":
+            numeric_level = logging.DEBUG
+        else:
+            numeric_level = getattr(logging, level.upper(), logging.INFO)
+
+        return cls(
+            name=name,
+            log_dir=log_dir,
+            level=numeric_level,
+            **kwargs
+        ).get_logger()
 
 # =========================================================================== #
 #                                GLOBAL INSTANCE                              #
 # =========================================================================== #
 
-# Initial safe instance for immediate imports (writes only to console initially).
-# Later, the Orchestrator will call Logger.setup() with a real path to enable file logging.
+# Initial bootstrap instance (Console-only). 
+# Level is set to INFO by default, overridden by setup() during orchestration.
 logger: Final[logging.Logger] = Logger().get_logger()
