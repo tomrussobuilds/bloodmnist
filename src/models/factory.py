@@ -1,9 +1,10 @@
 """
-Models Factory Module.
+Models Factory Module
 
-This module implements the Factory Pattern to decouple model instantiation 
-from the main execution logic. It synchronizes architectural intent with 
-geometric constraints derived from dataset metadata at runtime.
+This module implements the Factory Pattern using a registry-based approach 
+to decouple model instantiation from the main execution logic. 
+It ensures that architectures are dynamically adapted to the geometric 
+constraints (channels, classes) resolved at runtime.
 """
 
 # =========================================================================== #
@@ -27,7 +28,6 @@ from .resnet_18_adapted import build_resnet18_adapted
 #                                MODEL FACTORY LOGIC                          #
 # =========================================================================== #
 
-# Global logger instance
 logger = logging.getLogger(LOGGER_NAME)
 
 def get_model(
@@ -35,31 +35,32 @@ def get_model(
     cfg: Config
 ) -> nn.Module:
     """
-    Factory function to instantiate and prepare the model.
+    Factory function to resolve, instantiate, and prepare architectures.
 
-    Resolves structural parameters (input channels and output classes) 
-    by accessing the computed properties of DatasetConfig. This ensures 
-    the architecture is perfectly adapted to the 'effective' geometry 
-    of the data (e.g., handling RGB promotion) before deployment.
+    It maps configuration identifiers to specific builder functions via an 
+    internal registry. Structural parameters like input channels and class 
+    cardinality are derived from the 'effective' geometry resolved by 
+    the DatasetConfig.
 
     Args:
-        device (torch.device): The hardware device (CPU/CUDA) to host the model.
-        cfg (Config): The global configuration object, already hydrated with 
-            metadata and resolved channel logic.
+        device: Hardware accelerator target.
+        cfg: Global configuration manifest with resolved metadata.
 
     Returns:
-        nn.Module: The instantiated and hardware-assigned PyTorch model.
+        nn.Module: The instantiated model synchronized with the target device.
 
     Raises:
-        ValueError: If the requested model_name is not registered in the factory.
+        ValueError: If the requested architecture is not found in the registry.
     """
     
-    # 1. Resolve architectural geometry from the SSOT (Single Source of Truth)
-    # We no longer call cfg.model.get_structural_params() because the 
-    # DatasetConfig already knows the final 'effective' channels.
+    # Internal registry for architectural routing
+    _MODEL_REGISTRY = {
+        "resnet_18_adapted": build_resnet18_adapted,
+    }
+
+    # Resolve structural dimensions from Single Source of Truth (Config)
     in_channels = cfg.dataset.effective_in_channels
     num_classes = cfg.dataset.num_classes
-    
     model_name_lower = cfg.model.name.lower()
 
     logger.info(
@@ -67,22 +68,23 @@ def get_model(
         f"Input: {cfg.dataset.img_size}x{cfg.dataset.img_size}x{in_channels} | "
         f"Output: {num_classes} classes"
     )
-
-    # 2. Routing logic (Factory Pattern)
-    if "resnet_18_adapted" in model_name_lower:
-        # We pass the resolved geometry directly to the builder
-        model = build_resnet18_adapted(
-            device=device, 
-            cfg=cfg,
-            in_channels=in_channels,
-            num_classes=num_classes
-        )
-    else:
-        error_msg = f"Model architecture '{cfg.model.name}' is not recognized by the Factory."
+    
+    # Architecture resolution via Registry lookup
+    builder = _MODEL_REGISTRY.get(model_name_lower)
+    if not builder:
+        error_msg = f"Architecture '{cfg.model.name}' is not registered in the Factory."
         logger.error(f" [!] {error_msg}")
         raise ValueError(error_msg)
     
-    # 3. Finalize placement and telemetry
+    # Instance construction and adaptation
+    model = builder(
+        device=device,
+        cfg=cfg,
+        in_channels=in_channels,
+        num_classes=num_classes
+    )
+    
+    # Final deployment and parameter telemetry
     model = model.to(device)
     total_params = sum(p.numel() for p in model.parameters())
     

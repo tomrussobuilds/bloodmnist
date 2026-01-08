@@ -2,23 +2,19 @@
 Model Orchestration and Architecture Definition Module
 
 This module provides a factory for deep learning architectures adapted for 
-the MedMNIST ecosystem. It specializes in fine-tuning standard Torchvision 
-models to handle low-resolution biomedical images (28x28 pixels).
+low-resolution image processing. It specializes in fine-tuning standard 
+Torchvision models to handle 28x28 pixel inputs while minimizing 
+information loss during the early stages of feature extraction.
 
 Key Architectural Adaptations:
 1. Spatial Preservation: Replaces the standard ResNet 7x7 (stride 2) entry 
    convolution with a 3x3 (stride 1) layer and removes initial pooling. This 
-   prevents excessive information loss in the early stages of feature extraction.
+   prevents excessive downsampling and preserves high-frequency details.
 2. Cross-Modal Weight Transfer: Implements bicubic interpolation of pre-trained 
    ImageNet weights and handles channel-depth conversion (e.g., RGB to Grayscale).
 3. Dynamic Head Reconfiguration: Automatically adjusts the final linear 
    layers based on the target dataset's class cardinality.
 """
-
-# =========================================================================== #
-#                                Standard Imports                             #
-# =========================================================================== #
-import logging
 
 # =========================================================================== #
 #                                Third-Party Imports                          #
@@ -31,14 +27,11 @@ from torchvision import models
 # =========================================================================== #
 #                                Internal Imports                             #
 # =========================================================================== #
-from src.core import Config, LOGGER_NAME
+from src.core import Config
 
 # =========================================================================== #
 #                               MODEL DEFINITION                              #
 # =========================================================================== #
-
-# Global logger instance
-logger = logging.getLogger(LOGGER_NAME)
 
 def build_resnet18_adapted(
         device: torch.device,
@@ -47,8 +40,8 @@ def build_resnet18_adapted(
         cfg: Config
     ) -> nn.Module:
     """
-    Loads a ResNet-18 model and adapts its structure for the MedMNIST 
-    ecosystem (28x28 inputs) using the provided configuration manifest.
+    Loads a ResNet-18 model and adapts its structure for 28x28 inputs 
+    using the provided configuration manifest.
 
     The adaptation steps are:
     1. Selective Weight Loading: Dynamically determines whether to load 
@@ -72,7 +65,6 @@ def build_resnet18_adapted(
         nn.Module: The spatially-preserved and weight-morphed ResNet-18 model.
     """
     # 1. Load ResNet-18 with policy-driven weight initialization
-    # We use the ModelConfig sub-module to determine pre-training status
     weights = models.ResNet18_Weights.IMAGENET1K_V1 if cfg.model.pretrained else None
     model = models.resnet18(weights=weights)
     
@@ -80,19 +72,17 @@ def build_resnet18_adapted(
     old_conv = model.conv1
 
     # 2. Define the new initial convolution layer (3x3, stride 1)
-    # Standard ResNet-18 downsamples 28x28 input to 6x6 via conv1+maxpool.
-    # Our adaptation preserves the full 28x28 resolution at the entry point.
+    # Replaces the downsampling layer to preserve the full 28x28 resolution.
     new_conv = nn.Conv2d(
         in_channels=in_channels,
         out_channels=64,
-        kernel_size=3,  # Optimized for small-scale medical features
-        stride=1,       # Prevents immediate spatial collapse
+        kernel_size=3,
+        stride=1,
         padding=1,
         bias=False
     )
 
     # 3. Transfer weights from the old 7x7 layer to the new 3x3 layer
-    # This maintains the feature extraction capabilities of ImageNet pre-training.
     if cfg.model.pretrained:
         with torch.no_grad():
             w = old_conv.weight
@@ -100,7 +90,7 @@ def build_resnet18_adapted(
             w = F.interpolate(w, size=(3,3), mode='bicubic', align_corners=True)
 
             if in_channels == 1:
-                # RGB-to-Grayscale conversion: average weights across channel dimension
+                # RGB-to-Grayscale conversion: average weights across channels
                 w = w.mean(dim=1, keepdim=True)
 
             new_conv.weight.copy_(w)
@@ -112,7 +102,6 @@ def build_resnet18_adapted(
     model.maxpool = nn.Identity()
     
     # 4. Replace the final classification head
-    # Maps the global average pooled features to the target labels
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     
     # Target device synchronization
