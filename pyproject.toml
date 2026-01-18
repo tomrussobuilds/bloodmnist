@@ -8,9 +8,9 @@ version = "0.1.0"
 description = "Type-Safe Deep Learning Framework for Computer Vision"
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = { text = "MIT" }
 authors = [
-    {name = "Tommaso Russo", email = "tomrussobuilds@users.noreply.github.com"}
+    { name = "Tommaso Russo", email = "tomrussobuilds@users.noreply.github.com" }
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -55,7 +55,7 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["orchard*"]
+include = ["visionforge*"]
 exclude = ["tests*", "docs*"]
 
 [tool.pytest.ini_options]
@@ -79,12 +79,12 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["orchard"]
+source = ["visionforge"]
 omit = [
     "*/tests/*",
     "*/conftest.py",
     "*/__pycache__/*",
-    "*/__init__.py,
+    "*/__init__.py",
 ]
 
 [tool.coverage.report]
@@ -94,11 +94,10 @@ skip_covered = false
 
 [tool.black]
 line-length = 100
-target-version = ['py310', 'py311', 'py312']
+target-version = ["py310", "py311", "py312"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(
-  # directories
   \.eggs
   | \.git
   | \.hg
