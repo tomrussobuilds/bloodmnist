@@ -5,6 +5,8 @@ Tests Optuna study configuration, early stopping parameters,
 sampler/pruner selection, and storage backend configuration.
 """
 
+import warnings
+
 # =========================================================================== #
 #                         Standard Imports                                    #
 # =========================================================================== #
@@ -113,6 +115,15 @@ def test_epochs_positive():
 
     with pytest.raises(ValidationError):
         OptunaConfig(epochs=3, pruning_warmup_epochs=5)
+
+
+@pytest.mark.unit
+def test_show_progress_bar_warning():
+    """Test that a warning is issued if show_progress_bar=True and n_jobs>1."""
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        OptunaConfig(show_progress_bar=True, n_jobs=2)
+        assert any("may corrupt tqdm output" in str(warning.message) for warning in w)
 
 
 # =========================================================================== #
