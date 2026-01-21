@@ -175,6 +175,28 @@ def test_save_config_as_yaml_invalid_data():
         save_config_as_yaml(mock_config, yaml_path)
 
 
+@pytest.mark.unit
+def test_save_config_as_yaml_io_error(tmp_path):
+    """Test that save_config_as_yaml logs and raises an OSError / PermissionError."""
+
+    config = {"model": "resnet"}
+
+    yaml_path = tmp_path / "config.yaml"
+
+    with (
+        patch("orchard.core.io.serialization._persist_yaml_atomic") as mock_persist,
+        patch("orchard.core.io.serialization.logging.getLogger") as mock_logger,
+    ):
+
+        mock_persist.side_effect = OSError("Disk is full")
+        mock_logger.return_value = MagicMock()
+
+        with pytest.raises(OSError, match="Disk is full"):
+            save_config_as_yaml(config, yaml_path)
+
+        mock_logger.return_value.error.assert_called_once()
+
+
 # =========================================================================== #
 #                    LOAD CONFIG FROM YAML                                    #
 # =========================================================================== #

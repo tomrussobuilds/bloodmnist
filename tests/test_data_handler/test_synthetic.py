@@ -19,9 +19,9 @@ import numpy as np
 #                                Module Under Test                            #
 # =========================================================================== #
 from orchard.data_handler import (
+    MedMNISTData,
     create_synthetic_dataset,
     create_synthetic_grayscale_dataset,
-    MedMNISTData
 )
 
 # =========================================================================== #
