@@ -78,9 +78,10 @@ class TelemetryConfig(BaseModel):
 
     @property
     def resolved_data_dir(self) -> Path:
-        if not self.data_dir.is_absolute():
-            return (PROJECT_ROOT / self.data_dir).resolve()
-        return self.data_dir.resolve()
+        """
+        Absolute path to the dataset.
+        """
+        return self.data_dir
 
     def to_portable_dict(self) -> dict:
         """
