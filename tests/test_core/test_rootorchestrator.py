@@ -1,6 +1,5 @@
 """
-Tests for RootOrchestrator (using refactored version with DI).
-
+Tests suite for RootOrchestrator.
 Tests all 7 phases, __enter__, __exit__, and edge cases.
 Achieves high coverage through dependency injection and mocking.
 """
