@@ -16,7 +16,7 @@ from .factory import (
     get_dataloaders,
 )
 from .fetcher import MedMNISTData, ensure_dataset_npz, load_medmnist
-from .synthetic import create_synthetic_dataset
+from .synthetic import create_synthetic_dataset, create_synthetic_grayscale_dataset
 from .transforms import get_augmentations_description, get_pipeline_transforms
 
 # =========================================================================== #
@@ -36,4 +36,5 @@ __all__ = [
     "get_pipeline_transforms",
     "MedMNISTDataset",
     "create_synthetic_dataset",
+    "create_synthetic_grayscale_dataset",
 ]

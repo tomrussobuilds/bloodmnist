@@ -14,16 +14,14 @@ from pathlib import Path
 #                                Third-Party Imports                          #
 # =========================================================================== #
 import numpy as np
-import pytest
-
-from orchard.data_handler.fetcher import MedMNISTData
 
 # =========================================================================== #
 #                                Module Under Test                            #
 # =========================================================================== #
-from orchard.data_handler.synthetic import (
+from orchard.data_handler import (
     create_synthetic_dataset,
     create_synthetic_grayscale_dataset,
+    MedMNISTData
 )
 
 # =========================================================================== #
