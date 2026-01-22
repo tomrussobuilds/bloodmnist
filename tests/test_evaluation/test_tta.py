@@ -152,3 +152,7 @@ def test_tta_is_deterministic_under_eval(mock_model, dummy_input, device, mock_c
     res2 = adaptive_tta_predict(model, dummy_input, device, False, False, mock_cfg)
 
     assert_close(res1, res2)
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
