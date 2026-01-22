@@ -234,9 +234,6 @@ def calculate_discount(price, discount_rate):
     return price * (1 - discount_rate)
 
 
-# --- Unit Tests ---
-
-
 @pytest.mark.unit
 @pytest.mark.parametrize(
     "price, rate, expected",
