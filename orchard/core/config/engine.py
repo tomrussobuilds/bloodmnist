@@ -31,19 +31,18 @@ from typing import Any, Dict, Optional
 # =========================================================================== #
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+# =========================================================================== #
+#                               Relative Imports                              #
+# =========================================================================== #
 from ..io import load_config_from_yaml
 from ..metadata.wrapper import DatasetRegistryWrapper
 from ..paths import PROJECT_ROOT
 from .augmentation_config import AugmentationConfig
 from .dataset_config import DatasetConfig
 from .evaluation_config import EvaluationConfig
-
-# =========================================================================== #
-#                               Internal Imports                              #
-# =========================================================================== #
 from .hardware_config import HardwareConfig
 from .models_config import ModelConfig
-from .optuna_config import OptunaConfig  # NEW
+from .optuna_config import OptunaConfig
 from .telemetry_config import TelemetryConfig
 from .training_config import TrainingConfig
 

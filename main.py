@@ -185,11 +185,11 @@ def main() -> None:
 
         except KeyboardInterrupt:
             run_logger.warning(
-                f"\n{LogStyle.WARNING} Interrupted by user. Cleaning up and exiting..."
+                f"{LogStyle.WARNING} Interrupted by user. Cleaning up and exiting..."
             )
 
         except Exception as e:
-            run_logger.error(f"\n{LogStyle.WARNING} Pipeline crashed: {e}", exc_info=True)
+            run_logger.error(f"{LogStyle.WARNING} Pipeline crashed: {e}", exc_info=True)
             raise
 
         finally:

@@ -7,7 +7,7 @@ Achieves high coverage through dependency injection and mocking.
 # =========================================================================== #
 #                         Standard Imports                                    #
 # =========================================================================== #
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 # =========================================================================== #
 #                         Third-Party Imports                                 #
@@ -18,7 +18,7 @@ import torch
 # =========================================================================== #
 #                         Internal Imports                                    #
 # =========================================================================== #
-from orchard.core import LOGGER_NAME, RootOrchestrator, RunPaths
+from orchard.core import LOGGER_NAME, RootOrchestrator
 
 # =========================================================================== #
 #                    ORCHESTRATOR: INITIALIZATION                             #
