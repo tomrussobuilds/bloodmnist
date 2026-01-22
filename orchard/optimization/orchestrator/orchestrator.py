@@ -14,6 +14,9 @@ implementation details are delegated to focused submodules.
 # =========================================================================== #
 import logging
 
+# =========================================================================== #
+#                         THIRD-PARTY IMPORTS                                 #
+# =========================================================================== #
 import optuna
 
 # =========================================================================== #
@@ -28,12 +31,11 @@ from orchard.core import (
     log_study_summary,
 )
 
-from ..objective.objective import OptunaObjective
-from ..search_spaces import get_search_space
-
 # =========================================================================== #
 #                         RELATIVE IMPORTS                                    #
 # =========================================================================== #
+from ..objective.objective import OptunaObjective
+from ..search_spaces import get_search_space
 from .builders import build_callbacks, build_pruner, build_sampler
 from .exporters import export_best_config, export_study_summary, export_top_trials
 from .utils import has_completed_trials

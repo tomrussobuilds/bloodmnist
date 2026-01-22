@@ -64,24 +64,54 @@ if TYPE_CHECKING:
 
 
 class InfraManagerProtocol(Protocol):
-    """Protocol for infrastructure management (allows mocking)."""
+    """Protocol for infrastructure management, allowing mocking."""
 
-    def prepare_environment(self, cfg: "Config", logger: logging.Logger) -> None: ...
-    def release_resources(self, cfg: "Config", logger: logging.Logger) -> None: ...
+    def prepare_environment(self, cfg: "Config", logger: logging.Logger) -> None:
+        """
+        Prepares the environment based on the provided configuration and logger.
+
+        Args:
+            cfg: The configuration to be used for preparing the environment.
+            logger: The logger instance for logging preparation details.
+        """
+        ...
+
+    def release_resources(self, cfg: "Config", logger: logging.Logger) -> None:
+        """
+        Releases the resources allocated during environment preparation.
+
+        Args:
+            cfg: The configuration that was used during resource allocation.
+            logger: The logger instance for logging release details.
+        """
+        ...
 
 
 class ReporterProtocol(Protocol):
-    """Protocol for environment reporting (allows mocking)."""
+    """Protocol for environment reporting, allowing mocking."""
 
     def log_initial_status(
         self,
         logger_instance: logging.Logger,
         cfg: "Config",
-        paths: RunPaths,
+        paths: "RunPaths",
         device: torch.device,
         applied_threads: int,
         num_workers: int,
-    ) -> None: ...
+    ) -> None:
+        """
+        Logs the initial status of the environment, including configuration and system details.
+
+        Args:
+            logger_instance: The logger instance used to log the status.
+            cfg: The configuration object containing environment settings.
+            paths: The paths object with directories for the run.
+            device: The device (e.g., CPU or GPU) to be used for processing.
+            applied_threads: The number of threads allocated for processing.
+            num_workers: The number of worker processes to use.
+
+        """
+        ...
 
 
 # =========================================================================== #

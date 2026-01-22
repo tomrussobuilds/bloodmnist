@@ -86,15 +86,10 @@ def main() -> None:
         device = orchestrator.get_device()
 
         try:
-            # ================================================================ #
-            #                  HYPERPARAMETER OPTIMIZATION                     #
-            # ================================================================ #
 
             # Execute Optuna study with trial pruning and early stopping
             study = run_optimization(cfg=cfg, device=device, paths=paths)
-            # ================================================================ #
-            #                     OPTIMIZATION SUMMARY                         #
-            # ================================================================ #
+
             log_optimization_summary(
                 study=study,
                 cfg=cfg,
@@ -104,12 +99,12 @@ def main() -> None:
 
         except KeyboardInterrupt:
             logger.warning(
-                f"\n{LogStyle.WARNING} Interrupted by user. Optimization stopped gracefully."
+                f"{LogStyle.WARNING} Interrupted by user. Optimization stopped gracefully."
             )
             # No re-raise - graceful exit
 
         except Exception as e:
-            logger.error(f"\n{LogStyle.WARNING} Pipeline crashed: {e}", exc_info=True)
+            logger.error(f"{LogStyle.WARNING} Pipeline crashed: {e}", exc_info=True)
             raise
 
         finally:
