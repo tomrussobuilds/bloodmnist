@@ -12,6 +12,7 @@ Augmentation (TTA), while automating the generation of artifacts
 #                                Internal Imports                             #
 # =========================================================================== #
 from .engine import evaluate_model
+from .metrics import compute_classification_metrics
 from .pipeline import run_final_evaluation
 from .reporting import TrainingReport, create_structured_report
 from .tta import _get_tta_transforms, adaptive_tta_predict
@@ -35,4 +36,6 @@ __all__ = [
     # TTA
     "adaptive_tta_predict",
     "_get_tta_transforms",
+    # Metric
+    "compute_classification_metrics",
 ]

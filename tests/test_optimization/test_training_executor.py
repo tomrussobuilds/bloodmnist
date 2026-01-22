@@ -211,58 +211,5 @@ def test_execute_invalid_validation_handling(
     assert executor.execute(mock_trial) == 0.0
 
 
-def calculate_discount(price, discount_rate):
-    """
-    Calculates the final price after applying a discount rate.
-
-    Args:
-        price (float): The original price of the item. Must be non-negative.
-        discount_rate (float): The discount percentage (0 to 1).
-
-    Returns:
-        float: The discounted price.
-
-    Raises:
-        ValueError: If price is negative or discount_rate is outside the [0, 1] range.
-    """
-    if price < 0:
-        raise ValueError("Price cannot be negative.")
-
-    if not (0 <= discount_rate <= 1):
-        raise ValueError("Discount rate must be between 0 and 1.")
-
-    return price * (1 - discount_rate)
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "price, rate, expected",
-    [
-        (100.0, 0.2, 80.0),  # Standard case
-        (50.0, 0.0, 50.0),  # No discount
-        (200.0, 1.0, 0.0),  # 100% discount
-        (0.0, 0.5, 0.0),  # Zero price
-    ],
-)
-def test_calculate_discount_success(price, rate, expected):
-    """Tests valid inputs to ensure correct mathematical output."""
-    assert calculate_discount(price, rate) == expected
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "price, rate",
-    [
-        (-10, 0.1),  # Negative price
-        (100, -0.1),  # Negative discount
-        (100, 1.1),  # Discount > 100%
-    ],
-)
-def test_calculate_discount_errors(price, rate):
-    """Tests invalid inputs to ensure appropriate exceptions are raised."""
-    with pytest.raises(ValueError):
-        calculate_discount(price, rate)
-
-
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -46,6 +46,7 @@ def device():
 #                               UNIT TESTS                                    #
 # =========================================================================== #
 
+
 @pytest.mark.unit
 class TestMiniCNN:
     """
