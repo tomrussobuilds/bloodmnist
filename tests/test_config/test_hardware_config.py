@@ -5,11 +5,10 @@ Tests device resolution, reproducibility mode, num_workers logic,
 and lock file path generation.
 """
 
-import tempfile
-
 # =========================================================================== #
 #                         Standard Imports                                    #
 # =========================================================================== #
+import tempfile
 from argparse import Namespace
 
 # =========================================================================== #

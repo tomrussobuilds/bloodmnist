@@ -5,11 +5,10 @@ Tests Optuna study configuration, early stopping parameters,
 sampler/pruner selection, and storage backend configuration.
 """
 
-import warnings
-
 # =========================================================================== #
 #                         Standard Imports                                    #
 # =========================================================================== #
+import warnings
 from pathlib import Path
 
 # =========================================================================== #
