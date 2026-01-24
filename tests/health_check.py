@@ -1,15 +1,14 @@
 """
 Health Check and Integrity Module (Multi-Resolution with Visualization)
-
 Performs integrity checks across MedMNIST datasets, supports 28x28 and 224x224 resolutions.
 """
 
 # Standard Imports
+import argparse
 import logging
 
 # Internal Imports
 from orchard.core import RootOrchestrator
-from orchard.core.cli import parse_args
 from orchard.core.config import Config
 from orchard.core.metadata import DatasetRegistryWrapper
 from orchard.data_handler.data_explorer import show_samples_for_dataset
@@ -21,11 +20,31 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
+def parse_health_check_args():
+    """Parse command-line arguments for health check."""
+    parser = argparse.ArgumentParser(description="Dataset health check utility")
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        default=None,
+        help="Specific dataset to check (e.g., 'bloodmnist'). If not specified, checks all datasets.",
+    )
+    parser.add_argument(
+        "--resolution",
+        type=int,
+        default=None,
+        choices=[28, 224],
+        help="Target resolution (28 or 224). If not specified, checks both resolutions.",
+    )
+    return parser.parse_args()
+
+
 def health_check_single_dataset(ds_meta, orchestrator, resolution: int = 28) -> None:
     """
     Perform a health check on a single dataset: file presence, DataLoader, sample images.
     """
     run_logger = orchestrator.run_logger
+
     try:
         run_logger.info(
             f"Starting health check for dataset: {ds_meta.display_name} ({ds_meta.name})"
@@ -34,8 +53,10 @@ def health_check_single_dataset(ds_meta, orchestrator, resolution: int = 28) -> 
         # ---------------- Step 1: Ensure dataset exists ----------------
         dataset_info = load_medmnist_health_check(ds_meta)
         dataset_path = getattr(dataset_info, "path", dataset_info)
+
         if not dataset_path.exists():
             raise FileNotFoundError(f"Dataset file not found at {dataset_path}")
+
         run_logger.info(f"Dataset available at: {dataset_path}")
 
         # ---------------- Step 2: Build DataLoader ----------------
@@ -68,19 +89,52 @@ def fetch_all_datasets_health_check() -> None:
     """
     Iterates over the MedMNIST dataset registry and performs a health check for each dataset.
     """
-    args = parse_args()
-    cfg = Config.from_args(args)
+    args = parse_health_check_args()
 
-    with RootOrchestrator(cfg) as orchestrator:
-        run_logger = orchestrator.run_logger
-        run_logger.info("Starting health check for all MedMNIST datasets...")
+    if args.resolution is not None:
+        resolutions = [args.resolution]
+    else:
+        resolutions = [28, 224]
 
-        for key in ["28x28", "224x224"]:
-            resolution = 28 if key == "28x28" else 224
+    from types import SimpleNamespace
+
+    dummy_args = SimpleNamespace(
+        config=None,
+        dataset=args.dataset or "bloodmnist",
+        resolution=28,
+        model_name="mini_cnn",
+        epochs=1,
+        batch_size=32,
+        max_samples=100,
+        num_workers=0,
+        no_amp=True,
+        mixup_epochs=0,
+        mixup_alpha=0.0,
+    )
+
+    for resolution in resolutions:
+        dummy_args.resolution = resolution
+        dummy_args.model_name = "mini_cnn" if resolution == 28 else "efficientnet_b0"
+
+        cfg = Config.from_args(dummy_args)
+
+        with RootOrchestrator(cfg) as orchestrator:
+            run_logger = orchestrator.run_logger
             run_logger.info(f"Checking datasets with resolution: {resolution}x{resolution}")
 
             dataset_wrapper = DatasetRegistryWrapper(resolution=resolution)
-            for _, ds_meta in dataset_wrapper.registry.items():
+            datasets_to_check = dataset_wrapper.registry.items()
+            if args.dataset:
+                datasets_to_check = [
+                    (name, meta) for name, meta in datasets_to_check if name == args.dataset
+                ]
+                if not datasets_to_check:
+                    run_logger.error(
+                        f"Dataset '{args.dataset}' not found in {resolution}x{resolution} registry"
+                    )
+                    continue
+
+            for _, ds_meta in datasets_to_check:
                 try:
                     run_logger.info(f"Attempting health check for dataset '{ds_meta.name}'")
                     health_check_single_dataset(ds_meta, orchestrator, resolution=resolution)
@@ -90,7 +144,7 @@ def fetch_all_datasets_health_check() -> None:
                     )
                     run_logger.exception(e)
 
-        run_logger.info("Health check completed for all datasets.")
+            run_logger.info(f"Health check completed for resolution {resolution}x{resolution}.")
 
 
 # ENTRY POINT
