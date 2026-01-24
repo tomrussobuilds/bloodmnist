@@ -23,17 +23,13 @@ from orchard.evaluation import _get_tta_transforms, adaptive_tta_predict
 # FIXTURES
 @pytest.fixture
 def device():
-    """
-    Forced CPU device for consistent unit testing.
-    """
+    """Forced CPU device for consistent unit testing."""
     return torch.device("cpu")
 
 
 @pytest.fixture
 def mock_cfg():
-    """
-    Returns a mock configuration object with defined augmentation parameters.
-    """
+    """Returns a mock configuration object with defined augmentation parameters."""
     cfg = MagicMock(spec=Config)
     cfg.augmentation = MagicMock()
     cfg.augmentation.tta_translate = 5
@@ -46,55 +42,46 @@ def mock_cfg():
 
 @pytest.fixture
 def dummy_input():
-    """
-    Creates a dummy input tensor with batch size 4 and 3x32x32 images.
-    """
+    """Creates a dummy input tensor with batch size 4 and 3x32x32 images."""
     return torch.randn(4, 3, 32, 32)
 
 
 @pytest.fixture
 def mock_model(mock_cfg):
-    """
-    Creates a mock model that returns consistent logits.
-    """
+    """Creates a mock model that returns consistent logits."""
     model = MagicMock(spec=nn.Module)
-    # Mocking both forward and __call__ to ensure compatibility
     num_classes = mock_cfg.dataset.num_classes
     mock_logits = torch.randn(4, num_classes)
 
+    # Mock both forward and __call__ for compatibility
     model.return_value = mock_logits
     model.forward.return_value = mock_logits
-    # Ensure to_device doesn't break the mock
     model.to.return_value = model
     return model
 
 
-# TEST CASES
+# TEST CASES: BASE TRANSFORMS
 @pytest.mark.unit
 def test_get_tta_transforms_base(dummy_input, device, mock_cfg):
-    """
-    Test the generation of base transforms (identity and horizontal flip).
-    """
+    """Test the generation of base transforms (identity and horizontal flip)."""
     transforms = _get_tta_transforms(
         device, is_anatomical=False, is_texture_based=False, cfg=mock_cfg
     )
 
     assert len(transforms) >= 2, "Base transforms (identity + flip) are missing."
 
-    # Test identity transform (Index 0 is typically Identity)
+    # Test identity transform
     transformed = transforms[0](dummy_input)
     assert torch.equal(transformed, dummy_input), "Identity transform modified the input."
 
-    # Test horizontal flip (Index 1)
+    # Test horizontal flip
     flipped = transforms[1](dummy_input)
     assert not torch.equal(flipped, dummy_input), "Horizontal flip failed to modify the input."
 
 
 @pytest.mark.unit
 def test_get_tta_transforms_texture_based(dummy_input, device, mock_cfg):
-    """
-    Test the generation of texture-based transformations.
-    """
+    """Test the generation of texture-based transformations."""
     transforms = _get_tta_transforms(
         device, is_anatomical=False, is_texture_based=True, cfg=mock_cfg
     )
@@ -102,7 +89,7 @@ def test_get_tta_transforms_texture_based(dummy_input, device, mock_cfg):
     # Should contain more than just base transforms
     assert len(transforms) > 2, "Texture-based augmentations were not added."
 
-    # Verify a transform (e.g., Gaussian Blur or Affine) produces a different output
+    # Verify a transform produces different output
     modified = transforms[-1](dummy_input)
     assert not torch.equal(
         modified, dummy_input
@@ -110,10 +97,38 @@ def test_get_tta_transforms_texture_based(dummy_input, device, mock_cfg):
 
 
 @pytest.mark.unit
+def test_get_tta_transforms_cpu_non_anatomical_adds_vflip():
+    """Test CPU + non-anatomical adds vertical flip instead of rotations."""
+    mock_cfg = MagicMock()
+    mock_cfg.augmentation.tta_translate = 2
+    mock_cfg.augmentation.tta_scale = 1.05
+    mock_cfg.augmentation.tta_blur_sigma = 0.5
+
+    # CPU device, non-anatomical
+    cpu_transforms = _get_tta_transforms(
+        device=torch.device("cpu"),
+        is_anatomical=False,
+        is_texture_based=False,
+        cfg=mock_cfg,
+    )
+
+    # GPU device, non-anatomical (for comparison)
+    gpu_device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+    gpu_transforms = _get_tta_transforms(
+        device=gpu_device, is_anatomical=False, is_texture_based=False, cfg=mock_cfg
+    )
+
+    if torch.cuda.is_available():
+        assert len(cpu_transforms) == 7
+        assert len(gpu_transforms) == 9
+    else:
+        assert len(cpu_transforms) == 7
+
+
+# TEST CASES: ADAPTIVE TTA PREDICT
+@pytest.mark.unit
 def test_adaptive_tta_predict_logic(mock_model, dummy_input, device, mock_cfg):
-    """
-    Test TTA prediction logic: output shape and type validation.
-    """
+    """Test TTA prediction logic: output shape and type validation."""
     model = mock_model
     model.to(device)
 
@@ -127,9 +142,7 @@ def test_adaptive_tta_predict_logic(mock_model, dummy_input, device, mock_cfg):
 
 @pytest.mark.unit
 def test_tta_is_deterministic_under_eval(mock_model, dummy_input, device, mock_cfg):
-    """
-    Ensures that TTA prediction doesn't introduce random noise if model is in eval mode.
-    """
+    """Ensures that TTA prediction doesn't introduce random noise if model is in eval mode."""
     model = mock_model
     model.to(device)
 
