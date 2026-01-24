@@ -45,7 +45,6 @@
     <img src="https://img.shields.io/badge/linting-flake8-brightgreen?logo=python&logoColor=white" alt="Flake8">
   </a>
   <img src="https://img.shields.io/badge/tests-800%2B-success" alt="Tests">
-  <img src="https://img.shields.io/badge/coverage-%E2%86%92100%25-brightgreen" alt="Coverage Goal">
   <img src="https://img.shields.io/badge/Architecture-Decoupled-blueviolet" alt="Architecture">
   <img src="https://img.shields.io/badge/status-Active-success" alt="Status">
   <a href="https://github.com/tomrussobuilds/visionforge/issues">
@@ -94,9 +93,9 @@
 | Resolution | Architectures | Parameters | Use Case |
 |-----------|--------------|-----------|----------|
 | **28×28** | ResNet-18-Adapted | ~11M | Transfer learning baseline |
-| **28×28** | MiniCNN | ~50K | Fast prototyping, ablation studies |
-| **224×224** | EfficientNet-B0 | ~5.3M | Efficient compound scaling |
-| **224×224** | ViT-Tiny | ~5.7M | Patch-based attention, multiple weight variants |
+| **28×28** | MiniCNN | ~94K | Fast prototyping, ablation studies |
+| **224×224** | EfficientNet-B0 | ~4.0M | Efficient compound scaling |
+| **224×224** | ViT-Tiny | ~5.5M | Patch-based attention, multiple weight variants |
 
 ---
 
@@ -105,7 +104,7 @@
 ### CPU Training (28×28 Only)
 - **Supported Resolution**: 28×28 **only**
 - **Time**: ~2.5 hours (ResNet-18-Adapted, 60 epochs, 16 cores)
-- **Time**: ~30 minutes (MiniCNN, 60 epochs, 16 cores)
+- **Time**: ~10 minutes (MiniCNN, 60 epochs, 16 cores)
 - **Architectures**: ResNet-18-Adapted, MiniCNN
 - **Use Case**: Development, testing, limited hardware environments
 
@@ -172,14 +171,14 @@ VisionForge supports a **three-phase workflow** optimized for different hardware
 Start with a quick training run to familiarize yourself with the pipeline:
 ```bash
 # 28×28 resolution (CPU-compatible)
-python main.py --config recipes/config_mini_cnn.yaml              # ~2-3 min GPU, ~30 min CPU
+python main.py --config recipes/config_mini_cnn.yaml              # ~2-3 min GPU, ~5-10 min CPU (faster with best_config)
 
 # or with transfer learning
 python main.py --config recipes/config_resnet_18_adapted.yaml     # ~5 min GPU, ~2.5h CPU
 
 # 224×224 resolution (GPU required)
-python main.py --config recipes/config_efficientnet_b0.yaml       # ~30 min GPU
-python main.py --config recipes/config_vit_tiny.yaml              # ~25-35 min GPU
+python main.py --config recipes/config_efficientnet_b0.yaml       # ~30 min GPU per trial
+python main.py --config recipes/config_vit_tiny.yaml              # ~25-35 min GPU per trial
 ```
 
 **What happens:**
@@ -194,8 +193,8 @@ python main.py --config recipes/config_vit_tiny.yaml              # ~25-35 min G
 Use Optuna to automatically search for optimal hyperparameters:
 ```bash
 # 28×28 resolution - fast iteration
-python optimize.py --config recipes/optuna_mini_cnn.yaml              # ~50 min, 50 trials, GPU
-python optimize.py --config recipes/optuna_resnet_18_adapted.yaml     # ~3-5h, 50 trials, GPU
+python optimize.py --config recipes/optuna_mini_cnn.yaml              # ~5 min GPU, ~10 min CPU (50 trials with pruning/early_stoppping)
+python optimize.py --config recipes/optuna_resnet_18_adapted.yaml     # ~5-10 min GPU (50 trials with pruning/early_stopping)
 
 # 224×224 resolution - requires GPU
 python optimize.py --config recipes/optuna_efficientnet_b0.yaml       # ~1.5-5h*, 20 trials, GPU
@@ -238,7 +237,7 @@ python main.py --config outputs/YYYYMMDD_dataset_model_hash/reports/best_config.
 All outputs are isolated in timestamped directories:
 ```bash
 ls outputs/YYYYMMDD_dataset_model_hash/
-├── figures/          # Confusion matrices, training curves, sample predictions
+├── figures/          # Confusion matrices, training curves, sample  predictions
 ├── reports/          # Excel summaries, best_config.yaml (optimization only)
 ├── models/           # Trained model weights (.pth)
 └── database/         # Optuna study database (optimization only)
@@ -246,7 +245,7 @@ ls outputs/YYYYMMDD_dataset_model_hash/
 
 **Key files:**
 - `reports/training_summary.xlsx` - Complete metrics and hyperparameters
-- `checkpoints/best_*.pth` - Best model weights (by validation AUC)
+- `models/best_*.pth` - Best model weights (by validation AUC)
 - `reports/best_config.yaml` - Optimized configuration (optimization runs only)
 
 ---
@@ -254,7 +253,7 @@ ls outputs/YYYYMMDD_dataset_model_hash/
 ### Hardware Recommendations
 
 **28×28 Resolution:**
-- ✅ CPU: Functional but slow (~30 min - 2.5h per training run)
+- ✅ CPU: Functional (~10 min - 2.5h per training run depending on architecture)
 - ✅ GPU: Recommended (~2-5 min per training run)
 - 💡 Best for: Rapid prototyping, learning the framework, limited hardware
 
@@ -306,8 +305,8 @@ Where `HASH6` is a BLAKE2b cryptographic digest (3-byte, deterministic) computed
 ### ⚡ Performance Optimization
 
 **Hybrid RAM Management:**
-- **Small Datasets** (<50K samples): Full RAM caching for maximum throughput
-- **Large Datasets** (>100K samples): Indexed slicing to prevent OOM errors
+- **Small Datasets** : Full RAM caching for maximum throughput
+- **Large Datasets** : Indexed slicing to prevent OOM errors
 
 **Dynamic Path Anchoring:**
 - "Search-up" logic locates project root via markers (`.git`, `README.md`)
@@ -484,7 +483,7 @@ A compact, custom architecture designed specifically for low-resolution medical 
 | Component | Specification | Purpose |
 |-----------|--------------|---------|
 | **Architecture** | 3 conv blocks + global pooling | Fast convergence with minimal parameters |
-| **Parameters** | ~50K | 220× fewer than ResNet-18-Adapted |
+| **Parameters** | ~94K | 220× fewer than ResNet-18-Adapted |
 | **Input Processing** | 28×28 → 14×14 → 7×7 → 1×1 | Progressive spatial compression |
 | **Regularization** | Configurable dropout before FC | Overfitting prevention |
 
@@ -502,7 +501,7 @@ Implements compound scaling (depth, width, resolution) for optimal parameter eff
 | Feature | Specification | Benefit |
 |---------|--------------|---------|
 | **Architecture** | Mobile Inverted Bottleneck Convolution (MBConv) | Memory-efficient feature extraction |
-| **Parameters** | ~5.3M | 50% fewer than ResNet-50 |
+| **Parameters** | ~4.0M | 50% fewer than ResNet-50 |
 | **Pretrained Weights** | ImageNet-1k | Strong initialization for transfer learning |
 | **Input Adaptation** | Dynamic first-layer modification for grayscale | Preserves pretrained knowledge via weight morphing |
 
@@ -515,7 +514,7 @@ Patch-based attention architecture with multiple pretrained weight variants:
 | Feature | Specification | Benefit |
 |---------|--------------|---------|
 | **Architecture** | 12-layer transformer encoder | Global context modeling via self-attention |
-| **Parameters** | ~5.7M | Comparable to EfficientNet-B0 |
+| **Parameters** | ~5.5M | Comparable to EfficientNet-B0 |
 | **Patch Size** | 16×16 (196 patches from 224×224) | Efficient sequence length for transformers |
 | **Weight Variants** | ImageNet-1k, ImageNet-21k, ImageNet-21k→1k fine-tuned | Optuna-searchable pretraining strategies |
 
@@ -653,11 +652,11 @@ python -m tests.smoke_test
 
 # Train with presets (28×28 resolution, CPU-compatible)
 python main.py --config recipes/config_resnet_18_adapted.yaml     # ~5 min GPU, ~2.5h CPU
-python main.py --config recipes/config_mini_cnn.yaml              # ~2-3 min GPU, ~30 min CPU
+python main.py --config recipes/config_mini_cnn.yaml              # ~2-3 min GPU, ~10 min CPU
 
 # Train with presets (224×224 resolution, GPU required)
-python main.py --config recipes/config_efficientnet_b0.yaml       # ~30 min per trial
-python main.py --config recipes/config_vit_tiny.yaml              # ~25-35 min per trial
+python main.py --config recipes/config_efficientnet_b0.yaml       # ~30 min each trial
+python main.py --config recipes/config_vit_tiny.yaml              # ~25-35 min each trial
 ```
 
 ### CLI Overrides
@@ -694,12 +693,12 @@ python main.py --mixup_alpha 0 --no_tta
 pip install optuna plotly timm  # timm required for ViT support
 
 # Run optimization with presets
-python optimize.py --config recipes/optuna_resnet_18_adapted.yaml  # 50 trials, ~3-5h
-python optimize.py --config recipes/optuna_mini_cnn.yaml           # 50 trials, ~1-2h
+python optimize.py --config recipes/optuna_resnet_18_adapted.yaml  # 50 trials, ~3 min GPU, ~2.5h CPU
+python optimize.py --config recipes/optuna_mini_cnn.yaml           # 50 trials, ~1-2 min GPU, ~5 min CPU
 
 # 224×224 resolution (includes weight variant search for ViT)
-python optimize.py --config recipes/optuna_efficientnet_b0.yaml    # 20 trials, ~1.5-5h
-python optimize.py --config recipes/optuna_vit_tiny.yaml           # 20 trials, ~3-5h
+python optimize.py --config recipes/optuna_efficientnet_b0.yaml    # 20 trials, ~1.5-5h GPU
+python optimize.py --config recipes/optuna_vit_tiny.yaml           # 20 trials, ~3-5h GPU
 
 # Custom search (20 trials, 10 epochs each)
 python optimize.py --dataset pathmnist \
@@ -749,6 +748,7 @@ python main.py --config outputs/*/reports/best_config.yaml
 
 ### Artifacts Generated
 
+### Optimization Run Artifacts
 ```
 outputs/20260123_organcmnist_efficientnetb0_a3f7c2/
 ├── figures/
@@ -760,8 +760,29 @@ outputs/20260123_organcmnist_efficientnetb0_a3f7c2/
 │   ├── best_config.yaml            # Optimized configuration
 │   ├── study_summary.json          # All trials metadata
 │   └── top_10_trials.xlsx          # Best configurations
-└── database/
-    └── study.db                    # SQLite storage for resumption
+├── database/
+│   └── study.db                    # SQLite storage for resumption
+└── logs/
+    └── orchestrator_YYYYMMDD_HHMMSS.log
+```
+
+### Standard Training Run Artifacts
+```
+outputs/20260123_bloodmnist_minicnn_b4a8f1/
+├── figures/
+│   ├── confusion_matrix_mini_cnn.png       # Classification matrix
+│   ├── sample_predictions_mini_cnn.png     # Model predictions visualization
+│   ├── training_curves_mini_cnn.png        # Loss/accuracy plots
+│   ├── training_curves_mini_cnn.npz        # Raw metrics data
+│   └── bloodmnist/                         # Dataset-specific visualizations
+│       └── sample_grid_28x28.png           # 12 samples with augmentations
+├── reports/
+│   ├── training_summary.xlsx               # Complete metrics spreadsheet
+│   └── config_snapshot_YYYYMMDD_HHMMSS.yaml # Configuration used for run
+├── models/
+│   └── best_mini_cnn.pth                   # Best model weights (by val AUC)
+└── logs/
+    └── orchestrator_YYYYMMDD_HHMMSS.log
 ```
 
 ### Customization
@@ -791,8 +812,8 @@ class CustomSearchSpace:
 # Default: BloodMNIST 28×28
 python -m tests.smoke_test
 
-# Custom dataset/resolution
-python -m tests.smoke_test --dataset pathmnist --resolution 224
+# Custom dataset
+python -m tests.smoke_test --dataset pathmnist 
 ```
 
 **Output:** Validates full pipeline in <30 seconds:
@@ -804,7 +825,7 @@ python -m tests.smoke_test --dataset pathmnist --resolution 224
 
 **Health Check** (dataset integrity):
 ```bash
-python -m tests.health_check --dataset bloodmnist
+python -m tests.health_check --dataset organcmnist --resolution 224
 ```
 
 **Output:** Verifies:
@@ -972,21 +993,33 @@ pytest tests/ -n auto
 - **Unit Tests** (650+ tests): Config validation, metadata injection, type safety
 - **Integration Tests** (150+ tests): End-to-end pipeline validation, YAML hydration
 - **Smoke Tests**: 1-epoch sanity checks (~30 seconds)
-- **Health Checks**: Dataset integrity validation
-
+- **Health Checks**: Dataset integrity
 
 ### Continuous Integration
 
 GitHub Actions automatically run on every push:
 
-- ✅ Code quality checks (Black, isort, Flake8)
-- ✅ Unit tests across Python 3.10, 3.11, 3.12
-- ✅ Smoke tests (E2E validation)
-- ✅ Dataset health checks
-- ✅ Security scanning (Bandit, Safety)
-- ✅ Code coverage reporting (Codecov)
+- ✅ **Code Quality**: Black, isort, Flake8 formatting and linting checks
+- ✅ **Multi-Python Testing**: Unit tests across Python 3.10, 3.11, 3.12 (800+ tests)
+- ✅ **Smoke Test**: 1-epoch end-to-end validation (~30s, CPU-only)
+- ✅ **Documentation**: README.md presence verification
+- ✅ **Security Scanning**: Bandit (code analysis) and Safety (dependency vulnerabilities)
+- ✅ **Code Coverage**: Automated reporting to Codecov (99%+ coverage)
 
-View the latest build status: [![CI/CD](https://github.com/tomrussobuilds/visionforge/actions/workflows/ci.yml/badge.svg)](https://github.com/tomrussobuilds/visionforge/actions/workflows/ci.yml)
+**Pipeline Status:**
+
+| Job | Description | Status |
+|-----|-------------|--------|
+| **Code Quality** | Black, isort, Flake8 | Continue-on-error (advisory) |
+| **Pytest Suite** | 800+ tests, 3 Python versions | ✅ Required to pass |
+| **Smoke Test** | 1-epoch E2E validation | ✅ Required to pass |
+| **Documentation** | README verification | ✅ Required to pass |
+| **Security Scan** | Bandit + Safety | Continue-on-error (advisory) |
+| **Build Status** | Aggregate summary | ✅ Fails if pytest or smoke test fails |
+
+View the latest build: [![CI/CD](https://github.com/tomrussobuilds/visionforge/actions/workflows/ci.yml/badge.svg)](https://github.com/tomrussobuilds/visionforge/actions/workflows/ci.yml)
+
+> **Note**: Health checks are not run in CI to avoid excessive dataset downloads. Run locally with `python -m tests.health_check` for dataset integrity validation.
 
 ---
 
@@ -1021,25 +1054,31 @@ View the latest build status: [![CI/CD](https://github.com/tomrussobuilds/vision
 ### ✅ Phase 3: Modern Architectures (Completed)
 - **Vision Transformer (ViT-Tiny)**: Patch-based attention with 3 weight variants
 - **MiniCNN**: Compact baseline for rapid prototyping (~50K parameters)
-- **Architecture Search**: Optuna-driven model selection for both resolutions
 - **Weight Variant Search**: Automatic exploration of ImageNet-1k/21k pretraining strategies
-- **ONNX Export**: Model serialization for deployment (via `onnx` extra)
 
-### 🔮 Phase 4: Advanced Features (In Progress)
-- **Additional Architectures**: ConvNeXt, EfficientNet-V2, DeiT
-- **Domain Extension**: Abstract dataset registry for non-medical domains
-- **Multi-modal Support**: Detection, segmentation hooks
-- **Distributed Training**: DDP, FSDP support for multi-GPU
-- **Advanced Export**: TorchScript optimization, quantization, ONNX Runtime
-- **Benchmark Suite**: Standardized architecture comparison framework
+### ✅ Phase 4: Quality Assurance (Completed)
+- **Test Coverage**: 99%+ across 800+ tests (unit, integration, smoke)
+- **Artifact Export**: HTML visualizations (parameter importance, optimization history, slices, parallel coordinates)
+- **Comprehensive Reporting**: Excel summaries, JSON metadata, YAML snapshots
 
 ### 🎯 Current Status
-- **Test Coverage**: 98% (→100% goal, 800+ tests)
+- **Test Coverage**: 99% (near-complete coverage with pragma for defensive guards)
 - **Architectures**: 4 total (2 for 28×28, 2 for 224×224)
   - 28×28: ResNet-18-Adapted, MiniCNN
   - 224×224: EfficientNet-B0, ViT-Tiny
 - **Resolutions**: 2 (28×28, 224×224)
-- **Export Formats**: PyTorch (.pth), ONNX (.onnx with optional dependency)
+- **Export Formats**: PyTorch (.pth), HTML visualizations, Excel reports
+
+### 🔮 Future Enhancements (Roadmap)
+- **ONNX Export**: Model serialization for deployment
+- **Additional Architectures**: ConvNeXt, EfficientNet-V2, DeiT
+- **Domain Extension**: Abstract dataset registry for non-medical domains
+- **Multi-modal Support**: Detection, segmentation hooks
+- **Distributed Training**: DDP, FSDP support for multi-GPU
+
+> **Development Philosophy**: 
+> Incremental feature addition with maintained test coverage. New capabilities are added carefully to preserve the framework's stability and reproducibility guarantees.
+
 
 ---
 
