@@ -35,18 +35,27 @@ pytest tests/ --cov=orchard --cov-report=term-missing
 
 ### 2. Quality Checks
 
-Before committing, run the automated quality checks:
+Two quality check scripts are available:
 
 ```bash
-# Run all checks (linting, formatting, tests, coverage)
+# Quick checks (recommended during development)
+bash scripts/check_quality.sh
+
+# Extended checks (run before PRs)
 bash scripts/check_quality_full.sh
 ```
 
-This script validates:
-- Code formatting (Black)
-- Linting (Flake8)
-- Type hints (MyPy)
-- Test coverage (100% required)
+**Quick checks** (`check_quality.sh`):
+- Black (code formatting)
+- isort (import sorting)
+- Flake8 (linting)
+- Bandit (security)
+- Radon (complexity)
+- Pytest with coverage
+
+**Extended checks** (`check_quality_full.sh`) add:
+- MyPy (type checking)
+- HTML coverage report (`htmlcov/index.html`)
 
 ### 3. Code Style
 

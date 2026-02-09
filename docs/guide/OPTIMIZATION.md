@@ -66,42 +66,7 @@ python forge.py --config outputs/*/reports/best_config.yaml
 
 ### Artifacts Generated
 
-### Optimization Run Artifacts
-```
-outputs/20260123_organcmnist_efficientnetb0_a3f7c2/
-├── figures/
-│   ├── param_importances.html      # Interactive importance plot
-│   ├── optimization_history.html   # Trial progression
-│   ├── slice.html                  # 1D parameter effects
-│   └── parallel_coordinate.html    # Multi-dimensional view
-├── reports/
-│   ├── best_config.yaml            # Optimized configuration
-│   ├── study_summary.json          # All trials metadata
-│   └── top_10_trials.xlsx          # Best configurations
-├── database/
-│   └── study.db                    # SQLite storage for resumption
-└── logs/
-    └── orchestrator_YYYYMMDD_HHMMSS.log
-```
-
-### Standard Training Run Artifacts
-```
-outputs/20260123_bloodmnist_minicnn_b4a8f1/
-├── figures/
-│   ├── confusion_matrix_mini_cnn.png       # Classification matrix
-│   ├── sample_predictions_mini_cnn.png     # Model predictions visualization
-│   ├── training_curves_mini_cnn.png        # Loss/accuracy plots
-│   ├── training_curves_mini_cnn.npz        # Raw metrics data
-│   └── bloodmnist/                         # Dataset-specific visualizations
-│       └── sample_grid_28x28.png           # 12 samples with augmentations
-├── reports/
-│   ├── training_summary.xlsx               # Complete metrics spreadsheet
-│   └── config_snapshot_YYYYMMDD_HHMMSS.yaml # Configuration used for run
-├── models/
-│   └── best_mini_cnn.pth                   # Best model weights (by val AUC)
-└── logs/
-    └── orchestrator_YYYYMMDD_HHMMSS.log
-```
+See the **[Artifact Reference Guide](ARTIFACTS.md)** for complete documentation of all generated files.
 
 ### Customization
 

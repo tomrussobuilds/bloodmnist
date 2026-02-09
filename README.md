@@ -234,44 +234,19 @@ Every run generates a complete artifact suite for total traceability. Both train
 <table>
 <tr>
 <td valign="top">
-<img src="docs/artifacts/artifacts_structure.png" alt="Artifact Structure" width="380">
+<img src="docs/artifacts/artifacts_structure.png" alt="Artifact Structure" width="480">
 </td>
 <td valign="top">
-
-| Artifact | Description |
-|----------|-------------|
-| `config_snapshot.yaml` | Frozen config at run start |
-| **figures/** | |
-| ├ `training_curves.npz` | Raw curves |
-| ├ `sample_grid.png` | Augmentation preview |
-| ├ `confusion_matrix.png` | Per-class predictions |
-| ├ `training_curves.png` | Loss/AUC over epochs |
-| ├ `sample_grid.png` | Dataset samples |
-| ├ `param_importances.html`* | Hyperparameter importance |
-| ├ `optimization_history.html`* | Trial progression |
-| ├ `slice.html`* | Parameter slices |
-| └ `parallel_coordinate.html`* | Multi-param view |
-| **reports/** | |
-| ├ `training_summary.xlsx` | Metrics + predictions |
-| ├ `best_config.yaml`* | Optimized hyperparams |
-| ├ `study_summary.json`* | Study metadata |
-| └ `top_10_trials.xlsx`* | Best trials ranked |
-| **models/** | |
-| └ `best_<arch>.pth` | Model weights |
-| **exports/** | |
-| └ `model.onnx` | Production export |
-| **database/** | |
-| └ `optuna_study.db`* | SQLite study DB |
-
-*\*Optimization runs only*
-
-</td>
-</tr>
-</table>
 
 > [!IMPORTANT]
 > ### 📂 [View Sample Artifacts](./docs/artifacts)
 > Explore Excel reports, YAML configs, and diagnostic plots from real experiments.
+
+**[Artifact Reference Guide](docs/guide/ARTIFACTS.md)** - Complete documentation of all generated files.
+
+</td>
+</tr>
+</table>
 
 ---
 
@@ -310,6 +285,12 @@ Comprehensive guides for advanced usage and system internals:
 - ONNX export for production deployment
 - Quantization for mobile/server
 - Validation and benchmarking
+
+### 🗂️ Artifact Reference
+**[Artifact Guide](docs/guide/ARTIFACTS.md)**
+- Complete file documentation
+- Directory structure examples
+- Training vs optimization outputs
 
 ### 🧪 Testing & Quality
 **[Testing Guide](docs/guide/TESTING.md)**
