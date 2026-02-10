@@ -253,13 +253,12 @@ class Config(BaseModel):
         resolution = getattr(args, "resolution", 28)
         ds_name = ds_name_raw.lower()
 
-        wrapper = DatasetRegistryWrapper(resolution=resolution)
-        if ds_name not in wrapper.registry:
+        try:
+            return DatasetConfig._resolve_metadata(ds_name, resolution)
+        except KeyError:
             raise ValueError(
                 f"Dataset '{ds_name_raw}' not found in registry for resolution {resolution}"
             )
-
-        return wrapper.get_dataset(ds_name)
 
     @classmethod
     def _hydrate_yaml(cls, yaml_path: Path, metadata: DatasetMetadata) -> "Config":
@@ -305,6 +304,77 @@ class Config(BaseModel):
         return cls._hydrate_yaml(yaml_path, metadata)
 
     @classmethod
+    def _build_from_yaml(cls, args: argparse.Namespace, ds_meta: DatasetMetadata) -> "Config":
+        """
+        Build Config from YAML file with metadata resolution.
+
+        Extracts dataset/resolution from YAML, re-resolves metadata if needed,
+        and hydrates config through the YAML path.
+
+        Args:
+            args: Parsed argparse namespace (must have config attribute)
+            ds_meta: Initial dataset metadata (may be overridden by YAML)
+
+        Returns:
+            Configured instance with correct metadata
+        """
+        yaml_path = Path(args.config)
+        raw_data = load_config_from_yaml(yaml_path)
+
+        # Extract critical values from YAML
+        dataset_section = raw_data.get("dataset", {})
+        yaml_dataset_name = dataset_section.get("name")
+        yaml_resolution = dataset_section.get("resolution")
+        yaml_img_size = dataset_section.get("img_size")
+
+        # Inject into args so sub-configs see them
+        if yaml_resolution is not None:
+            args.resolution = yaml_resolution
+        if yaml_img_size is not None:
+            args.img_size = yaml_img_size
+        if yaml_dataset_name:
+            args.dataset = yaml_dataset_name
+
+        # Re-resolve metadata with correct resolution if dataset specified
+        if yaml_dataset_name:
+            resolution = yaml_resolution if yaml_resolution is not None else 28
+            wrapper = DatasetRegistryWrapper(resolution=resolution)
+
+            if yaml_dataset_name not in wrapper.registry:
+                available = list(wrapper.registry.keys())
+                raise KeyError(
+                    f"Dataset '{yaml_dataset_name}' not found at resolution {resolution}. "
+                    f"Available at {resolution}px: {available}"
+                )
+
+            ds_meta = wrapper.get_dataset(yaml_dataset_name)
+
+        return cls.from_yaml(yaml_path, metadata=ds_meta)
+
+    @classmethod
+    def _build_from_cli(cls, args: argparse.Namespace) -> "Config":
+        """
+        Build Config from CLI arguments only.
+
+        Args:
+            args: Parsed argparse namespace
+
+        Returns:
+            Configured instance from CLI values
+        """
+        return cls(
+            hardware=HardwareConfig.from_args(args),
+            telemetry=TelemetryConfig.from_args(args),
+            training=TrainingConfig.from_args(args),
+            augmentation=AugmentationConfig.from_args(args),
+            dataset=DatasetConfig.from_args(args),
+            architecture=ArchitectureConfig.from_args(args),
+            evaluation=EvaluationConfig.from_args(args),
+            optuna=OptunaConfig.from_args(args) if hasattr(args, "study_name") else None,
+            export=ExportConfig.from_args(args) if hasattr(args, "format") else None,
+        )
+
+    @classmethod
     def _build_from_yaml_or_args(
         cls, args: argparse.Namespace, ds_meta: DatasetMetadata
     ) -> "Config":
@@ -327,52 +397,8 @@ class Config(BaseModel):
             Configured instance with correct metadata
         """
         if getattr(args, "config", None):
-            yaml_path = Path(args.config)
-            raw_data = load_config_from_yaml(yaml_path)
-
-            # STEP 1: Extract critical values from YAML
-            dataset_section = raw_data.get("dataset", {})
-            yaml_dataset_name = dataset_section.get("name")
-            yaml_resolution = dataset_section.get("resolution")
-            yaml_img_size = dataset_section.get("img_size")
-
-            # STEP 2: Inject into args so sub-configs see them
-            if yaml_resolution is not None:
-                args.resolution = yaml_resolution
-            if yaml_img_size is not None:
-                args.img_size = yaml_img_size
-            if yaml_dataset_name:
-                args.dataset = yaml_dataset_name
-
-            # STEP 3: Re-resolve metadata with correct resolution
-            if yaml_dataset_name:
-                resolution = yaml_resolution if yaml_resolution is not None else 28
-                wrapper = DatasetRegistryWrapper(resolution=resolution)
-
-                if yaml_dataset_name not in wrapper.registry:
-                    available = list(wrapper.registry.keys())
-                    raise KeyError(
-                        f"Dataset '{yaml_dataset_name}' not found at resolution {resolution}. "
-                        f"Available at {resolution}px: {available}"
-                    )
-
-                ds_meta = wrapper.get_dataset(yaml_dataset_name)
-
-            # STEP 4: Use YAML hydration path with correct metadata
-            return cls.from_yaml(yaml_path, metadata=ds_meta)
-
-        # Build from CLI args (standard path)
-        return cls(
-            hardware=HardwareConfig.from_args(args),
-            telemetry=TelemetryConfig.from_args(args),
-            training=TrainingConfig.from_args(args),
-            augmentation=AugmentationConfig.from_args(args),
-            dataset=DatasetConfig.from_args(args),
-            architecture=ArchitectureConfig.from_args(args),
-            evaluation=EvaluationConfig.from_args(args),
-            optuna=OptunaConfig.from_args(args) if hasattr(args, "study_name") else None,
-            export=ExportConfig.from_args(args) if hasattr(args, "format") else None,
-        )
+            return cls._build_from_yaml(args, ds_meta)
+        return cls._build_from_cli(args)
 
     @classmethod
     def from_args(cls, args: argparse.Namespace) -> "Config":

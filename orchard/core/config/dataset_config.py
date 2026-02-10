@@ -205,6 +205,31 @@ class DatasetConfig(BaseModel):
     # --- Factory Methods ---
 
     @classmethod
+    def _resolve_metadata(cls, dataset_name: str, resolution: int) -> DatasetMetadata:
+        """
+        Load dataset metadata from registry with error handling.
+
+        Args:
+            dataset_name: Dataset identifier
+            resolution: Target resolution (28 or 224)
+
+        Returns:
+            DatasetMetadata for the specified dataset
+
+        Raises:
+            KeyError: If dataset not found at specified resolution
+        """
+        wrapper = DatasetRegistryWrapper(resolution=resolution)
+        try:
+            return wrapper.get_dataset(dataset_name)
+        except KeyError:
+            available = list(wrapper.registry.keys())
+            raise KeyError(
+                f"Dataset '{dataset_name}' not found at resolution {resolution}. "
+                f"Available: {available}"
+            )
+
+    @classmethod
     def from_args(cls, args: argparse.Namespace) -> "DatasetConfig":
         """
         Create DatasetConfig from CLI arguments with resolution-aware metadata.
@@ -213,20 +238,8 @@ class DatasetConfig(BaseModel):
         resolution (28 or 224), then constructs a fully configured instance
         with proper channel handling and sampling settings.
 
-        Priority order for parameter resolution:
-            1. YAML injection (if --config provided)
-            2. CLI explicit arguments
-            3. Inference from dataset registry
-            4. Field defaults
-
         Args:
-            args: Parsed argparse namespace containing:
-                - dataset/name: Dataset identifier
-                - resolution: Target resolution (28 or 224)
-                - force_rgb: RGB promotion flag
-                - max_samples: Sample limit
-                - data_dir: Dataset root path
-                - use_weighted_sampler: Class balancing flag
+            args: Parsed argparse namespace
 
         Returns:
             Fully configured DatasetConfig with metadata loaded from registry.
@@ -234,36 +247,20 @@ class DatasetConfig(BaseModel):
         Raises:
             KeyError: If dataset not found in registry at specified resolution.
         """
-        # 1. Determine dataset name
+        # Extract core identifiers
         dataset_name = getattr(args, "dataset", None) or getattr(args, "name", None) or "bloodmnist"
-
-        # 2. Determine resolution
         resolution = getattr(args, "resolution", 28)
 
-        # 3. Load metadata from registry
-        wrapper = DatasetRegistryWrapper(resolution=resolution)
-        try:
-            resolved_metadata = wrapper.get_dataset(dataset_name)
-        except KeyError:
-            available = list(wrapper.registry.keys())
-            raise KeyError(
-                f"Dataset '{dataset_name}' not found at resolution {resolution}. "
-                f"Available: {available}"
-            )
+        # Load metadata from registry
+        resolved_metadata = cls._resolve_metadata(dataset_name, resolution)
 
-        # 4. Resolve other params
-        getattr(args, "pretrained", True)
+        # Resolve optional parameters
         force_rgb_cli = getattr(args, "force_rgb", None)
-
         resolved_force_rgb = force_rgb_cli if force_rgb_cli is not None else True
 
         cli_max = getattr(args, "max_samples", None)
         resolved_max = None if (cli_max is not None and cli_max <= 0) else cli_max
 
-        # Only pass explicit value if provided
-        resolved_img_size = getattr(args, "img_size", None)
-
-        # 5. Construct DatasetConfig
         return cls(
             name=dataset_name,
             data_root=Path(getattr(args, "data_dir", DATASET_DIR)),
@@ -271,6 +268,6 @@ class DatasetConfig(BaseModel):
             max_samples=resolved_max,
             use_weighted_sampler=getattr(args, "use_weighted_sampler", True),
             force_rgb=resolved_force_rgb,
-            img_size=resolved_img_size,
+            img_size=getattr(args, "img_size", None),
             resolution=resolution,
         )

@@ -30,7 +30,7 @@ Typical Usage:
 """
 
 import logging
-from typing import TYPE_CHECKING, Callable, Literal, Optional
+from typing import TYPE_CHECKING, Callable, Literal, Optional, TypeVar
 
 import torch
 
@@ -49,6 +49,13 @@ from .paths import LOGGER_NAME, RunPaths, setup_static_directories
 
 if TYPE_CHECKING:  # pragma: no cover
     from .config.manifest import Config
+
+T = TypeVar("T")
+
+
+def _resolve(value: Optional[T], default_factory: Callable[[], T]) -> T:
+    """Resolve optional dependency with lazy default instantiation."""
+    return value if value is not None else default_factory()
 
 
 # ROOT ORCHESTRATOR
@@ -141,10 +148,10 @@ class RootOrchestrator:
         """
         self.cfg = cfg
 
-        # Dependency injection with defaults
-        self.infra = infra_manager if infra_manager is not None else InfrastructureManager()
-        self.reporter = reporter or Reporter()
-        self.time_tracker = time_tracker or TimeTracker()
+        # Dependency injection with defaults (using _resolve for uniform None-handling)
+        self.infra = _resolve(infra_manager, InfrastructureManager)
+        self.reporter = _resolve(reporter, Reporter)
+        self.time_tracker = _resolve(time_tracker, TimeTracker)
         self._log_initializer = log_initializer or Logger.setup
         self._seed_setter = seed_setter or set_seed
         self._thread_applier = thread_applier or apply_cpu_threads
