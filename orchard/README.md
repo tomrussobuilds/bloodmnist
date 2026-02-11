@@ -163,6 +163,7 @@ def get_optimizer(model, cfg):
 
 ## 📚 Further Reading
 
-- **[Architecture Guide](../docs/guide/ARCHITECTURE.md)** - System design, technical deep dive
+- **[Framework Guide](../docs/guide/FRAMEWORK.md)** - System design, technical deep dive
+- **[Architecture Guide](../docs/guide/ARCHITECTURE.md)** - Supported models and weight transfer
 - **[Configuration Guide](../docs/guide/CONFIGURATION.md)** - All config parameters
 - **[Testing Guide](../docs/guide/TESTING.md)** - Test suite organization

@@ -1,200 +1,33 @@
 ← [Back to Main README](../../README.md)
 
-# Architecture & Design
+# Supported Models
 
-## ✨ Core Features
+## ResNet-18 Adapted (28x28)
 
-### 🔒 Enterprise-Grade Execution Safety
-
-**Tiered Configuration Engine (SSOT)**
-Built on Pydantic V2, the configuration system acts as a **Single Source of Truth**, transforming raw inputs (CLI/YAML) into an immutable, type-safe execution blueprint:
-
-- **Late-Binding Metadata Injection**: Dataset specifications (normalization constants, class mappings) are resolved from a centralized registry at instantiation time
-- **Cross-Domain Validation**: Post-construction logic guards prevent unstable states (e.g., enforcing RGB input for pretrained weights, validating AMP compatibility)
-- **Path Portability**: Automatic serialization converts absolute paths to environment-agnostic anchors for cross-platform reproducibility
-
-**Infrastructure Guard Layer**
-An independent `InfrastructureManager` bridges declarative configs with physical hardware:
-
-- **Mutual Exclusion via `flock`**: Kernel-level advisory locking ensures only one training instance per workspace (prevents VRAM race conditions)
-- **Process Sanitization**: `psutil` wrapper identifies and terminates ghost Python processes
-- **HPC-Aware Safety**: Auto-detects cluster schedulers (SLURM/PBS/LSF) and suspends aggressive process cleanup to preserve multi-user stability
-
-**Deterministic Run Isolation**
-Every execution generates a unique workspace using:
-```
-outputs/YYYYMMDD_DS_MODEL_HASH6/
-```
-Where `HASH6` is a BLAKE2b cryptographic digest (3-byte, deterministic) computed from the training configuration. Even minor hyperparameter variations produce isolated directories, preventing resource overlap and ensuring auditability.
-
-### 🔬 Reproducibility Architecture
-
-**Dual-Layer Reproducibility Strategy:**
-1. **Standard Mode**: Global seeding (Seed 42) with performance-optimized algorithms
-2. **Strict Mode**: Bit-perfect reproducibility via:
-   - `torch.use_deterministic_algorithms(True)`
-   - `worker_init_fn` for multi-process RNG synchronization
-   - Auto-scaling to `num_workers=0` when determinism is critical
-
-**Data Integrity Validation:**
-- MD5 checksum verification for dataset downloads
-- `validate_npz_keys` structural integrity checks before memory allocation
-
-### ⚡ Performance Optimization
-
-**Hybrid RAM Management:**
-- **Small Datasets** : Full RAM caching for maximum throughput
-- **Large Datasets** : Indexed slicing to prevent OOM errors
-
-**Dynamic Path Anchoring:**
-- "Search-up" logic locates project root via markers (`.git`, `README.md`)
-- Ensures absolute path stability regardless of invocation directory
-
-**Graceful Logger Reconfiguration:**
-- Initial logs route to `STDOUT` for immediate feedback
-- Hot-swap to timestamped file handler post-initialization without trace loss
-
-### 🎯 Intelligent Hyperparameter Search
-
-**Optuna Integration Features:**
-- **TPE Sampling**: Tree-structured Parzen Estimator for efficient search space exploration
-- **Median Pruning**: Early stopping of underperforming trials (30-50% time savings)
-- **Persistent Studies**: SQLite storage enables resume-from-checkpoint
-- **Type-Safe Constraints**: All search spaces respect Pydantic validation bounds
-- **Auto-Visualization**: Parameter importance plots, optimization history, parallel coordinates
-
----
-
-## 🏗 System Architecture
-
-The framework implements **Separation of Concerns (SoC)** with five core layers:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      RootOrchestrator                           │
-│              (Lifecycle Manager & Context)                      │
-│                                                                 │
-│  Responsibilities:                                              │
-│  • Phase 1-7 initialization sequence                            │
-│  • Resource acquisition & cleanup (Context Manager)             │
-│  • Device resolution & caching                                  │
-└────────────┬─────────────────────────┬──────────────────────────┘
-             │                         │
-             │ uses                    │ uses
-             │                         │
-    ┌────────▼──────────┐     ┌────────▼───────────────┐
-    │                   │     │                        │
-    │  Config Engine    │     │  InfrastructureManager │
-    │  (Pydantic V2)    │     │  (flock/psutil)        │
-    │                   │     │                        │
-    │  • Type safety    │     │  • Process cleanup     │
-    │  • Validation     │     │  • Kernel locks        │
-    │  • Metadata       │     │  • HPC detection       │
-    │    injection      │     │                        │
-    └───────────────────┘     └────────────────────────┘
-             │
-             │ provides config to
-             │
-    ┌────────▼───────────────────────────────────────────────┐
-    │                                                        │
-    │              Execution Pipeline                        │
-    │                                                        │
-    │  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
-    │  │   Data   │  │  Model   │  │ Trainer  │              │
-    │  │ Handler  │→ │ Factory  │→ │  Engine  │              │
-    │  └──────────┘  └──────────┘  └────┬─────┘              │
-    │                                   │                    │
-    │                             ┌─────▼──────┐             │
-    │                             │ Evaluation │             │
-    │                             │  Pipeline  │             │
-    │                             └────────────┘             │
-    │                                                        │
-    └────────────────────────────┬───────────────────────────┘
-                                 │
-                    ┌────────────┴────────────┐
-                    │                         │
-                    │ alternative paths       │
-                    │                         │
-         ┌──────────▼──────────┐    ┌─────────▼──────────┐
-         │ Optimization Engine │    │   Export Engine    │
-         │      (Optuna)       │    │  (ONNX/TorchScript)│
-         │                     │    │                    │
-         │ • Study management  │    │ • Checkpoint load  │
-         │ • Trial execution   │    │ • ONNX conversion  │
-         │ • Pruning logic     │    │ • Validation       │
-         │ • Visualization     │    │ • Benchmarking     │
-         └─────────────────────┘    └────────────────────┘
-```
-
-**Key Design Principles:**
-
-1. Orchestrator owns both Config and InfrastructureManager
-2. Config is the SSOT - all modules receive it as dependency
-3. InfrastructureManager is stateless utility for OS-level operations
-4. Execution pipeline is linear: Data → Model → Training → Eval
-5. Optimization wraps the entire pipeline for each trial
-6. Export consumes saved checkpoints for production deployment
-
----
-
-## 🧩 Dependency Graph
-
-<p align="center">
-<img src="../framework_map.svg?v=4" width="900" alt="System Dependency Graph">
-</p>
-
-> *Generated via `pydeps`. Highlights the centralized Config hub and modular architecture.*
-
-<details>
-<summary>🛠️ Regenerate Dependency Graph</summary>
-
-```bash
-pydeps orchard \
-    --cluster \
-    --max-bacon=0 \
-    --max-module-depth=4 \
-    --only orchard \
-    --noshow \
-    -T svg \
-    -o docs/framework_map.svg
-```
-
-**Requirements:** `pydeps` + Graphviz (`sudo apt install graphviz` or `brew install graphviz`)
-
-</details>
-
----
-
-## 🔬 Technical Deep Dive
-
-### Architecture Adaptation
-
-**ResNet-18 for 28×28 Resolution**
-
-Standard ResNet-18 is optimized for 224×224 ImageNet inputs. Direct application to 28×28 domains causes catastrophic information loss. Our adaptation strategy:
+Standard ResNet-18 is optimized for 224x224 ImageNet inputs. Direct application to 28x28 domains causes catastrophic information loss. Our adaptation strategy:
 
 | Layer | Standard ResNet-18 | VisionForge Adapted | Rationale |
 |-------|-------------------|---------------------|-----------|
-| **Input Conv** | 7×7, stride=2, pad=3 | **3×3, stride=1, pad=1** | Preserve spatial resolution |
-| **Max Pooling** | 3×3, stride=2 | **Identity (bypassed)** | Prevent 75% feature loss |
-| **Stage 1 Input** | 56×56 (from 224) | **28×28 (from 28)** | Native resolution entry |
+| **Input Conv** | 7x7, stride=2, pad=3 | **3x3, stride=1, pad=1** | Preserve spatial resolution |
+| **Max Pooling** | 3x3, stride=2 | **Identity (bypassed)** | Prevent 75% feature loss |
+| **Stage 1 Input** | 56x56 (from 224) | **28x28 (from 28)** | Native resolution entry |
 
 **Key Modifications:**
 1. **Stem Redesign**: Replacing large-receptive-field convolution avoids immediate downsampling
 2. **Pooling Removal**: MaxPool bypass maintains full spatial fidelity into residual stages
-3. **Bicubic Weight Transfer**: Pretrained 7×7 weights are spatially interpolated to 3×3 geometry
+3. **Bicubic Weight Transfer**: Pretrained 7x7 weights are spatially interpolated to 3x3 geometry
 
 ---
 
-**MiniCNN for 28×28 Resolution**
+## MiniCNN (28x28)
 
 A compact, custom architecture designed specifically for low-resolution medical imaging:
 
 | Component | Specification | Purpose |
 |-----------|--------------|---------|
 | **Architecture** | 3 conv blocks + global pooling | Fast convergence with minimal parameters |
-| **Parameters** | ~94K | 220× fewer than ResNet-18-Adapted |
-| **Input Processing** | 28×28 → 14×14 → 7×7 → 1×1 | Progressive spatial compression |
+| **Parameters** | ~94K | 220x fewer than ResNet-18-Adapted |
+| **Input Processing** | 28x28 → 14x14 → 7x7 → 1x1 | Progressive spatial compression |
 | **Regularization** | Configurable dropout before FC | Overfitting prevention |
 
 **Advantages:**
@@ -204,7 +37,7 @@ A compact, custom architecture designed specifically for low-resolution medical 
 
 ---
 
-**EfficientNet-B0 for 224×224 Resolution**
+## EfficientNet-B0 (224x224)
 
 Implements compound scaling (depth, width, resolution) for optimal parameter efficiency:
 
@@ -217,7 +50,7 @@ Implements compound scaling (depth, width, resolution) for optimal parameter eff
 
 ---
 
-**Vision Transformer Tiny (ViT-Tiny) for 224×224 Resolution**
+## Vision Transformer Tiny (ViT-Tiny) (224x224)
 
 Patch-based attention architecture with multiple pretrained weight variants:
 
@@ -225,7 +58,7 @@ Patch-based attention architecture with multiple pretrained weight variants:
 |---------|--------------|---------|
 | **Architecture** | 12-layer transformer encoder | Global context modeling via self-attention |
 | **Parameters** | ~5.5M | Comparable to EfficientNet-B0 |
-| **Patch Size** | 16×16 (196 patches from 224×224) | Efficient sequence length for transformers |
+| **Patch Size** | 16x16 (196 patches from 224x224) | Efficient sequence length for transformers |
 | **Weight Variants** | ImageNet-1k, ImageNet-21k, ImageNet-21k→1k fine-tuned | Optuna-searchable pretraining strategies |
 
 **Supported Weight Variants:**
@@ -235,7 +68,7 @@ Patch-based attention architecture with multiple pretrained weight variants:
 
 ---
 
-### Mathematical Weight Transfer
+## Weight Transfer
 
 To retain ImageNet-learned feature detectors when adapting to grayscale inputs, we apply bicubic interpolation for CNNs and channel averaging for ViT:
 
@@ -265,7 +98,7 @@ W_{\text{gray}} = \text{mean}(W_{\text{src}}, \text{dim}=1) \quad \text{where} \
 
 ---
 
-### Training Regularization
+## Training Regularization
 
 **MixUp Augmentation** synthesizes training samples via convex combinations:
 

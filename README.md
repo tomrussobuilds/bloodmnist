@@ -254,12 +254,18 @@ Every run generates a complete artifact suite for total traceability. Both train
 
 Comprehensive guides for advanced usage and system internals:
 
-### 🏗️ Architecture & Design
-**[Architecture Guide](docs/guide/ARCHITECTURE.md)**
+### 🏗️ Framework Design
+**[Framework Guide](docs/guide/FRAMEWORK.md)**
 - Core features and technical design principles
 - System architecture diagrams
 - Dependency relationships
 - Component deep-dives (Config engine, Infrastructure safety, Reproducibility)
+
+### 🧠 Model Architecture
+**[Architecture Guide](docs/guide/ARCHITECTURE.md)**
+- Supported models (ResNet-18 Adapted, MiniCNN, EfficientNet-B0, ViT-Tiny)
+- Weight transfer and grayscale adaptation
+- Training regularization (MixUp)
 
 ### ⚙️ Configuration & Customization
 **[Configuration Guide](docs/guide/CONFIGURATION.md)**

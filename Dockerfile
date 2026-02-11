@@ -12,7 +12,12 @@ ENV PIP_NO_CACHE_DIR=1
 ENV PYTHONHASHSEED=0
 ENV CUBLAS_WORKSPACE_CONFIG=:4096:8
 
-# Headless rendering (no display server in container)
+# Headless rendering and cache directories
+# When running with -u $(id -u):$(id -g), the host UID does not exist in
+# /etc/passwd. HOME and USER must be set explicitly so that PyTorch's
+# cache_dir() (which calls getpass.getuser()) and other libs work correctly.
+ENV HOME=/tmp
+ENV USER=appuser
 ENV IN_DOCKER=TRUE
 ENV MPLCONFIGDIR=/tmp/matplotlib_cache
 ENV TORCH_HOME=/tmp/torch_cache
@@ -39,6 +44,6 @@ RUN pip3 install -r requirements.txt
 COPY . .
 
 # Default command
-ENTRYPOINT ["python3", "main.py"]
+ENTRYPOINT ["python3", "forge.py"]
 
 CMD []

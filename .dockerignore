@@ -26,6 +26,11 @@ logs/
 .coverage
 htmlcov/
 
+# Virtual environments
+.conda/
+venv/
+.venv/
+
 # Metadata & IDE
 .git
 .gitignore
