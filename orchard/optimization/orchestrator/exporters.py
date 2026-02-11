@@ -162,7 +162,23 @@ def export_top_trials(
     ws = wb.active
     ws.title = "Top Trials"
 
-    # Styling definitions (matching reporting.py green theme)
+    _write_styled_rows(ws, df)
+    _auto_adjust_column_widths(ws)
+
+    wb.save(output_path)
+    logger.info(f"Saved top {len(sorted_trials)} trials to {output_path}")
+
+
+def _write_styled_rows(ws, df: pd.DataFrame) -> None:
+    """Write DataFrame rows to worksheet with professional formatting.
+
+    Applies header styling (green fill, bold, centered) and body styling
+    (left-aligned, number formatting for floats/ints).
+
+    Args:
+        ws: Active openpyxl worksheet.
+        df: DataFrame to write.
+    """
     header_fill = PatternFill(start_color="D7E4BC", end_color="D7E4BC", fill_type="solid")
     header_font = Font(bold=True)
     border = Border(
@@ -174,13 +190,11 @@ def export_top_trials(
     alignment_left = Alignment(horizontal="left", vertical="center", wrap_text=True)
     alignment_center = Alignment(horizontal="center", vertical="center")
 
-    # Write data
     for r_idx, row in enumerate(dataframe_to_rows(df, index=False, header=True), 1):
         for c_idx, value in enumerate(row, 1):
             cell = ws.cell(row=r_idx, column=c_idx, value=value)
             cell.border = border
 
-            # Header row
             if r_idx == 1:
                 cell.fill = header_fill
                 cell.font = header_font
@@ -188,13 +202,18 @@ def export_top_trials(
             else:
                 cell.alignment = alignment_left
 
-                # Apply number formatting based on value type
                 if isinstance(value, float):
                     cell.number_format = "0.0000"
                 elif isinstance(value, int) and not isinstance(value, bool):
                     cell.number_format = "0"
 
-    # Auto-adjust column widths
+
+def _auto_adjust_column_widths(ws) -> None:
+    """Auto-adjust column widths based on cell content length.
+
+    Args:
+        ws: Active openpyxl worksheet with populated cells.
+    """
     for column in ws.columns:
         max_length = 0
         column_letter = column[0].column_letter
@@ -202,9 +221,6 @@ def export_top_trials(
             if cell.value:
                 max_length = max(max_length, len(str(cell.value)))
         ws.column_dimensions[column_letter].width = min(max(max_length + 2, 12), 50)
-
-    wb.save(output_path)
-    logger.info(f"Saved top {len(sorted_trials)} trials to {output_path}")
 
 
 # ==================== HELPER FUNCTIONS ====================
