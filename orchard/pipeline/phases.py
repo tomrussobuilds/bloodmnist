@@ -245,10 +245,9 @@ def run_export_phase(
     run_logger.info(f"{'MODEL EXPORT':^80}")
     run_logger.info(LogStyle.HEAVY)
 
-    # Determine input shape from config
+    # Determine input shape from config (must match get_model's channel resolution)
     resolution = cfg.dataset.resolution
-    in_channels = 3 if cfg.dataset.force_rgb else 1
-    input_shape = (in_channels, resolution, resolution)
+    input_shape = (cfg.dataset.effective_in_channels, resolution, resolution)
 
     # Export path (directory managed by RunPaths)
     onnx_path = paths.exports / "model.onnx"

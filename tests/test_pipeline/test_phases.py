@@ -23,6 +23,7 @@ def mock_orchestrator():
     orch.cfg = MagicMock()
     orch.cfg.dataset.resolution = 28
     orch.cfg.dataset.force_rgb = True
+    orch.cfg.dataset.effective_in_channels = 3
     orch.cfg.dataset.metadata.name = "organcmnist"
     orch.cfg.dataset.dataset_name = "organcmnist"
     orch.cfg.architecture.name = "mini_cnn"
@@ -268,6 +269,7 @@ def test_run_export_phase_exports_onnx(mock_export_onnx, mock_get_model, mock_or
 def test_run_export_phase_grayscale_input(mock_export_onnx, mock_get_model, mock_orchestrator):
     """Test run_export_phase determines input channels from config."""
     mock_orchestrator.cfg.dataset.force_rgb = False
+    mock_orchestrator.cfg.dataset.effective_in_channels = 1
     mock_orchestrator.cfg.dataset.resolution = 224
 
     run_export_phase(
@@ -287,7 +289,7 @@ def test_run_export_phase_with_custom_config(mock_export_onnx, mock_get_model, m
     """Test run_export_phase uses provided config override."""
     custom_cfg = MagicMock()
     custom_cfg.dataset.resolution = 64
-    custom_cfg.dataset.force_rgb = True
+    custom_cfg.dataset.effective_in_channels = 3
 
     run_export_phase(
         mock_orchestrator,
