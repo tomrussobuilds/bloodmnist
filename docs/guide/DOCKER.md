@@ -36,6 +36,7 @@ docker build -t visionforge:latest .
 ```bash
 docker run -it --rm \
   --gpus all \
+  --shm-size=8g \
   -u $(id -u):$(id -g) \
   -v $(pwd)/dataset:/app/dataset \
   -v $(pwd)/outputs:/app/outputs \
@@ -47,6 +48,7 @@ docker run -it --rm \
 ```bash
 docker run -it --rm \
   --gpus all \
+  --shm-size=8g \
   -u $(id -u):$(id -g) \
   -e DOCKER_REPRODUCIBILITY_MODE=TRUE \
   -e PYTHONHASHSEED=42 \

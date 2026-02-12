@@ -88,7 +88,7 @@ augmentation:
 
 hardware:
   device: "auto"
-  reproducible: false
+  reproducible: true
 
 telemetry:
   output_dir: ./outputs
