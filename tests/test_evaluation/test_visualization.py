@@ -454,6 +454,7 @@ def test_denormalize_image_clips_values():
     assert result.max() == pytest.approx(1.0)
 
 
+@pytest.mark.unit
 def test_prepare_for_plt_chw_to_hwc():
     """Test _prepare_for_plt converts (C, H, W) to (H, W, C)."""
     rng = np.random.default_rng(seed=42)

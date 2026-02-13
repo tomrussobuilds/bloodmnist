@@ -4,7 +4,6 @@ Unit tests for Galaxy10 Converter Module.
 Tests download, conversion, splitting, and NPZ creation for Galaxy10 DECals dataset.
 """
 
-from types import SimpleNamespace
 from unittest.mock import MagicMock, Mock, patch
 
 import numpy as np
@@ -222,6 +221,31 @@ def test_create_splits_deterministic():
 
 
 @pytest.mark.unit
+def test_ensure_galaxy10_npz_file_exists_valid_md5(tmp_path):
+    """Test ensure_galaxy10_npz returns existing file with valid MD5."""
+    target_npz = tmp_path / "galaxy10.npz"
+
+    dummy_data = {
+        "train_images": np.zeros((5, 10, 10, 3), dtype=np.uint8),
+        "train_labels": np.zeros((5, 1), dtype=np.int64),
+    }
+    np.savez_compressed(target_npz, **dummy_data)
+
+    mock_metadata = MagicMock()
+    mock_metadata.path = target_npz
+    mock_metadata.url = "http://example.com/galaxy10.h5"
+    mock_metadata.md5_checksum = "abc123"
+    mock_metadata.native_resolution = 224
+
+    with patch("orchard.core.md5_checksum", return_value="abc123"):
+        with patch("orchard.data_handler.galaxy10_converter.logger") as mock_logger:
+            result = ensure_galaxy10_npz(mock_metadata)
+
+            assert result == target_npz
+            mock_logger.info.assert_called()
+
+
+@pytest.mark.unit
 def test_ensure_galaxy10_npz_file_exists_placeholder_md5(tmp_path):
     """Test ensure_galaxy10_npz returns existing file with placeholder MD5."""
     target_npz = tmp_path / "galaxy10.npz"
@@ -289,9 +313,6 @@ def test_ensure_galaxy10_npz_download_and_convert(tmp_path):
     mock_metadata.md5_checksum = "placeholder_will_be_calculated_after_conversion"
     mock_metadata.native_resolution = 224
 
-    # Replace mock_download with SimpleNamespace
-    mock_download = SimpleNamespace(side_effect=lambda url, path: None)
-
     def mock_convert_impl(h5_path, output_npz, target_size=224, seed=42):
         dummy_data = {
             "train_images": np.zeros((5, 10, 10, 3), dtype=np.uint8),
@@ -305,8 +326,8 @@ def test_ensure_galaxy10_npz_download_and_convert(tmp_path):
 
     with patch(
         "orchard.data_handler.galaxy10_converter.download_galaxy10_h5",
-        new=mock_download.side_effect,
-    ):
+        side_effect=lambda url, path: None,
+    ) as mock_download:
         with patch(
             "orchard.data_handler.galaxy10_converter.convert_galaxy10_to_npz",
             side_effect=mock_convert_impl,
@@ -315,6 +336,7 @@ def test_ensure_galaxy10_npz_download_and_convert(tmp_path):
                 with patch("orchard.data_handler.galaxy10_converter.logger") as mock_logger:
                     result = ensure_galaxy10_npz(mock_metadata)
 
+                    mock_download.assert_called_once_with(mock_metadata.url, h5_path)
                     assert result == target_npz
                     assert target_npz.exists()
                     assert mock_logger.info.call_count >= 2

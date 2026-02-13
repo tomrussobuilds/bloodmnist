@@ -292,11 +292,10 @@ def test_prepare_environment_with_pbs_environment(tmp_path, monkeypatch):
 
     config = SimpleNamespace(hardware=MockHardware())
     manager.prepare_environment(config, logger=mock_logger)
-    manager.release_resources(config, logger=mock_logger)
 
     assert any("Shared environment detected" in msg for msg in debug_calls)
 
-    manager.release_resources(config)
+    manager.release_resources(config, logger=mock_logger)
 
 
 # INFRASTRUCTURE MANAGER: CACHE FLUSHING
