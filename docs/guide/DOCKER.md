@@ -27,7 +27,11 @@ sudo systemctl restart docker
 ### Build Image
 
 ```bash
-docker build -t visionforge:latest .
+# Option 1: convenience script
+bash docker/build.sh
+
+# Option 2: manual build (from repo root)
+docker build -t visionforge:latest -f docker/Dockerfile .
 ```
 
 ### Execution Modes

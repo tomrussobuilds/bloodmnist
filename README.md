@@ -30,6 +30,7 @@
   <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-2.0%2B-orange?logo=pytorch&logoColor=white" alt="PyTorch"></a>
   <a href="https://docs.pydantic.dev/"><img src="https://img.shields.io/badge/Pydantic-v2-e92063?logo=pydantic&logoColor=white" alt="Pydantic"></a>
   <a href="https://optuna.org/"><img src="https://img.shields.io/badge/Optuna-3.0%2B-00ADD8?logo=optuna&logoColor=white" alt="Optuna"></a>
+  <a href="docs/guide/DOCKER.md"><img src="https://img.shields.io/badge/Docker-CUDA%2012.1-2496ED?logo=docker&logoColor=white" alt="Docker"></a>
 </td>
 </tr>
 <tr>
@@ -64,8 +65,8 @@
 - [🚀 Quick Start](#-quick-start)
 - [📊 Experiment Management](#-experiment-management)
 - [📚 Documentation Hub](#-documentation-hub)
-- [📚 Citation](#-citation)
-- [🗺 Development Roadmap](#-development-roadmap)
+- [📖 Citation](#-citation)
+- [🗺 Roadmap](#-roadmap)
 - [📄 License](#-license)
 
 ---
@@ -201,6 +202,9 @@ python forge.py --config recipes/optuna_vit_tiny.yaml              # ~3-5h*, GPU
 2. **Training**: Full 60-epoch training with best hyperparameters found
 3. **Artifacts**: Interactive plots, best_config.yaml, model weights
 
+> [!TIP]
+> **Model Search**: Enable `optuna.enable_model_search: true` in your YAML config to let Optuna automatically explore all registered architectures for the target resolution. The optimizer will select the best model alongside the best hyperparameters.
+
 **View optimization results:**
 ```bash
 firefox outputs/*/figures/param_importances.html       # Which hyperparameters matter most
@@ -244,8 +248,6 @@ Every run generates a complete artifact suite for total traceability. Both train
 > [!IMPORTANT]
 > ### 📂 [View Sample Artifacts](./docs/artifacts)
 > Explore Excel reports, YAML configs, and diagnostic plots from real experiments.
-
-**[Artifact Reference Guide](docs/guide/ARTIFACTS.md)** - Complete documentation of all generated files.
 
 </td>
 </tr>
@@ -319,7 +321,7 @@ Comprehensive guides for advanced usage and system internals:
 - Running specific test suites
 - Coverage reporting
 
-## 📚 Citation
+## 📖 Citation
 
 ```bibtex
 @software{visionforge2026,
@@ -333,55 +335,12 @@ Comprehensive guides for advanced usage and system internals:
 
 ---
 
-## 🗺 Development Roadmap
+## 🗺 Roadmap
 
-### ✅ Phase 1: Foundation (Completed)
-- Architecture adaptation (3×3 stem, MaxPool removal)
-- Pydantic-based configuration engine
-- Infrastructure safety (flock, process management)
-
-### ✅ Phase 2: Automation (Completed)
-- YAML-driven execution model
-- Optuna hyperparameter optimization
-- Multi-resolution support (28×28, 224×224)
-- Comprehensive test suite (nearly 1,000 tests, 100% coverage)
-- CI/CD pipeline with GitHub Actions
-
-### ✅ Phase 3: Modern Architectures (Completed)
-- **Vision Transformer (ViT-Tiny)**: Patch-based attention with 3 weight variants
-- **MiniCNN**: Compact baseline for rapid prototyping (~50K parameters)
-- **Weight Variant Search**: Automatic exploration of ImageNet-1k/21k pretraining strategies
-
-### ✅ Phase 4: Quality Assurance & Multi-Domain Support (Completed)
-- **Test Coverage**: 100% across nearly 1,000 tests (unit, integration, smoke)
-- **Artifact Export**: HTML visualizations (parameter importance, optimization history, slices, parallel coordinates)
-- **Comprehensive Reporting**: Excel summaries, JSON metadata, YAML snapshots
-- **Multi-Domain Architecture**: Medical imaging (MedMNIST v2) + Astronomical imaging (Galaxy10 DECals)
-- **Domain-Specific Converters**: HDF5 to NPZ pipeline for non-standard formats
-
-### ✅ Phase 5: Production Deployment (Completed)
-- **ONNX Export**: Model serialization for production deployment (opset 18, clean export with no warnings)
-- **Quantization Support**: INT8 quantization for mobile (qnnpack) and server (fbgemm) deployment
-- **Validation Pipeline**: Numerical consistency verification between PyTorch and ONNX models
-- **Export Configuration**: Type-safe Pydantic schema for export parameters
-
-### 🎯 Current Status
-- **Test Coverage**: 100% across nearly 1,000 tests (minimal pragma for defensive guards)
-- **Architectures**: 4 total (2 for 28×28, 2 for 224×224)
-  - 28×28: ResNet-18-Adapted, MiniCNN
-  - 224×224: EfficientNet-B0, ViT-Tiny
-- **Resolutions**: 2 (28×28, 224×224)
-- **Domains**: Medical imaging (MedMNIST v2), Astronomical imaging (Galaxy10 DECals)
-- **Export Formats**: PyTorch (.pth), ONNX (.onnx), HTML visualizations, Excel reports
-
-### 🔮 Future Enhancements (Roadmap)
 - **Additional Architectures**: ConvNeXt, EfficientNet-V2, DeiT
 - **Expanded Dataset Domains**: Climate, remote sensing, microscopy
 - **Multi-modal Support**: Detection, segmentation hooks
 - **Distributed Training**: DDP, FSDP support for multi-GPU
-
-> **Development Philosophy**: 
-> Incremental feature addition with maintained test coverage. New capabilities are added carefully to preserve the framework's stability and reproducibility guarantees.
 
 
 ---
