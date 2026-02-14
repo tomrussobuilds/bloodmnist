@@ -46,6 +46,9 @@ def run_smoke_test(args: argparse.Namespace) -> None:
     """
 
     # SMOKE TEST CONFIGURATION
+    # Bypass YAML config — use CLI args directly so overrides below take effect
+    args.config = None
+
     # Disable AMP for CPU compatibility
     args.use_amp = False
 

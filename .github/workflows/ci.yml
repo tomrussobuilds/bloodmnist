@@ -107,7 +107,7 @@ jobs:
 
       - name: SonarCloud Scan
         if: matrix.python-version == '3.10'
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -187,7 +187,7 @@ jobs:
       - name: Run Safety scan
         run: |
           pip install safety
-          safety scan --output text || true
+          safety scan --output screen || true
         continue-on-error: true
 
   # Job 6: Build Status Summary
