@@ -52,8 +52,8 @@ def sample_report_data():
         "seed": 42,
         "augmentations": "Flip: True",
         "normalization": "Standard",
-        "model_path": "/tmp/model.pth",
-        "log_path": "/tmp/train.log",
+        "model_path": "/mock/model.pth",
+        "log_path": "/mock/train.log",
     }
 
 

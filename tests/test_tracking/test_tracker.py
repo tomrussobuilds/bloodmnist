@@ -86,7 +86,7 @@ def test_create_tracker_tracking_disabled():
 def test_noop_tracker_start_run():
     """NoOpTracker.start_run completes without error."""
     tracker = NoOpTracker()
-    tracker.start_run(cfg=MagicMock(), run_name="test", tracking_uri="file:///tmp")
+    tracker.start_run(cfg=MagicMock(), run_name="test", tracking_uri="file:///mock")
 
 
 @pytest.mark.unit

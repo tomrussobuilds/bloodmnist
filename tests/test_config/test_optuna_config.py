@@ -209,7 +209,7 @@ def test_get_storage_url_memory():
 
     class MockPaths:
         def get_db_path(self):
-            return Path("/tmp/study.db")
+            return Path("/mock/study.db")
 
     url = config.get_storage_url(MockPaths())
     assert url is None
@@ -222,7 +222,7 @@ def test_get_storage_url_sqlite():
 
     class MockPaths:
         def get_db_path(self):
-            return Path("/tmp/test_study.db")
+            return Path("/mock/test_study.db")
 
     url = config.get_storage_url(MockPaths())
     assert url.startswith("sqlite:///")
@@ -251,7 +251,7 @@ def test_get_storage_url_sqlite_with_custom_path(tmp_path):
 
     class MockPaths:
         def get_db_path(self):
-            return Path("/tmp/default_study.db")
+            return Path("/mock/default_study.db")
 
     url = config.get_storage_url(MockPaths())
 
@@ -269,7 +269,7 @@ def test_get_storage_url_unknown_storage_type():
 
     class MockPaths:
         def get_db_path(self):
-            return Path("/tmp/study.db")
+            return Path("/mock/study.db")
 
     with pytest.raises(ValueError, match="Unknown storage type"):
         config.get_storage_url(MockPaths())

@@ -30,9 +30,9 @@ def mock_orchestrator():
     orch.cfg.evaluation.n_samples = 16
 
     orch.paths = MagicMock()
-    orch.paths.exports = Path("/tmp/test_exports")
-    orch.paths.best_model_path = Path("/tmp/best_model.pth")
-    orch.paths.logs = Path("/tmp/logs")
+    orch.paths.exports = Path("/mock/test_exports")
+    orch.paths.best_model_path = Path("/mock/best_model.pth")
+    orch.paths.logs = Path("/mock/logs")
 
     orch.get_device.return_value = "cpu"
     orch.run_logger = MagicMock()
@@ -158,7 +158,7 @@ def test_run_training_phase_returns_expected_tuple(
     mock_get_model.return_value = mock_model
 
     mock_trainer = MagicMock()
-    mock_trainer.train.return_value = (Path("/tmp/best.pth"), [0.5, 0.4], [{"accuracy": 0.9}])
+    mock_trainer.train.return_value = (Path("/mock/best.pth"), [0.5, 0.4], [{"accuracy": 0.9}])
     mock_trainer_cls.return_value = mock_trainer
 
     mock_final_eval.return_value = (0.85, 0.90)
@@ -168,7 +168,7 @@ def test_run_training_phase_returns_expected_tuple(
 
     assert len(result) == 6
     best_path, losses, _metrics, _model, f1, acc = result
-    assert best_path == Path("/tmp/best.pth")
+    assert best_path == Path("/mock/best.pth")
     assert losses == [0.5, 0.4]
     assert f1 == pytest.approx(0.85)
     assert acc == pytest.approx(0.90)
@@ -213,7 +213,7 @@ def test_run_training_phase_with_custom_config(
     mock_get_model.return_value = MagicMock()
 
     mock_trainer = MagicMock()
-    mock_trainer.train.return_value = (Path("/tmp/best.pth"), [], [])
+    mock_trainer.train.return_value = (Path("/mock/best.pth"), [], [])
     mock_trainer_cls.return_value = mock_trainer
 
     mock_final_eval.return_value = (0.8, 0.85)
@@ -231,7 +231,7 @@ def test_run_export_phase_returns_none_when_format_is_none(mock_orchestrator):
     """Test run_export_phase returns None when export_format is 'none'."""
     result = run_export_phase(
         mock_orchestrator,
-        checkpoint_path=Path("/tmp/model.pth"),
+        checkpoint_path=Path("/mock/model.pth"),
         export_format="none",
     )
 
@@ -246,7 +246,7 @@ def test_run_export_phase_exports_onnx(mock_export_onnx, mock_get_model, mock_or
     mock_model = MagicMock()
     mock_get_model.return_value = mock_model
 
-    checkpoint_path = Path("/tmp/model.pth")
+    checkpoint_path = Path("/mock/model.pth")
 
     result = run_export_phase(
         mock_orchestrator,
@@ -274,7 +274,7 @@ def test_run_export_phase_grayscale_input(mock_export_onnx, _mock_get_model, moc
 
     run_export_phase(
         mock_orchestrator,
-        checkpoint_path=Path("/tmp/model.pth"),
+        checkpoint_path=Path("/mock/model.pth"),
         export_format="onnx",
     )
 
@@ -293,7 +293,7 @@ def test_run_export_phase_with_custom_config(mock_export_onnx, _mock_get_model, 
 
     run_export_phase(
         mock_orchestrator,
-        checkpoint_path=Path("/tmp/model.pth"),
+        checkpoint_path=Path("/mock/model.pth"),
         cfg=custom_cfg,
         export_format="onnx",
     )
@@ -309,7 +309,7 @@ def test_run_export_phase_logs_output_path(_mock_export_onnx, _mock_get_model, m
     """Test run_export_phase logs the export path."""
     run_export_phase(
         mock_orchestrator,
-        checkpoint_path=Path("/tmp/model.pth"),
+        checkpoint_path=Path("/mock/model.pth"),
         export_format="onnx",
     )
 

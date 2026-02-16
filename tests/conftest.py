@@ -10,7 +10,6 @@ Fixtures are automatically discovered by pytest across all test modules.
 """
 
 import argparse
-from pathlib import Path
 
 import pytest
 
@@ -19,14 +18,14 @@ from orchard.core.metadata import DatasetMetadata
 
 # DATASET METADATA FIXTURES
 @pytest.fixture
-def mock_metadata_28():
+def mock_metadata_28(tmp_path):
     """Mock 28×28 dataset metadata for testing low-resolution workflows."""
     return DatasetMetadata(
         name="bloodmnist",
         display_name="BloodMNIST",
         md5_checksum="test123",
         url="https://example.com/bloodmnist.npz",
-        path=Path("/tmp/bloodmnist_28.npz"),
+        path=tmp_path / "bloodmnist_28.npz",
         classes=[f"class_{i}" for i in range(8)],
         mean=(0.4914, 0.4822, 0.4465),
         std=(0.2023, 0.1994, 0.2010),
@@ -38,14 +37,14 @@ def mock_metadata_28():
 
 
 @pytest.fixture
-def mock_metadata_224():
+def mock_metadata_224(tmp_path):
     """Mock 224×224 dataset metadata for testing high-resolution workflows."""
     return DatasetMetadata(
         name="organcmnist",
         display_name="OrganCMNIST",
         md5_checksum="test456",
         url="https://example.com/organcmnist.npz",
-        path=Path("/tmp/organcmnist_224.npz"),
+        path=tmp_path / "organcmnist_224.npz",
         classes=[f"organ_{i}" for i in range(11)],
         mean=(0.5,),
         std=(0.5,),
@@ -57,14 +56,14 @@ def mock_metadata_224():
 
 
 @pytest.fixture
-def mock_grayscale_metadata():
+def mock_grayscale_metadata(tmp_path):
     """Mock grayscale dataset metadata for testing channel conversion logic."""
     return DatasetMetadata(
         name="pneumoniamnist",
         display_name="PneumoniaMNIST",
         md5_checksum="test789",
         url="https://example.com/pneumoniamnist.npz",
-        path=Path("/tmp/pneumoniamnist_28.npz"),
+        path=tmp_path / "pneumoniamnist_28.npz",
         classes=["normal", "pneumonia"],
         mean=(0.5,),
         std=(0.5,),

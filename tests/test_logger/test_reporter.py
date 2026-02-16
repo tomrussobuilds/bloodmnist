@@ -82,7 +82,7 @@ def test_log_training_summary_basic():
     mock_cfg.architecture.weight_variant = None
     mock_device = torch.device("cpu")
     mock_paths = MagicMock()
-    mock_paths.root = "/tmp/outputs/run123"
+    mock_paths.root = "/mock/outputs/run123"
 
     log_training_summary(
         cfg=mock_cfg,
@@ -110,7 +110,7 @@ def test_log_training_summary_with_weight_variant():
     mock_cfg.architecture.weight_variant = "IMAGENET1K_V1"
     mock_device = torch.device("cuda")
     mock_paths = MagicMock()
-    mock_paths.root = "/tmp/outputs/run456"
+    mock_paths.root = "/mock/outputs/run456"
 
     log_training_summary(
         cfg=mock_cfg,
@@ -136,7 +136,7 @@ def test_log_training_summary_formats_accuracy():
     mock_cfg.architecture.weight_variant = None
     mock_device = torch.device("cpu")
     mock_paths = MagicMock()
-    mock_paths.root = "/tmp"
+    mock_paths.root = "/mock"
 
     log_training_summary(
         cfg=mock_cfg,
@@ -163,7 +163,7 @@ def test_log_optimization_summary_completed_trials():
     mock_cfg.optuna.metric_name = "auc"
     mock_device = torch.device("cuda")
     mock_paths = MagicMock()
-    mock_paths.root = "/tmp/outputs"
+    mock_paths.root = "/mock/outputs"
     mock_study = MagicMock()
     mock_trial = MagicMock()
     mock_trial.state = optuna.trial.TrialState.COMPLETE
@@ -445,7 +445,7 @@ def test_log_study_summary_value_error_on_best_trial():
 def test_log_best_config_export():
     """Test log_best_config_export logs config path."""
     config_path = MagicMock()
-    config_path.__str__ = lambda x: "/tmp/best_config.yaml"
+    config_path.__str__ = lambda x: "/mock/best_config.yaml"
     config_path.parent.parent = MagicMock()
 
     with patch("orchard.core.logger.progress.logger") as mock_module_logger:
@@ -485,7 +485,7 @@ def test_reporter_log_initial_status():
     mock_cfg.dataset.img_size = 28
 
     mock_paths = MagicMock()
-    mock_paths.root = "/tmp/run"
+    mock_paths.root = "/mock/run"
     mock_device = torch.device("cuda")
 
     reporter.log_initial_status(
@@ -530,7 +530,7 @@ def test_reporter_log_initial_status_cpu_device():
     mock_cfg.dataset.img_size = 28
 
     mock_paths = MagicMock()
-    mock_paths.root = "/tmp"
+    mock_paths.root = "/mock"
     mock_device = torch.device("cpu")
 
     reporter.log_initial_status(
@@ -601,7 +601,7 @@ def test_functions_use_module_logger_when_no_instance():
     mock_cfg.architecture.weight_variant = None
     mock_device = torch.device("cpu")
     mock_paths = MagicMock()
-    mock_paths.root = "/tmp"
+    mock_paths.root = "/mock"
 
     with patch("orchard.core.logger.progress.logger") as mock_module_logger:
         log_training_summary(
@@ -741,8 +741,8 @@ def test_log_pipeline_summary_basic():
     log_pipeline_summary(
         test_acc=0.9234,
         macro_f1=0.8765,
-        best_model_path="/tmp/best_model.pth",
-        run_dir="/tmp/outputs/run123",
+        best_model_path="/mock/best_model.pth",
+        run_dir="/mock/outputs/run123",
         duration="5m 30s",
         logger_instance=mock_logger,
     )
@@ -765,10 +765,10 @@ def test_log_pipeline_summary_with_onnx_path():
     log_pipeline_summary(
         test_acc=0.85,
         macro_f1=0.80,
-        best_model_path="/tmp/best.pth",
-        run_dir="/tmp/run",
+        best_model_path="/mock/best.pth",
+        run_dir="/mock/run",
         duration="10m 0s",
-        onnx_path="/tmp/model.onnx",
+        onnx_path="/mock/model.onnx",
         logger_instance=mock_logger,
     )
 
@@ -787,8 +787,8 @@ def test_log_pipeline_summary_without_onnx_path():
     log_pipeline_summary(
         test_acc=0.9,
         macro_f1=0.85,
-        best_model_path="/tmp/best.pth",
-        run_dir="/tmp/run",
+        best_model_path="/mock/best.pth",
+        run_dir="/mock/run",
         duration="2m 15s",
         onnx_path=None,
         logger_instance=mock_logger,
@@ -807,8 +807,8 @@ def test_log_pipeline_summary_uses_module_logger_when_none():
         log_pipeline_summary(
             test_acc=0.9,
             macro_f1=0.85,
-            best_model_path="/tmp/best.pth",
-            run_dir="/tmp/run",
+            best_model_path="/mock/best.pth",
+            run_dir="/mock/run",
             duration="1m 0s",
             logger_instance=None,
         )

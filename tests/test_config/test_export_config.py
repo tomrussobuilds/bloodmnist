@@ -38,7 +38,7 @@ def test_export_config_custom_values():
     """Test ExportConfig with custom parameters."""
     config = ExportConfig(
         format="torchscript",
-        output_path=Path("/tmp/model.pt"),
+        output_path=Path("/mock/model.pt"),
         opset_version=16,
         dynamic_axes=False,
         quantize=True,
@@ -46,7 +46,7 @@ def test_export_config_custom_values():
     )
 
     assert config.format == "torchscript"
-    assert config.output_path == Path("/tmp/model.pt")
+    assert config.output_path == Path("/mock/model.pt")
     assert config.opset_version == 16
     assert config.dynamic_axes is False
     assert config.quantize is True
@@ -198,7 +198,7 @@ def test_output_path_none_by_default():
 @pytest.mark.unit
 def test_output_path_accepts_path():
     """Test output_path accepts Path objects."""
-    path = Path("/tmp/exported_model.onnx")
+    path = Path("/mock/exported_model.onnx")
     config = ExportConfig(output_path=path)
     assert config.output_path == path
 
@@ -206,8 +206,8 @@ def test_output_path_accepts_path():
 @pytest.mark.unit
 def test_output_path_accepts_string():
     """Test output_path accepts string paths."""
-    config = ExportConfig(output_path="/tmp/model.onnx")
-    assert config.output_path == Path("/tmp/model.onnx")
+    config = ExportConfig(output_path="/mock/model.onnx")
+    assert config.output_path == Path("/mock/model.onnx")
 
 
 # EXPORT CONFIG: FROM_ARGS FACTORY
@@ -216,7 +216,7 @@ def test_from_args():
     """Test ExportConfig.from_args() factory."""
     args = Namespace(
         format="onnx",
-        output_path=Path("/tmp/model.onnx"),
+        output_path=Path("/mock/model.onnx"),
         opset_version=16,
         dynamic_axes=True,
         quantize=False,
@@ -226,7 +226,7 @@ def test_from_args():
     config = ExportConfig.from_args(args)
 
     assert config.format == "onnx"
-    assert config.output_path == Path("/tmp/model.onnx")
+    assert config.output_path == Path("/mock/model.onnx")
     assert config.opset_version == 16
     assert config.dynamic_axes is True
 

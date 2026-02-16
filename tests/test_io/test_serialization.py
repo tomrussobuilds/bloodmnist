@@ -23,12 +23,12 @@ from orchard.core.io.serialization import (
 @pytest.mark.unit
 def test_sanitize_for_yaml_path_objects():
     """Test _sanitize_for_yaml converts Path objects to strings."""
-    data = {"output_dir": Path("/tmp/outputs"), "log_file": Path("/tmp/log.txt")}
+    data = {"output_dir": Path("/mock/outputs"), "log_file": Path("/mock/log.txt")}
 
     result = _sanitize_for_yaml(data)
 
-    assert result["output_dir"] == "/tmp/outputs"
-    assert result["log_file"] == "/tmp/log.txt"
+    assert result["output_dir"] == "/mock/outputs"
+    assert result["log_file"] == "/mock/log.txt"
     assert isinstance(result["output_dir"], str)
 
 
@@ -92,7 +92,7 @@ def test_save_config_as_yaml_with_model_dump():
     mock_config.model_dump.return_value = {"key": "value"}
 
     with patch("orchard.core.io.serialization._persist_yaml_atomic") as mock_persist:
-        yaml_path = Path("/tmp/test.yaml")
+        yaml_path = Path("/mock/test.yaml")
 
         save_config_as_yaml(mock_config, yaml_path)
 
@@ -109,7 +109,7 @@ def test_save_config_as_yaml_with_dump_portable():
     mock_config.model_dump.return_value = {"portable": False}
 
     with patch("orchard.core.io.serialization._persist_yaml_atomic") as mock_persist:
-        yaml_path = Path("/tmp/test.yaml")
+        yaml_path = Path("/mock/test.yaml")
 
         save_config_as_yaml(mock_config, yaml_path)
 
@@ -122,7 +122,7 @@ def test_save_config_as_yaml_with_dump_portable():
 @pytest.mark.unit
 def test_save_config_as_yaml_with_paths(tmp_path):
     """Test save_config_as_yaml converts Path objects to strings."""
-    config = {"output_dir": Path("/tmp/outputs"), "log": Path("/tmp/log.txt")}
+    config = {"output_dir": Path("/mock/outputs"), "log": Path("/mock/log.txt")}
     yaml_path = tmp_path / "config.yaml"
 
     save_config_as_yaml(config, yaml_path)
@@ -130,8 +130,8 @@ def test_save_config_as_yaml_with_paths(tmp_path):
     with open(yaml_path, "r") as f:
         loaded = yaml.safe_load(f)
 
-    assert loaded["output_dir"] == "/tmp/outputs"
-    assert loaded["log"] == "/tmp/log.txt"
+    assert loaded["output_dir"] == "/mock/outputs"
+    assert loaded["log"] == "/mock/log.txt"
 
 
 @pytest.mark.unit
@@ -152,7 +152,7 @@ def test_save_config_as_yaml_invalid_data():
     mock_config = MagicMock(spec=["model_dump"])
     mock_config.model_dump.side_effect = Exception("Cannot serialize")
 
-    yaml_path = Path("/tmp/test.yaml")
+    yaml_path = Path("/mock/test.yaml")
 
     with pytest.raises(ValueError):
         save_config_as_yaml(mock_config, yaml_path)

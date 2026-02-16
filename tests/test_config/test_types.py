@@ -167,7 +167,7 @@ def test_validated_path_json_serialization():
     class Model(BaseModel):
         path: ValidatedPath
 
-    model = Model(path=Path("/tmp/test"))
+    model = Model(path=Path("/mock/test"))
     json_data = model.model_dump(mode="json")
 
     assert isinstance(json_data["path"], str)

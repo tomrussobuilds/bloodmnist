@@ -14,12 +14,14 @@ jobs:
   badges:
     name: Update Quality Badges
     runs-on: ubuntu-latest
+    env:
+      GIST_AUTH: "${{ secrets.GIST_SECRET }}"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
         with:
           python-version: '3.10'
           cache: 'pip'
@@ -43,14 +45,14 @@ jobs:
           fi
 
       - name: Update Black badge
-        uses: schneegans/dynamic-badges-action@v1.7.0
+        uses: schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483  # v1.7.0
         with:
-          auth: ${{ secrets.GIST_SECRET }}
+          auth: "${{ env.GIST_AUTH }}"
           gistID: "7835190af6011e9051b673c8be974f8a"
           filename: black.json
           label: black
-          message: ${{ steps.black.outputs.status }}
-          color: ${{ steps.black.outputs.color }}
+          message: "${{ steps.black.outputs.status }}"
+          color: "${{ steps.black.outputs.color }}"
           namedLogo: python
           logoColor: white
 
@@ -67,14 +69,14 @@ jobs:
           fi
 
       - name: Update isort badge
-        uses: schneegans/dynamic-badges-action@v1.7.0
+        uses: schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483  # v1.7.0
         with:
-          auth: ${{ secrets.GIST_SECRET }}
+          auth: "${{ env.GIST_AUTH }}"
           gistID: "7835190af6011e9051b673c8be974f8a"
           filename: isort.json
           label: isort
-          message: ${{ steps.isort.outputs.status }}
-          color: ${{ steps.isort.outputs.color }}
+          message: "${{ steps.isort.outputs.status }}"
+          color: "${{ steps.isort.outputs.color }}"
           namedLogo: python
           logoColor: white
 
@@ -91,14 +93,14 @@ jobs:
           fi
 
       - name: Update Flake8 badge
-        uses: schneegans/dynamic-badges-action@v1.7.0
+        uses: schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483  # v1.7.0
         with:
-          auth: ${{ secrets.GIST_SECRET }}
+          auth: "${{ env.GIST_AUTH }}"
           gistID: "7835190af6011e9051b673c8be974f8a"
           filename: flake8.json
           label: flake8
-          message: ${{ steps.flake8.outputs.status }}
-          color: ${{ steps.flake8.outputs.color }}
+          message: "${{ steps.flake8.outputs.status }}"
+          color: "${{ steps.flake8.outputs.color }}"
           namedLogo: python
           logoColor: white
 
@@ -115,14 +117,14 @@ jobs:
           fi
 
       - name: Update mypy badge
-        uses: schneegans/dynamic-badges-action@v1.7.0
+        uses: schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483  # v1.7.0
         with:
-          auth: ${{ secrets.GIST_SECRET }}
+          auth: "${{ env.GIST_AUTH }}"
           gistID: "7835190af6011e9051b673c8be974f8a"
           filename: mypy.json
           label: mypy
-          message: ${{ steps.mypy.outputs.status }}
-          color: ${{ steps.mypy.outputs.color }}
+          message: "${{ steps.mypy.outputs.status }}"
+          color: "${{ steps.mypy.outputs.color }}"
           namedLogo: python
           logoColor: white
 
@@ -136,6 +138,7 @@ jobs:
             echo "status=error" >> "$GITHUB_OUTPUT"
             echo "color=lightgrey" >> "$GITHUB_OUTPUT"
           else
+            AVG=$(printf "%.2f" "$AVG")
             echo "status=A ($AVG)" >> "$GITHUB_OUTPUT"
             # Color based on grade: A (<= 5) green, B (<= 10) yellow, C+ red
             if awk "BEGIN {exit !($AVG <= 5)}"; then
@@ -148,11 +151,11 @@ jobs:
           fi
 
       - name: Update Radon badge
-        uses: schneegans/dynamic-badges-action@v1.7.0
+        uses: schneegans/dynamic-badges-action@e9a478b16159b4d31420099ba146cdc50f134483  # v1.7.0
         with:
-          auth: ${{ secrets.GIST_SECRET }}
+          auth: "${{ env.GIST_AUTH }}"
           gistID: "7835190af6011e9051b673c8be974f8a"
           filename: radon.json
           label: radon
-          message: ${{ steps.radon.outputs.status }}
-          color: ${{ steps.radon.outputs.color }}
+          message: "${{ steps.radon.outputs.status }}"
+          color: "${{ steps.radon.outputs.color }}"

@@ -43,10 +43,10 @@ def test_run_final_evaluation_returns_tuple(
     mock_architecture = MagicMock()
     mock_loader = MagicMock()
     mock_paths = MagicMock()
-    mock_paths.get_fig_path = MagicMock(return_value=Path("/tmp/fig.png"))
-    mock_paths.best_model_path = Path("/tmp/model.pth")
-    mock_paths.logs = Path("/tmp/logs")
-    mock_paths.final_report_path = Path("/tmp/report.xlsx")
+    mock_paths.get_fig_path = MagicMock(return_value=Path("/mock/fig.png"))
+    mock_paths.best_model_path = Path("/mock/model.pth")
+    mock_paths.logs = Path("/mock/logs")
+    mock_paths.final_report_path = Path("/mock/report.xlsx")
 
     mock_cfg = MagicMock()
     mock_cfg.hardware.device = "cpu"
@@ -93,10 +93,10 @@ def test_run_final_evaluation_calls_evaluate_model(
     mock_architecture = MagicMock()
     mock_loader = MagicMock()
     mock_paths = MagicMock()
-    mock_paths.get_fig_path = MagicMock(return_value=Path("/tmp/fig.png"))
-    mock_paths.best_model_path = Path("/tmp/model.pth")
-    mock_paths.logs = Path("/tmp/logs")
-    mock_paths.final_report_path = Path("/tmp/report.xlsx")
+    mock_paths.get_fig_path = MagicMock(return_value=Path("/mock/fig.png"))
+    mock_paths.best_model_path = Path("/mock/model.pth")
+    mock_paths.logs = Path("/mock/logs")
+    mock_paths.final_report_path = Path("/mock/report.xlsx")
 
     mock_cfg = MagicMock()
     mock_cfg.hardware.device = "cpu"
@@ -143,10 +143,10 @@ def test_run_final_evaluation_calls_visualizations(
     mock_architecture = MagicMock()
     mock_loader = MagicMock()
     mock_paths = MagicMock()
-    mock_paths.get_fig_path = MagicMock(return_value=Path("/tmp/fig.png"))
-    mock_paths.best_model_path = Path("/tmp/model.pth")
-    mock_paths.logs = Path("/tmp/logs")
-    mock_paths.final_report_path = Path("/tmp/report.xlsx")
+    mock_paths.get_fig_path = MagicMock(return_value=Path("/mock/fig.png"))
+    mock_paths.best_model_path = Path("/mock/model.pth")
+    mock_paths.logs = Path("/mock/logs")
+    mock_paths.final_report_path = Path("/mock/report.xlsx")
 
     mock_cfg = MagicMock()
     mock_cfg.hardware.device = "cpu"
@@ -192,10 +192,10 @@ def test_run_final_evaluation_creates_report(
     mock_architecture = MagicMock()
     mock_loader = MagicMock()
     mock_paths = MagicMock()
-    mock_paths.get_fig_path = MagicMock(return_value=Path("/tmp/fig.png"))
-    mock_paths.best_model_path = Path("/tmp/model.pth")
-    mock_paths.logs = Path("/tmp/logs")
-    mock_paths.final_report_path = Path("/tmp/report.xlsx")
+    mock_paths.get_fig_path = MagicMock(return_value=Path("/mock/fig.png"))
+    mock_paths.best_model_path = Path("/mock/model.pth")
+    mock_paths.logs = Path("/mock/logs")
+    mock_paths.final_report_path = Path("/mock/report.xlsx")
 
     mock_cfg = MagicMock()
     mock_cfg.hardware.device = "cpu"

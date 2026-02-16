@@ -104,7 +104,7 @@ def test_resolved_data_dir():
 @pytest.mark.unit
 def test_resolved_data_dir_absolute():
     """Test resolved_data_dir with absolute path."""
-    abs_path = Path("/tmp/dataset").resolve()
+    abs_path = Path("/mock/dataset").resolve()
     config = TelemetryConfig(data_dir=abs_path)
 
     resolved = config.resolved_data_dir
@@ -128,7 +128,7 @@ def test_to_portable_dict():
 @pytest.mark.unit
 def test_to_portable_dict_absolute_outside_project():
     """Test to_portable_dict() preserves absolute paths outside PROJECT_ROOT."""
-    external_path = Path("/tmp/external_data")
+    external_path = Path("/mock/external_data")
     config = TelemetryConfig(data_dir=external_path)
 
     portable = config.to_portable_dict()

@@ -96,7 +96,7 @@ def test_show_sample_images_empty_loader(mock_logger, mock_plt):
     mock_loader = MagicMock()
     mock_loader.__iter__ = MagicMock(return_value=iter([]))
 
-    save_path = Path("/tmp/test.png")
+    save_path = Path("/mock/test.png")
 
     show_sample_images(
         loader=mock_loader,

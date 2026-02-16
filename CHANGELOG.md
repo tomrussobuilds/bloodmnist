@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - add ANSI color formatting, fix early-stop trials-saved count
+- add dynamic code quality badges via GitHub Gist
 
 ### Changed
 

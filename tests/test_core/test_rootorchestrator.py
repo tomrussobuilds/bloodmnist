@@ -351,7 +351,7 @@ def test_phase_3_filesystem_provisioning_calls_static_setup_and_runpaths():
     mock_cfg = MagicMock()
     mock_cfg.dataset.dataset_name = "ds"
     mock_cfg.architecture.name = "architecture"
-    mock_cfg.telemetry.output_dir = "/tmp/out"
+    mock_cfg.telemetry.output_dir = "/mock/out"
     mock_cfg.dump_serialized = MagicMock(return_value={"some": "data"})
     mock_static_setup = MagicMock()
 
@@ -363,7 +363,7 @@ def test_phase_3_filesystem_provisioning_calls_static_setup_and_runpaths():
         dataset_slug="ds",
         architecture_name="architecture",
         training_cfg={"some": "data"},
-        base_dir="/tmp/out",
+        base_dir="/mock/out",
     )
     assert orch.paths == "runpaths_obj"
     orch_module.RunPaths.create = orig_create
@@ -375,7 +375,7 @@ def test_phase_4_logging_initialization_sets_logger():
     mock_cfg.telemetry.log_level = "INFO"
     orch = RootOrchestrator(cfg=mock_cfg)
     orch.paths = MagicMock()
-    orch.paths.logs = "/tmp/logs"
+    orch.paths.logs = "/mock/logs"
     mock_log_initializer = MagicMock(return_value="logger_obj")
     orch._log_initializer = mock_log_initializer
 
@@ -383,7 +383,7 @@ def test_phase_4_logging_initialization_sets_logger():
 
     mock_log_initializer.assert_called_once_with(
         name=LOGGER_NAME,
-        log_dir="/tmp/logs",
+        log_dir="/mock/logs",
         level="INFO",
     )
     assert orch.run_logger == "logger_obj"
@@ -394,12 +394,12 @@ def test_phase_5_config_persistence_saves_config():
     mock_cfg = MagicMock()
     orch = RootOrchestrator(cfg=mock_cfg)
     orch.paths = MagicMock()
-    orch.paths.get_config_path = MagicMock(return_value="/tmp/config.yaml")
+    orch.paths.get_config_path = MagicMock(return_value="/mock/config.yaml")
     mock_saver = MagicMock()
     orch._config_saver = mock_saver
 
     orch._phase_5_config_persistence()
-    mock_saver.assert_called_once_with(data=mock_cfg, yaml_path="/tmp/config.yaml")
+    mock_saver.assert_called_once_with(data=mock_cfg, yaml_path="/mock/config.yaml")
 
 
 @pytest.mark.unit

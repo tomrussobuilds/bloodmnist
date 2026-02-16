@@ -27,7 +27,7 @@ def test_download_galaxy10_h5_file_already_exists(tmp_path):
 
     with patch("orchard.data_handler.fetchers.galaxy10_converter.requests") as mock_requests:
         with patch("orchard.data_handler.fetchers.galaxy10_converter.logger") as mock_logger:
-            download_galaxy10_h5("http://example.com/data.h5", target_h5)
+            download_galaxy10_h5("https://example.com/data.h5", target_h5)
             mock_requests.get.assert_not_called()
             mock_logger.info.assert_called_once()
 
@@ -36,7 +36,7 @@ def test_download_galaxy10_h5_file_already_exists(tmp_path):
 def test_download_galaxy10_h5_success(tmp_path):
     """Test successful download of Galaxy10 HDF5."""
     target_h5 = tmp_path / "Galaxy10.h5"
-    url = "http://example.com/galaxy10.h5"
+    url = "https://example.com/galaxy10.h5"
 
     mock_response = Mock()
     mock_response.iter_content.return_value = [b"chunk1", b"chunk2", b"", b"chunk3"]
@@ -57,7 +57,7 @@ def test_download_galaxy10_h5_success(tmp_path):
 def test_download_galaxy10_h5_retry_on_error(tmp_path):
     """Test download retries on error."""
     target_h5 = tmp_path / "Galaxy10.h5"
-    url = "http://example.com/galaxy10.h5"
+    url = "https://example.com/galaxy10.h5"
 
     with patch("orchard.data_handler.fetchers.galaxy10_converter.requests.get") as mock_get:
         with patch("orchard.data_handler.fetchers.galaxy10_converter.logger") as mock_logger:
@@ -78,7 +78,7 @@ def test_download_galaxy10_h5_cleans_tmp_on_failure(tmp_path):
     """Test tmp file is cleaned up on download failure."""
     target_h5 = tmp_path / "Galaxy10.h5"
     tmp_file = target_h5.with_suffix(".tmp")
-    url = "http://example.com/galaxy10.h5"
+    url = "https://example.com/galaxy10.h5"
 
     def iter_with_failure(*_):
         yield b"chunk1"
@@ -237,7 +237,7 @@ def test_ensure_galaxy10_npz_file_exists_valid_md5(tmp_path):
 
     mock_metadata = MagicMock()
     mock_metadata.path = target_npz
-    mock_metadata.url = "http://example.com/galaxy10.h5"
+    mock_metadata.url = "https://example.com/galaxy10.h5"
     mock_metadata.md5_checksum = "abc123"
     mock_metadata.native_resolution = 224
 
@@ -262,7 +262,7 @@ def test_ensure_galaxy10_npz_file_exists_placeholder_md5(tmp_path):
 
     mock_metadata = MagicMock()
     mock_metadata.path = target_npz
-    mock_metadata.url = "http://example.com/galaxy10.h5"
+    mock_metadata.url = "https://example.com/galaxy10.h5"
     mock_metadata.md5_checksum = "placeholder_will_be_calculated_after_conversion"
     mock_metadata.native_resolution = 224
 
@@ -287,7 +287,7 @@ def test_ensure_galaxy10_npz_md5_mismatch(tmp_path):
 
     mock_metadata = MagicMock()
     mock_metadata.path = target_npz
-    mock_metadata.url = "http://example.com/galaxy10.h5"
+    mock_metadata.url = "https://example.com/galaxy10.h5"
     mock_metadata.md5_checksum = "expected_md5"
     mock_metadata.native_resolution = 224
 
@@ -315,7 +315,7 @@ def test_ensure_galaxy10_npz_download_and_convert(tmp_path):
 
     mock_metadata = MagicMock()
     mock_metadata.path = target_npz
-    mock_metadata.url = "http://example.com/galaxy10.h5"
+    mock_metadata.url = "https://example.com/galaxy10.h5"
     mock_metadata.md5_checksum = "placeholder_will_be_calculated_after_conversion"
     mock_metadata.native_resolution = 224
 

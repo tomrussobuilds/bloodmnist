@@ -58,7 +58,7 @@ def test_runpaths_create_uses_default_base_dir():
 
 
 @pytest.mark.unit
-def test_runpaths_create_normalizes_dataset_slug():
+def test_runpaths_create_normalizes_dataset_slug(tmp_path):
     """Test dataset_slug is normalized to lowercase."""
     training_cfg = {"batch_size": 32}
 
@@ -66,14 +66,14 @@ def test_runpaths_create_normalizes_dataset_slug():
         dataset_slug="OrganCMNIST",
         architecture_name="resnet",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     assert run_paths.dataset_slug == "organcmnist"
 
 
 @pytest.mark.unit
-def test_runpaths_create_normalizes_model_name():
+def test_runpaths_create_normalizes_model_name(tmp_path):
     """Test model_name is sanitized (alphanumeric only, lowercase)."""
     training_cfg = {"batch_size": 32}
 
@@ -89,7 +89,7 @@ def test_runpaths_create_normalizes_model_name():
             dataset_slug="test",
             architecture_name=architecture_name,
             training_cfg=training_cfg,
-            base_dir=Path("/tmp"),
+            base_dir=tmp_path,
         )
         assert run_paths.architecture_slug == expected_slug
 
@@ -262,7 +262,7 @@ def test_runpaths_creates_all_subdirectories(tmp_path):
 
 
 @pytest.mark.unit
-def test_runpaths_path_attributes():
+def test_runpaths_path_attributes(tmp_path):
     """Test all path attributes are correctly set."""
     training_cfg = {"batch_size": 32}
 
@@ -270,7 +270,7 @@ def test_runpaths_path_attributes():
         dataset_slug="test",
         architecture_name="architecture",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     assert isinstance(run_paths.root, Path)
@@ -288,7 +288,7 @@ def test_runpaths_path_attributes():
 
 # RUNPATHS: DYNAMIC PROPERTIES
 @pytest.mark.unit
-def test_best_model_path_property():
+def test_best_model_path_property(tmp_path):
     """Test best_model_path property returns correct path."""
     training_cfg = {"batch_size": 32}
 
@@ -296,7 +296,7 @@ def test_best_model_path_property():
         dataset_slug="test",
         architecture_name="ResNet-50",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     expected_path = run_paths.models / "best_resnet50.pth"
@@ -304,7 +304,7 @@ def test_best_model_path_property():
 
 
 @pytest.mark.unit
-def test_final_report_path_property():
+def test_final_report_path_property(tmp_path):
     """Test final_report_path property returns correct path."""
     training_cfg = {"batch_size": 32}
 
@@ -312,7 +312,7 @@ def test_final_report_path_property():
         dataset_slug="test",
         architecture_name="architecture",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     expected_path = run_paths.reports / "training_summary.xlsx"
@@ -320,7 +320,7 @@ def test_final_report_path_property():
 
 
 @pytest.mark.unit
-def test_get_fig_path_method():
+def test_get_fig_path_method(tmp_path):
     """Test get_fig_path() method returns correct figure path."""
     training_cfg = {"batch_size": 32}
 
@@ -328,7 +328,7 @@ def test_get_fig_path_method():
         dataset_slug="test",
         architecture_name="architecture",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     fig_path = run_paths.get_fig_path("confusion_matrix.png")
@@ -339,7 +339,7 @@ def test_get_fig_path_method():
 
 
 @pytest.mark.unit
-def test_get_config_path_method():
+def test_get_config_path_method(tmp_path):
     """Test get_config_path() method returns correct config path."""
     training_cfg = {"batch_size": 32}
 
@@ -347,7 +347,7 @@ def test_get_config_path_method():
         dataset_slug="test",
         architecture_name="architecture",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     config_path = run_paths.get_config_path()
@@ -355,7 +355,7 @@ def test_get_config_path_method():
 
 
 @pytest.mark.unit
-def test_get_db_path_method():
+def test_get_db_path_method(tmp_path):
     """Test get_db_path() method returns correct database path."""
     training_cfg = {"batch_size": 32}
 
@@ -363,7 +363,7 @@ def test_get_db_path_method():
         dataset_slug="test",
         architecture_name="architecture",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     db_path = run_paths.get_db_path()
@@ -372,7 +372,7 @@ def test_get_db_path_method():
 
 # RUNPATHS: IMMUTABILITY
 @pytest.mark.unit
-def test_runpaths_is_frozen():
+def test_runpaths_is_frozen(tmp_path):
     """Test RunPaths instances are immutable after creation."""
     training_cfg = {"batch_size": 32}
 
@@ -380,7 +380,7 @@ def test_runpaths_is_frozen():
         dataset_slug="test",
         architecture_name="architecture",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     with pytest.raises(ValidationError):
@@ -392,7 +392,7 @@ def test_runpaths_is_frozen():
 
 # RUNPATHS: STRING REPRESENTATION
 @pytest.mark.unit
-def test_runpaths_repr():
+def test_runpaths_repr(tmp_path):
     """Test __repr__ provides useful debug information."""
     training_cfg = {"batch_size": 32}
 
@@ -400,7 +400,7 @@ def test_runpaths_repr():
         dataset_slug="organcmnist",
         architecture_name="ResNet_18_Adapted",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     repr_str = repr(run_paths)
@@ -412,7 +412,7 @@ def test_runpaths_repr():
 
 # RUNPATHS: EDGE CASES
 @pytest.mark.unit
-def test_runpaths_create_with_special_characters_in_model():
+def test_runpaths_create_with_special_characters_in_model(tmp_path):
     """Test model_name with various special characters is properly sanitized."""
     training_cfg = {"batch_size": 32}
 
@@ -428,13 +428,13 @@ def test_runpaths_create_with_special_characters_in_model():
             dataset_slug="test",
             architecture_name=architecture_name,
             training_cfg=training_cfg,
-            base_dir=Path("/tmp"),
+            base_dir=tmp_path,
         )
         assert run_paths.architecture_slug == expected_slug
 
 
 @pytest.mark.unit
-def test_runpaths_create_with_empty_model_name():
+def test_runpaths_create_with_empty_model_name(tmp_path):
     """Test empty model_name after sanitization."""
     training_cfg = {"batch_size": 32}
 
@@ -442,7 +442,7 @@ def test_runpaths_create_with_empty_model_name():
         dataset_slug="test",
         architecture_name="@#$%",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     assert run_paths.architecture_slug == ""
@@ -450,7 +450,7 @@ def test_runpaths_create_with_empty_model_name():
 
 
 @pytest.mark.unit
-def test_runpaths_create_with_complex_training_config():
+def test_runpaths_create_with_complex_training_config(tmp_path):
     """Test RunPaths.create() with complex nested training config."""
     training_cfg = {
         "batch_size": 32,
@@ -466,7 +466,7 @@ def test_runpaths_create_with_complex_training_config():
         dataset_slug="test",
         architecture_name="architecture",
         training_cfg=training_cfg,
-        base_dir=Path("/tmp"),
+        base_dir=tmp_path,
     )
 
     assert isinstance(run_paths, RunPaths)
