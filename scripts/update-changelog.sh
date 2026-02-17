@@ -9,7 +9,7 @@ CHANGELOG="CHANGELOG.md"
 unreleased=$(git cliff --unreleased --strip header 2>/dev/null || true)
 
 # If there's nothing unreleased, keep just the empty header
-if [ -z "$unreleased" ] || [ "$unreleased" = "## [Unreleased]" ]; then
+if [[ -z "$unreleased" ]] || [[ "$unreleased" = "## [Unreleased]" ]]; then
     unreleased="## [Unreleased]"
 fi
 
