@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(tests): use tmp_path and standardize test paths
 - add YAML-configurable search space overrides
 - add generic timm backbone integration
+- add Colab demo notebooks for training and model search
 
 ### Changed
 
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - replace --prepend with custom script to prevent duplicate Unreleased sections
 - resolve mypy type errors and pin version to 1.19.1
+- default recipe to mini_cnn without pretrained/strict mode
 
 ### Miscellaneous
 

@@ -56,6 +56,9 @@ dependencies = [
 tracking = [
     "mlflow>=2.9.0",
 ]
+notebooks = [
+    "ipython>=9.0.0",
+]
 dev = [
     "black>=25.0.0",
     "flake8>=7.0.0",

@@ -46,6 +46,7 @@ venv.bak/
 .ipynb_checkpoints/
 *.ipynb
 *-checkpoint.ipynb
+!notebooks/*.ipynb
 
 # =========================================================================== #
 #                           TESTING & COVERAGE                                #
