@@ -129,6 +129,7 @@ class OptunaOrchestrator:
             self.cfg.optuna.search_space_preset,
             resolution=self.cfg.dataset.resolution,
             include_models=self.cfg.optuna.enable_model_search,
+            overrides=self.cfg.optuna.search_space_overrides,
         )
 
         objective = OptunaObjective(

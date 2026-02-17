@@ -2,16 +2,123 @@
 Optuna Optimization Configuration Schema.
 
 Pydantic v2 schema defining Optuna study parameters, search strategies,
-pruning policies, and storage backend configuration.
+pruning policies, storage backend configuration, and configurable
+search space bounds.
+
+Search Space Overrides:
+    FloatRange / IntRange: Typed bounds for continuous/discrete parameters.
+    SearchSpaceOverrides: Aggregates all search ranges with domain defaults.
+    Overrides are applied by SearchSpaceRegistry at trial sampling time.
 """
 
 import argparse
 import warnings
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .types import NonNegativeInt, PositiveInt, ValidatedPath
+
+
+# SEARCH SPACE RANGE MODELS
+class FloatRange(BaseModel):
+    """
+    Typed bounds for a continuous hyperparameter search range.
+
+    Attributes:
+        low: Lower bound (inclusive).
+        high: Upper bound (inclusive).
+        log: If True, sample in log-uniform distribution.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    low: float
+    high: float
+    log: bool = False
+
+    @model_validator(mode="after")
+    def check_bounds(self) -> "FloatRange":
+        """Validate low < high."""
+        if self.low >= self.high:
+            raise ValueError(
+                f"FloatRange low ({self.low}) must be strictly less than high ({self.high})"
+            )
+        return self
+
+
+class IntRange(BaseModel):
+    """
+    Typed bounds for a discrete hyperparameter search range.
+
+    Attributes:
+        low: Lower bound (inclusive).
+        high: Upper bound (inclusive).
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    low: int
+    high: int
+
+    @model_validator(mode="after")
+    def check_bounds(self) -> "IntRange":
+        """Validate low < high."""
+        if self.low >= self.high:
+            raise ValueError(
+                f"IntRange low ({self.low}) must be strictly less than high ({self.high})"
+            )
+        return self
+
+
+class SearchSpaceOverrides(BaseModel):
+    """
+    Configurable bounds for Optuna hyperparameter search ranges.
+
+    Provides domain-expert defaults for medical imaging while allowing
+    full customization via YAML. Each field maps 1:1 to a parameter
+    sampled by SearchSpaceRegistry.
+
+    Example YAML::
+
+        optuna:
+          search_space_overrides:
+            learning_rate:
+              low: 1e-4
+              high: 1e-1
+              log: true
+            batch_size_low_res: [32, 64, 128]
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    # ---- Optimization ----
+    learning_rate: FloatRange = Field(
+        default_factory=lambda: FloatRange(low=1e-5, high=1e-2, log=True)
+    )
+    weight_decay: FloatRange = Field(
+        default_factory=lambda: FloatRange(low=1e-6, high=1e-3, log=True)
+    )
+    momentum: FloatRange = Field(default_factory=lambda: FloatRange(low=0.85, high=0.95))
+    min_lr: FloatRange = Field(default_factory=lambda: FloatRange(low=1e-7, high=1e-5, log=True))
+
+    # ---- Regularization ----
+    mixup_alpha: FloatRange = Field(default_factory=lambda: FloatRange(low=0.0, high=0.4))
+    label_smoothing: FloatRange = Field(default_factory=lambda: FloatRange(low=0.0, high=0.2))
+    dropout: FloatRange = Field(default_factory=lambda: FloatRange(low=0.1, high=0.5))
+
+    # ---- Scheduler ----
+    cosine_fraction: FloatRange = Field(default_factory=lambda: FloatRange(low=0.3, high=0.7))
+    scheduler_patience: IntRange = Field(default_factory=lambda: IntRange(low=3, high=10))
+
+    # ---- Augmentation ----
+    rotation_angle: IntRange = Field(default_factory=lambda: IntRange(low=0, high=15))
+    jitter_val: FloatRange = Field(default_factory=lambda: FloatRange(low=0.0, high=0.15))
+    min_scale: FloatRange = Field(default_factory=lambda: FloatRange(low=0.9, high=1.0))
+
+    # ---- Batch size (categorical, resolution-aware) ----
+    batch_size_low_res: List[int] = Field(default=[16, 32, 48, 64])
+    batch_size_high_res: List[int] = Field(default=[8, 12, 16])
 
 
 # OPTUNA CONFIGURATION
@@ -45,6 +152,7 @@ class OptunaConfig(BaseModel):
         show_progress_bar: Display tqdm progress during optimization.
         save_plots: Generate optimization visualization plots.
         save_best_config: Export best trial hyperparameters as YAML.
+        search_space_overrides: Configurable bounds for search ranges.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
@@ -136,6 +244,12 @@ class OptunaConfig(BaseModel):
     )
 
     save_best_config: bool = Field(default=True, description="Export best trial as YAML config")
+
+    # ==================== Search Space Overrides ====================
+    search_space_overrides: SearchSpaceOverrides = Field(
+        default_factory=SearchSpaceOverrides,
+        description="Configurable bounds for hyperparameter search ranges",
+    )
 
     @model_validator(mode="after")
     def validate_storage(self) -> "OptunaConfig":

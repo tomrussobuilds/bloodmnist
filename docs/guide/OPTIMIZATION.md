@@ -82,20 +82,98 @@ See the **[Artifact Reference Guide](ARTIFACTS.md)** for complete documentation 
 
 ### Customization
 
-Edit search spaces in `orchard/optimization/search_spaces.py`:
+#### Search Space Overrides (YAML-based)
 
-```python
-class CustomSearchSpace:
-    @staticmethod
-    def get_optimization_space() -> Dict[str, Callable]:
-        return {
-            "learning_rate": lambda trial: trial.suggest_float(
-                "learning_rate", 1e-4, 1e-2, log=True
-            ),
-            "weight_decay": lambda trial: trial.suggest_float(
-                "weight_decay", 1e-5, 1e-3, log=True
-            ),
-        }
+Configure custom hyperparameter ranges directly in your recipe YAML via `optuna.search_space_overrides`. This allows dataset/approach-specific tuning without code changes.
+
+**Structure:**
+```yaml
+optuna:
+  search_space_overrides:
+    learning_rate:
+      low: 1.0e-05
+      high: 0.01
+      log: true           # Logarithmic scale (recommended for LR)
+    weight_decay:
+      low: 1.0e-06
+      high: 0.001
+      log: true
+    dropout:
+      low: 0.1
+      high: 0.5
+      log: false          # Linear scale
+    batch_size_low_res:   # Resolution-aware batches (28×28)
+      - 16
+      - 32
+      - 48
+      - 64
+    batch_size_high_res:  # Resolution-aware batches (224×224)
+      - 8
+      - 12
+      - 16
+```
+
+**Supported Override Parameters:**
+- **Optimization**: `learning_rate`, `weight_decay`, `momentum`, `min_lr`
+- **Regularization**: `mixup_alpha`, `label_smoothing`, `dropout`
+- **Scheduling**: `cosine_fraction`, `scheduler_patience`
+- **Augmentation**: `rotation_angle`, `jitter_val`, `min_scale`
+- **Batch Sizes**: `batch_size_low_res` (28×28), `batch_size_high_res` (224×224)
+
+**Float Parameters** (continuous ranges):
+- Provide `low`, `high`, `log` (boolean, default `false`)
+- Set `log: true` for exponential distributions (learning rates, weight decay)
+
+**Categorical Parameters** (discrete lists):
+- Provide as a list: `[value1, value2, ...]`
+- Used for batch sizes and architecture choices
+
+**Example: Dataset-Specific Tuning**
+
+Create a custom recipe for your dataset:
+```yaml
+# recipes/optuna_custom_dataset.yaml
+dataset:
+  name: "your_dataset"
+  resolution: 28
+
+optuna:
+  n_trials: 30
+  search_space_preset: full
+  
+  search_space_overrides:
+    learning_rate:
+      low: 1.0e-04      # Narrower range for stable convergence
+      high: 5.0e-03
+      log: true
+    dropout:
+      low: 0.15         # Higher dropout for this dataset
+      high: 0.4
+      log: false
+    batch_size_low_res:
+      - 32              # Skip small batches
+      - 48
+      - 64
+```
+
+Run with:
+```bash
+python forge.py --config recipes/optuna_custom_dataset.yaml
+```
+
+#### Preset Search Spaces
+
+Quickly select predefined search strategies via `search_space_preset`:
+
+- **`full`** (default): All 13+ hyperparameters (comprehensive, slower)
+- **`quick`**: 4-parameter subset (`learning_rate`, `weight_decay`, `batch_size`, `dropout`) — for rapid testing
+- **`architectures`**: Model architecture search (with `enable_model_search: true`)
+
+```yaml
+optuna:
+  search_space_preset: "quick"   # Fast preset for initial exploration
 ```
 
 ---
+
+

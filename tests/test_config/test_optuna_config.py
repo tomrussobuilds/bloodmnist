@@ -346,5 +346,52 @@ def test_config_forbids_extra_fields():
         OptunaConfig(unknown_param="value")
 
 
+# OPTUNA CONFIG: SEARCH SPACE OVERRIDES
+@pytest.mark.unit
+def test_search_space_overrides_default():
+    """Test OptunaConfig includes default SearchSpaceOverrides."""
+    config = OptunaConfig()
+
+    assert config.search_space_overrides is not None
+    assert config.search_space_overrides.learning_rate.low == pytest.approx(1e-5)
+    assert config.search_space_overrides.learning_rate.high == pytest.approx(1e-2)
+    assert config.search_space_overrides.learning_rate.log is True
+    assert config.search_space_overrides.batch_size_low_res == [16, 32, 48, 64]
+
+
+@pytest.mark.unit
+def test_search_space_overrides_custom():
+    """Test OptunaConfig accepts custom SearchSpaceOverrides."""
+    from orchard.core.config.optuna_config import FloatRange, SearchSpaceOverrides
+
+    custom_ov = SearchSpaceOverrides(
+        learning_rate=FloatRange(low=1e-4, high=1e-1, log=True),
+        batch_size_high_res=[4, 8],
+    )
+    config = OptunaConfig(search_space_overrides=custom_ov)
+
+    assert config.search_space_overrides.learning_rate.low == pytest.approx(1e-4)
+    assert config.search_space_overrides.learning_rate.high == pytest.approx(1e-1)
+    assert config.search_space_overrides.batch_size_high_res == [4, 8]
+
+
+@pytest.mark.unit
+def test_search_space_overrides_from_dict():
+    """Test SearchSpaceOverrides can be constructed from nested dict (YAML-style)."""
+    config = OptunaConfig(
+        search_space_overrides={
+            "learning_rate": {"low": 1e-3, "high": 0.5, "log": True},
+            "dropout": {"low": 0.2, "high": 0.7},
+        }
+    )
+
+    assert config.search_space_overrides.learning_rate.low == pytest.approx(1e-3)
+    assert config.search_space_overrides.learning_rate.high == pytest.approx(0.5)
+    assert config.search_space_overrides.dropout.low == pytest.approx(0.2)
+    assert config.search_space_overrides.dropout.high == pytest.approx(0.7)
+    # Non-overridden fields keep defaults
+    assert config.search_space_overrides.momentum.low == pytest.approx(0.85)
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -512,11 +512,12 @@ def test_optuna_objective_call_cleanup_on_success():
 
 
 @pytest.mark.unit
-def test_optuna_objective_call_cleanup_on_exception():
-    """Test OptunaObjective.__call__ calls cleanup even on exception."""
+def test_optuna_objective_call_returns_worst_metric_on_failure():
+    """Test OptunaObjective.__call__ returns worst metric on exception (maximize)."""
     mock_cfg = MagicMock()
     mock_cfg.optuna.epochs = 10
     mock_cfg.optuna.metric_name = "auc"
+    mock_cfg.optuna.direction = "maximize"
     mock_cfg.dataset._ensure_metadata = MagicMock()
 
     search_space = {}
@@ -552,7 +553,103 @@ def test_optuna_objective_call_cleanup_on_exception():
             mock_executor_instance.execute.side_effect = RuntimeError("Training failed")
             mock_executor_cls.return_value = mock_executor_instance
 
-            with pytest.raises(RuntimeError, match="Training failed"):
+            result = objective(mock_trial)
+
+            assert result == pytest.approx(0.0)
+            objective._cleanup.assert_called_once()
+
+
+@pytest.mark.unit
+def test_optuna_objective_call_returns_inf_on_failure_minimize():
+    """Test OptunaObjective.__call__ returns inf on exception (minimize)."""
+    mock_cfg = MagicMock()
+    mock_cfg.optuna.epochs = 10
+    mock_cfg.optuna.metric_name = "loss"
+    mock_cfg.optuna.direction = "minimize"
+    mock_cfg.dataset._ensure_metadata = MagicMock()
+
+    search_space = {}
+    mock_dataset_loader = MagicMock(return_value=MagicMock())
+    mock_dataloader_factory = MagicMock(return_value=(MagicMock(), MagicMock(), MagicMock()))
+    mock_model_factory = MagicMock(return_value=MagicMock())
+
+    mock_trial = MagicMock()
+    mock_trial.number = 3
+
+    objective = OptunaObjective(
+        cfg=mock_cfg,
+        search_space=search_space,
+        device=torch.device("cpu"),
+        dataset_loader=mock_dataset_loader,
+        dataloader_factory=mock_dataloader_factory,
+        model_factory=mock_model_factory,
+    )
+
+    objective._cleanup = MagicMock()
+
+    with (
+        patch("orchard.optimization.objective.objective.get_optimizer"),
+        patch("orchard.optimization.objective.objective.get_scheduler"),
+        patch("orchard.optimization.objective.objective.get_criterion"),
+        patch("orchard.optimization.objective.objective.log_trial_start"),
+    ):
+
+        with patch(
+            "orchard.optimization.objective.objective.TrialTrainingExecutor"
+        ) as mock_executor_cls:
+            mock_executor_instance = MagicMock()
+            mock_executor_instance.execute.side_effect = RuntimeError("OOM")
+            mock_executor_cls.return_value = mock_executor_instance
+
+            result = objective(mock_trial)
+
+            assert result == float("inf")
+            objective._cleanup.assert_called_once()
+
+
+@pytest.mark.unit
+def test_optuna_objective_call_reraises_trial_pruned():
+    """Test OptunaObjective.__call__ re-raises TrialPruned (not caught)."""
+    mock_cfg = MagicMock()
+    mock_cfg.optuna.epochs = 10
+    mock_cfg.optuna.metric_name = "auc"
+    mock_cfg.optuna.direction = "maximize"
+    mock_cfg.dataset._ensure_metadata = MagicMock()
+
+    search_space = {}
+    mock_dataset_loader = MagicMock(return_value=MagicMock())
+    mock_dataloader_factory = MagicMock(return_value=(MagicMock(), MagicMock(), MagicMock()))
+    mock_model_factory = MagicMock(return_value=MagicMock())
+
+    mock_trial = MagicMock()
+    mock_trial.number = 4
+
+    objective = OptunaObjective(
+        cfg=mock_cfg,
+        search_space=search_space,
+        device=torch.device("cpu"),
+        dataset_loader=mock_dataset_loader,
+        dataloader_factory=mock_dataloader_factory,
+        model_factory=mock_model_factory,
+    )
+
+    objective._cleanup = MagicMock()
+
+    with (
+        patch("orchard.optimization.objective.objective.get_optimizer"),
+        patch("orchard.optimization.objective.objective.get_scheduler"),
+        patch("orchard.optimization.objective.objective.get_criterion"),
+        patch("orchard.optimization.objective.objective.log_trial_start"),
+    ):
+
+        with patch(
+            "orchard.optimization.objective.objective.TrialTrainingExecutor"
+        ) as mock_executor_cls:
+            mock_executor_instance = MagicMock()
+            mock_executor_instance.execute.side_effect = optuna.TrialPruned()
+            mock_executor_cls.return_value = mock_executor_instance
+
+            with pytest.raises(optuna.TrialPruned):
                 objective(mock_trial)
 
             objective._cleanup.assert_called_once()

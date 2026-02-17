@@ -1,0 +1,193 @@
+"""
+Test Suite for CrossDomainValidator.
+
+Tests individual cross-domain validation checks in isolation.
+End-to-end validation through Config is tested in test_manifest.py.
+"""
+
+import pytest
+from pydantic import ValidationError
+
+from orchard.core.config import (
+    ArchitectureConfig,
+    Config,
+    DatasetConfig,
+    HardwareConfig,
+    TrainingConfig,
+)
+from orchard.core.config.manifest import _CrossDomainValidator
+
+
+# ARCHITECTURE-RESOLUTION
+@pytest.mark.unit
+class TestCheckArchitectureResolution:
+    """Tests for _check_architecture_resolution."""
+
+    def test_mini_cnn_rejects_224(self):
+        with pytest.raises(
+            ValidationError,
+            match="'mini_cnn' requires resolution=28",
+        ):
+            Config(
+                dataset=DatasetConfig(name="bloodmnist", resolution=224, force_rgb=True),
+                architecture=ArchitectureConfig(name="mini_cnn", pretrained=False),
+                hardware=HardwareConfig(device="cpu"),
+            )
+
+    def test_efficientnet_rejects_28(self):
+        with pytest.raises(
+            ValidationError,
+            match="'efficientnet_b0' requires resolution=224",
+        ):
+            Config(
+                dataset=DatasetConfig(name="bloodmnist", resolution=28),
+                architecture=ArchitectureConfig(name="efficientnet_b0", pretrained=False),
+                hardware=HardwareConfig(device="cpu"),
+            )
+
+    def test_resnet_18_accepts_28(self):
+        cfg = Config(
+            dataset=DatasetConfig(name="bloodmnist", resolution=28),
+            architecture=ArchitectureConfig(name="resnet_18", pretrained=False),
+            hardware=HardwareConfig(device="cpu"),
+        )
+        assert cfg.dataset.resolution == 28
+
+    def test_resnet_18_accepts_224(self):
+        cfg = Config(
+            dataset=DatasetConfig(name="bloodmnist", resolution=224, force_rgb=True),
+            architecture=ArchitectureConfig(name="resnet_18", pretrained=False),
+            hardware=HardwareConfig(device="cpu"),
+        )
+        assert cfg.dataset.resolution == 224
+
+    def test_resnet_18_rejects_112(self):
+        with pytest.raises(
+            ValidationError,
+            match="'resnet_18' supports resolutions 28 or 224",
+        ):
+            Config(
+                dataset=DatasetConfig(name="bloodmnist", resolution=112),
+                architecture=ArchitectureConfig(name="resnet_18", pretrained=False),
+                hardware=HardwareConfig(device="cpu"),
+            )
+
+
+# MIXUP EPOCHS
+@pytest.mark.unit
+class TestCheckMixupEpochs:
+    """Tests for _check_mixup_epochs."""
+
+    def test_mixup_exceeds_total_raises(self):
+        with pytest.raises(
+            ValidationError,
+            match="mixup_epochs .* exceeds total epochs",
+        ):
+            Config(
+                training=TrainingConfig(epochs=5, mixup_epochs=10),
+                hardware=HardwareConfig(device="cpu"),
+            )
+
+    def test_mixup_equal_to_total_passes(self):
+        cfg = Config(
+            training=TrainingConfig(epochs=10, mixup_epochs=10),
+            hardware=HardwareConfig(device="cpu"),
+        )
+        assert cfg.training.mixup_epochs == 10
+
+
+# AMP-DEVICE
+@pytest.mark.unit
+class TestCheckAmpDevice:
+    """Tests for _check_amp_device."""
+
+    def test_amp_on_cpu_auto_disabled(self):
+        with pytest.warns(UserWarning, match="AMP.*CPU"):
+            cfg = Config(
+                training=TrainingConfig(use_amp=True),
+                hardware=HardwareConfig(device="cpu"),
+            )
+        assert cfg.training.use_amp is False
+
+    def test_amp_off_on_cpu_no_warning(self):
+        cfg = Config(
+            training=TrainingConfig(use_amp=False),
+            hardware=HardwareConfig(device="cpu"),
+        )
+        assert cfg.training.use_amp is False
+
+
+# PRETRAINED CHANNELS
+@pytest.mark.unit
+class TestCheckPretrainedChannels:
+    """Tests for _check_pretrained_channels."""
+
+    def test_pretrained_with_grayscale_raises(self, mock_grayscale_metadata):
+        with pytest.raises(
+            ValidationError,
+            match="Pretrained.*requires RGB",
+        ):
+            Config(
+                dataset=DatasetConfig(
+                    name="pneumoniamnist",
+                    resolution=28,
+                    metadata=mock_grayscale_metadata,
+                    force_rgb=False,
+                ),
+                architecture=ArchitectureConfig(name="resnet_18", pretrained=True),
+                hardware=HardwareConfig(device="cpu"),
+            )
+
+    def test_pretrained_with_rgb_passes(self, mock_metadata_28):
+        cfg = Config(
+            dataset=DatasetConfig(
+                name="bloodmnist",
+                resolution=28,
+                metadata=mock_metadata_28,
+            ),
+            architecture=ArchitectureConfig(name="resnet_18", pretrained=True),
+            hardware=HardwareConfig(device="cpu"),
+        )
+        assert cfg.architecture.pretrained is True
+
+
+# LR BOUNDS
+@pytest.mark.unit
+class TestCheckLrBounds:
+    """Tests for _check_lr_bounds."""
+
+    def test_min_lr_equal_to_lr_raises(self):
+        with pytest.raises(ValidationError, match="min_lr"):
+            Config(
+                training=TrainingConfig(learning_rate=0.001, min_lr=0.001),
+                hardware=HardwareConfig(device="cpu"),
+            )
+
+    def test_min_lr_greater_than_lr_raises(self):
+        with pytest.raises(ValidationError, match="min_lr"):
+            Config(
+                training=TrainingConfig(learning_rate=0.001, min_lr=0.01),
+                hardware=HardwareConfig(device="cpu"),
+            )
+
+    def test_min_lr_less_than_lr_passes(self):
+        cfg = Config(
+            training=TrainingConfig(learning_rate=0.01, min_lr=0.0001),
+            hardware=HardwareConfig(device="cpu"),
+        )
+        assert cfg.training.min_lr < cfg.training.learning_rate
+
+
+# DIRECT VALIDATOR CALL
+@pytest.mark.unit
+class TestValidatorDirectCall:
+    """Tests for CrossDomainValidator.validate() called directly."""
+
+    def test_validate_returns_config(self):
+        cfg = Config(hardware=HardwareConfig(device="cpu"))
+        result = _CrossDomainValidator.validate(cfg)
+        assert result is cfg
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

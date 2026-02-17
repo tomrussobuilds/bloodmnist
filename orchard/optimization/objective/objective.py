@@ -144,13 +144,15 @@ class OptunaObjective:
         Execute single Optuna trial.
 
         Samples hyperparameters, builds trial configuration, trains model,
-        and returns best validation metric.
+        and returns best validation metric. Failed trials return the worst
+        possible metric instead of crashing the study.
 
         Args:
             trial: Optuna trial object
 
         Returns:
-            Best validation metric achieved during training
+            Best validation metric achieved during training,
+            or worst-case metric if the trial fails.
 
         Raises:
             optuna.TrialPruned: If trial is pruned during training
@@ -195,6 +197,13 @@ class OptunaObjective:
 
             return best_metric
 
+        except optuna.TrialPruned:
+            raise
+
+        except Exception as e:
+            logger.error(f"Trial {trial.number} failed: {type(e).__name__}: {e}")
+            return self._worst_metric()
+
         finally:
             # End nested MLflow run for this trial
             if self.tracker is not None:
@@ -219,6 +228,20 @@ class OptunaObjective:
         if hasattr(self.search_space, "sample_params"):
             return self.search_space.sample_params(trial)
         return {key: fn(trial) for key, fn in self.search_space.items()}
+
+    def _worst_metric(self) -> float:
+        """
+        Return worst possible metric based on optimization direction.
+
+        Used as a fallback return value when a trial fails, ensuring
+        the study continues without being biased by the failed trial.
+
+        Returns:
+            float("inf") for minimize, 0.0 for maximize.
+        """
+        if self.cfg.optuna.direction == "minimize":
+            return float("inf")
+        return 0.0
 
     def _cleanup(self) -> None:
         """

@@ -1,18 +1,29 @@
 """
 Hyperparameter Search Space Definitions for Optuna.
 
-Defines search distributions for each optimizable parameter, respecting
-the type constraints defined in src/core/config/types.py.
+Defines search distributions for each optimizable parameter using
+configurable bounds from SearchSpaceOverrides (Pydantic V2).
 
-Each search space is defined with:
-    - Type-aware bounds (matching Pydantic validators)
-    - Distribution strategy (log/uniform/categorical)
-    - Domain expertise defaults (medical imaging best practices)
+Search ranges respect the type constraints in core/config/types.py
+and default to domain-expert values for medical imaging, but can be
+fully customized via YAML through OptunaConfig.search_space_overrides.
 """
 
-from typing import Callable, Dict
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Callable, Dict, Optional
 
 import optuna
+
+if TYPE_CHECKING:  # pragma: no cover
+    from orchard.core.config.optuna_config import SearchSpaceOverrides
+
+
+def _default_overrides() -> SearchSpaceOverrides:
+    """Lazy import to avoid circular dependency at module level."""
+    from orchard.core.config.optuna_config import SearchSpaceOverrides
+
+    return SearchSpaceOverrides()
 
 
 # SEARCH SPACE DEFINITIONS
@@ -20,57 +31,82 @@ class SearchSpaceRegistry:
     """
     Centralized registry of hyperparameter search distributions.
 
+    Reads bounds from a SearchSpaceOverrides instance, enabling full
+    YAML customization of search ranges without code changes.
+
     Each method returns a dict of {param_name: suggest_function} where
     suggest_function takes a Trial object and returns a sampled value.
+
+    Args:
+        overrides: Configurable search range bounds. Uses defaults if None.
     """
 
-    @staticmethod
-    def get_optimization_space() -> Dict[str, Callable]:
+    def __init__(self, overrides: Optional[SearchSpaceOverrides] = None):
+        self.ov = overrides if overrides is not None else _default_overrides()
+
+    def get_optimization_space(self) -> Dict[str, Callable]:
         """
         Core optimization hyperparameters (learning rate, weight decay, etc.).
 
         Returns:
             Dict mapping parameter names to sampling functions
         """
+        ov = self.ov
         return {
             "learning_rate": lambda trial: trial.suggest_float(
-                "learning_rate", 1e-5, 1e-2, log=True  # LearningRate bounds: gt=1e-8, lt=1.0
+                "learning_rate",
+                ov.learning_rate.low,
+                ov.learning_rate.high,
+                log=ov.learning_rate.log,
             ),
             "weight_decay": lambda trial: trial.suggest_float(
-                "weight_decay", 1e-6, 1e-3, log=True  # WeightDecay bounds: ge=0.0, le=0.2
+                "weight_decay",
+                ov.weight_decay.low,
+                ov.weight_decay.high,
+                log=ov.weight_decay.log,
             ),
             "momentum": lambda trial: trial.suggest_float(
-                "momentum", 0.85, 0.95  # Momentum bounds: ge=0.0, lt=1.0
+                "momentum",
+                ov.momentum.low,
+                ov.momentum.high,
             ),
-            "min_lr": lambda trial: trial.suggest_float("min_lr", 1e-7, 1e-5, log=True),
+            "min_lr": lambda trial: trial.suggest_float(
+                "min_lr",
+                ov.min_lr.low,
+                ov.min_lr.high,
+                log=ov.min_lr.log,
+            ),
         }
 
-    @staticmethod
-    def get_regularization_space() -> Dict[str, Callable]:
+    def get_regularization_space(self) -> Dict[str, Callable]:
         """
         Regularization strategies (mixup, label smoothing, dropout).
 
         Returns:
             Dict of regularization parameter samplers
         """
+        ov = self.ov
         return {
             "mixup_alpha": lambda trial: trial.suggest_float(
-                "mixup_alpha", 0.0, 0.4  # Common range for medical imaging
+                "mixup_alpha",
+                ov.mixup_alpha.low,
+                ov.mixup_alpha.high,
             ),
             "label_smoothing": lambda trial: trial.suggest_float(
-                "label_smoothing", 0.0, 0.2  # SmoothingValue bounds: ge=0.0, le=0.3
+                "label_smoothing",
+                ov.label_smoothing.low,
+                ov.label_smoothing.high,
             ),
             "dropout": lambda trial: trial.suggest_float(
-                "dropout", 0.1, 0.5  # DropoutRate bounds: ge=0.0, le=0.9
+                "dropout",
+                ov.dropout.low,
+                ov.dropout.high,
             ),
         }
 
-    @staticmethod
-    def get_batch_size_space(resolution: int = 28) -> Dict[str, Callable]:
+    def get_batch_size_space(self, resolution: int = 28) -> Dict[str, Callable]:
         """
-        Batch size as categorical (powers of 2 for GPU efficiency).
-
-        RESOLUTION-AWARE: Smaller batches for high-res to prevent OOM.
+        Batch size as categorical (resolution-aware).
 
         Args:
             resolution: Input image resolution (28 or 224)
@@ -79,51 +115,62 @@ class SearchSpaceRegistry:
             Dict with batch_size sampler
         """
         if resolution >= 224:
-            # High-res (224×224): Conservative batches for 8GB VRAM
-            batch_choices = [8, 12, 16]
+            batch_choices = list(self.ov.batch_size_high_res)
         else:
-            # Low-res (28×28): Can handle larger batches
-            batch_choices = [16, 32, 48, 64]
+            batch_choices = list(self.ov.batch_size_low_res)
 
         return {
             "batch_size": lambda trial: trial.suggest_categorical("batch_size", batch_choices),
         }
 
-    @staticmethod
-    def get_scheduler_space() -> Dict[str, Callable]:
+    def get_scheduler_space(self) -> Dict[str, Callable]:
         """
         Learning rate scheduler parameters.
 
         Returns:
             Dict of scheduler-related samplers
         """
+        ov = self.ov
         return {
             "cosine_fraction": lambda trial: trial.suggest_float(
-                "cosine_fraction", 0.3, 0.7  # Probability bounds: ge=0.0, le=1.0
+                "cosine_fraction",
+                ov.cosine_fraction.low,
+                ov.cosine_fraction.high,
             ),
             "scheduler_patience": lambda trial: trial.suggest_int(
-                "scheduler_patience", 3, 10  # NonNegativeInt
+                "scheduler_patience",
+                ov.scheduler_patience.low,
+                ov.scheduler_patience.high,
             ),
         }
 
-    @staticmethod
-    def get_augmentation_space() -> Dict[str, Callable]:
+    def get_augmentation_space(self) -> Dict[str, Callable]:
         """
         Data augmentation intensity parameters.
 
         Returns:
             Dict of augmentation samplers
         """
+        ov = self.ov
         return {
             "rotation_angle": lambda trial: trial.suggest_int(
-                "rotation_angle", 0, 15  # RotationDegrees: ge=0, le=360
+                "rotation_angle",
+                ov.rotation_angle.low,
+                ov.rotation_angle.high,
             ),
-            "jitter_val": lambda trial: trial.suggest_float("jitter_val", 0.0, 0.15),
-            "min_scale": lambda trial: trial.suggest_float("min_scale", 0.9, 1.0),
+            "jitter_val": lambda trial: trial.suggest_float(
+                "jitter_val",
+                ov.jitter_val.low,
+                ov.jitter_val.high,
+            ),
+            "min_scale": lambda trial: trial.suggest_float(
+                "min_scale",
+                ov.min_scale.low,
+                ov.min_scale.high,
+            ),
         }
 
-    @staticmethod
-    def get_full_space(resolution: int = 28) -> Dict[str, Callable]:
+    def get_full_space(self, resolution: int = 28) -> Dict[str, Callable]:
         """
         Combined search space with all available parameters.
 
@@ -133,16 +180,15 @@ class SearchSpaceRegistry:
         Returns:
             Unified dict of all parameter samplers
         """
-        full_space = {}
-        full_space.update(SearchSpaceRegistry.get_optimization_space())
-        full_space.update(SearchSpaceRegistry.get_regularization_space())
-        full_space.update(SearchSpaceRegistry.get_batch_size_space(resolution))
-        full_space.update(SearchSpaceRegistry.get_scheduler_space())
-        full_space.update(SearchSpaceRegistry.get_augmentation_space())
+        full_space: Dict[str, Callable] = {}
+        full_space.update(self.get_optimization_space())
+        full_space.update(self.get_regularization_space())
+        full_space.update(self.get_batch_size_space(resolution))
+        full_space.update(self.get_scheduler_space())
+        full_space.update(self.get_augmentation_space())
         return full_space
 
-    @staticmethod
-    def get_quick_space(resolution: int = 28) -> Dict[str, Callable]:
+    def get_quick_space(self, resolution: int = 28) -> Dict[str, Callable]:
         """
         Reduced search space for fast exploration (most impactful params).
 
@@ -158,19 +204,19 @@ class SearchSpaceRegistry:
         Returns:
             Dict of high-impact parameter samplers
         """
-        space = {}
-        space.update(SearchSpaceRegistry.get_optimization_space())
+        space: Dict[str, Callable] = {}
+        space.update(self.get_optimization_space())
         space.update(
             {
-                "batch_size": SearchSpaceRegistry.get_batch_size_space(resolution)["batch_size"],
-                "dropout": SearchSpaceRegistry.get_regularization_space()["dropout"],
+                "batch_size": self.get_batch_size_space(resolution)["batch_size"],
+                "dropout": self.get_regularization_space()["dropout"],
             }
         )
         return space
 
     @staticmethod
     def get_model_space_224() -> Dict[str, Callable]:
-        """Search space for 224×224 architectures with weight variants."""
+        """Search space for 224x224 architectures with weight variants."""
         return {
             "model_name": lambda trial: trial.suggest_categorical(
                 "model_name", ["resnet_18", "efficientnet_b0", "vit_tiny", "convnext_tiny"]
@@ -191,15 +237,14 @@ class SearchSpaceRegistry:
 
     @staticmethod
     def get_model_space_28() -> Dict[str, Callable]:
-        """Search space for 28×28 architectures."""
+        """Search space for 28x28 architectures."""
         return {
             "model_name": lambda trial: trial.suggest_categorical(
                 "model_name", ["resnet_18", "mini_cnn"]
             ),
         }
 
-    @staticmethod
-    def get_full_space_with_models(resolution: int = 28) -> Dict[str, Callable]:
+    def get_full_space_with_models(self, resolution: int = 28) -> Dict[str, Callable]:
         """
         Combined search space including model architecture selection.
 
@@ -209,19 +254,23 @@ class SearchSpaceRegistry:
         Returns:
             Unified dict of all parameter samplers + model selection
         """
-        full_space = SearchSpaceRegistry.get_full_space(resolution)
+        full_space = self.get_full_space(resolution)
 
-        # Add model selection based on resolution
         if resolution >= 224:
-            full_space.update(SearchSpaceRegistry.get_model_space_224())
+            full_space.update(self.get_model_space_224())
         else:
-            full_space.update(SearchSpaceRegistry.get_model_space_28())
+            full_space.update(self.get_model_space_28())
 
         return full_space
 
 
 # PRESET CONFIGURATIONS
-def get_search_space(preset: str = "quick", resolution: int = 28, include_models: bool = False):
+def get_search_space(
+    preset: str = "quick",
+    resolution: int = 28,
+    include_models: bool = False,
+    overrides: Optional[SearchSpaceOverrides] = None,
+):
     """
     Factory function to retrieve a search space preset.
 
@@ -229,6 +278,7 @@ def get_search_space(preset: str = "quick", resolution: int = 28, include_models
         preset: Name of the preset ("quick", "full", etc.)
         resolution: Input image resolution (affects batch_size choices)
         include_models: If True, includes model architecture selection
+        overrides: Configurable search range bounds (uses defaults if None)
 
     Returns:
         Dict of parameter samplers
@@ -236,23 +286,23 @@ def get_search_space(preset: str = "quick", resolution: int = 28, include_models
     Raises:
         ValueError: If preset name not recognized
     """
-    # Resolution-dependent presets
+    registry = SearchSpaceRegistry(overrides)
+
     if preset == "quick":
-        space = SearchSpaceRegistry.get_quick_space(resolution)
+        space = registry.get_quick_space(resolution)
     elif preset == "full":
-        space = SearchSpaceRegistry.get_full_space(resolution)
+        space = registry.get_full_space(resolution)
     else:
         raise ValueError(
             f"Unknown preset '{preset}'. Available: quick, full, "
             f"optimization_only, regularization_only"
         )
 
-    # Optionally add model selection
     if include_models:
         if resolution >= 224:
-            space.update(SearchSpaceRegistry.get_model_space_224())
+            space.update(registry.get_model_space_224())
         else:
-            space.update(SearchSpaceRegistry.get_model_space_28())
+            space.update(registry.get_model_space_28())
 
     return space
 
@@ -262,16 +312,23 @@ class FullSearchSpace:
     Resolution-aware full search space with dynamic batch_size constraints.
 
     Prevents OOM errors by limiting batch sizes based on input resolution.
+    Reads bounds from SearchSpaceOverrides for configurability.
     """
 
-    def __init__(self, resolution: int = 28):
+    def __init__(
+        self,
+        resolution: int = 28,
+        overrides: Optional[SearchSpaceOverrides] = None,
+    ):
         """
         Initialize search space with resolution context.
 
         Args:
             resolution: Input image resolution (28, 224, etc.)
+            overrides: Configurable search range bounds (uses defaults if None)
         """
         self.resolution = resolution
+        self.ov = overrides if overrides is not None else _default_overrides()
 
     def sample_params(self, trial: optuna.Trial) -> dict:
         """
@@ -283,26 +340,76 @@ class FullSearchSpace:
         Returns:
             Dict of sampled hyperparameters
         """
-        # Determine max safe batch_size based on resolution
+        ov = self.ov
+
         if self.resolution >= 224:
-            # 224×224: Max batch_size=16 even with AMP
-            batch_choices = [8, 12, 16]
+            batch_choices = list(ov.batch_size_high_res)
         else:
-            # 28×28: Can handle larger batches
-            batch_choices = [16, 32, 48, 64]
+            batch_choices = list(ov.batch_size_low_res)
 
         return {
-            "learning_rate": trial.suggest_float("learning_rate", 1e-5, 1e-2, log=True),
-            "weight_decay": trial.suggest_float("weight_decay", 1e-6, 1e-3, log=True),
-            "momentum": trial.suggest_float("momentum", 0.85, 0.95),
-            "min_lr": trial.suggest_float("min_lr", 1e-8, 1e-5, log=True),
-            "mixup_alpha": trial.suggest_float("mixup_alpha", 0.0, 0.4),
-            "label_smoothing": trial.suggest_float("label_smoothing", 0.0, 0.2),
-            "dropout": trial.suggest_float("dropout", 0.1, 0.5),
+            "learning_rate": trial.suggest_float(
+                "learning_rate",
+                ov.learning_rate.low,
+                ov.learning_rate.high,
+                log=ov.learning_rate.log,
+            ),
+            "weight_decay": trial.suggest_float(
+                "weight_decay",
+                ov.weight_decay.low,
+                ov.weight_decay.high,
+                log=ov.weight_decay.log,
+            ),
+            "momentum": trial.suggest_float(
+                "momentum",
+                ov.momentum.low,
+                ov.momentum.high,
+            ),
+            "min_lr": trial.suggest_float(
+                "min_lr",
+                ov.min_lr.low,
+                ov.min_lr.high,
+                log=ov.min_lr.log,
+            ),
+            "mixup_alpha": trial.suggest_float(
+                "mixup_alpha",
+                ov.mixup_alpha.low,
+                ov.mixup_alpha.high,
+            ),
+            "label_smoothing": trial.suggest_float(
+                "label_smoothing",
+                ov.label_smoothing.low,
+                ov.label_smoothing.high,
+            ),
+            "dropout": trial.suggest_float(
+                "dropout",
+                ov.dropout.low,
+                ov.dropout.high,
+            ),
             "batch_size": trial.suggest_categorical("batch_size", batch_choices),
-            "cosine_fraction": trial.suggest_float("cosine_fraction", 0.3, 0.7),
-            "scheduler_patience": trial.suggest_int("scheduler_patience", 3, 10),
-            "rotation_angle": trial.suggest_int("rotation_angle", 0, 15),
-            "jitter_val": trial.suggest_float("jitter_val", 0.0, 0.15),
-            "min_scale": trial.suggest_float("min_scale", 0.90, 1.0),
+            "cosine_fraction": trial.suggest_float(
+                "cosine_fraction",
+                ov.cosine_fraction.low,
+                ov.cosine_fraction.high,
+            ),
+            "scheduler_patience": trial.suggest_int(
+                "scheduler_patience",
+                ov.scheduler_patience.low,
+                ov.scheduler_patience.high,
+            ),
+            "rotation_angle": trial.suggest_int(
+                "rotation_angle",
+                ov.rotation_angle.low,
+                ov.rotation_angle.high,
+            ),
+            "jitter_val": trial.suggest_float(
+                "jitter_val",
+                ov.jitter_val.low,
+                ov.jitter_val.high,
+            ),
+            "min_scale": trial.suggest_float(
+                "min_scale",
+                ov.min_scale.low,
+                ov.min_scale.high,
+            ),
         }

@@ -144,6 +144,63 @@ optuna:
   save_plots: true
   save_best_config: true
 
+  search_space_overrides:
+      learning_rate:
+          low: 1.0e-05
+          high: 0.01
+          log: true
+      weight_decay:
+          low: 1.0e-06
+          high: 0.001
+          log: true
+      momentum:
+          low: 0.85
+          high: 0.95
+          log: false
+      min_lr:
+          low: 1.0e-07
+          high: 1.0e-05
+          log: true
+      mixup_alpha:
+          low: 0.0
+          high: 0.4
+          log: false
+      label_smoothing:
+          low: 0.0
+          high: 0.2
+          log: false
+      dropout:
+          low: 0.1
+          high: 0.5
+          log: false
+      cosine_fraction:
+          low: 0.3
+          high: 0.7
+          log: false
+      scheduler_patience:
+          low: 3
+          high: 10
+      rotation_angle:
+          low: 0
+          high: 15
+      jitter_val:
+          low: 0.0
+          high: 0.15
+          log: false
+      min_scale:
+          low: 0.9
+          high: 1.0
+          log: false
+      batch_size_low_res:
+      - 16
+      - 32
+      - 48
+      - 64
+      batch_size_high_res:
+      - 8
+      - 12
+      - 16
+
 tracking:
   enabled: true
   experiment_name: "visionforge"

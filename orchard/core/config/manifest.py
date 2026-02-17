@@ -41,6 +41,124 @@ from .tracking_config import TrackingConfig
 from .training_config import TrainingConfig
 
 
+# CROSS-DOMAIN VALIDATOR (module-level for direct import by tests)
+class _CrossDomainValidator:
+    """Internal cross-domain validator (no public API)."""
+
+    @classmethod
+    def validate(cls, config: "Config") -> "Config":
+        """Run all cross-domain validation checks."""
+        cls._check_architecture_resolution(config)
+        cls._check_mixup_epochs(config)
+        cls._check_amp_device(config)
+        cls._check_pretrained_channels(config)
+        cls._check_lr_bounds(config)
+        return config
+
+    @classmethod
+    def _check_architecture_resolution(cls, config: "Config") -> None:
+        """
+        Validate architecture-resolution compatibility.
+
+        Enforces that each model is used with its supported resolution(s):
+            - 28x28 only: mini_cnn
+            - 224x224 only: efficientnet_b0, vit_tiny, convnext_tiny
+            - Multi-resolution (28x28, 224x224): resnet_18, resnet_18_adapted
+
+        Raises:
+            ValueError: If architecture and resolution are incompatible.
+        """
+        model_name = config.architecture.name.lower()
+        resolution = config.dataset.resolution
+
+        resolution_28_only = {"mini_cnn"}
+        resolution_224_only = {"efficientnet_b0", "vit_tiny", "convnext_tiny"}
+        multi_resolution = {"resnet_18", "resnet_18_adapted"}
+
+        if model_name in resolution_28_only and resolution != 28:
+            raise ValueError(
+                f"'{config.architecture.name}' requires resolution=28, got {resolution}. "
+                f"Use a 224x224 architecture (efficientnet_b0, vit_tiny, convnext_tiny) "
+                f"or resnet_18 for high resolution."
+            )
+
+        if model_name in resolution_224_only and resolution != 224:
+            raise ValueError(
+                f"'{config.architecture.name}' requires resolution=224, got {resolution}. "
+                f"Use resnet_18 or mini_cnn for low resolution."
+            )
+
+        if model_name in multi_resolution and resolution not in (28, 224):
+            raise ValueError(
+                f"'{config.architecture.name}' supports resolutions 28 or 224, "
+                f"got {resolution}."
+            )
+
+    @classmethod
+    def _check_mixup_epochs(cls, config: "Config") -> None:
+        """
+        Validate mixup scheduling within training bounds.
+
+        Raises:
+            ValueError: If mixup_epochs exceeds total epochs.
+        """
+        if config.training.mixup_epochs > config.training.epochs:
+            raise ValueError(
+                f"mixup_epochs ({config.training.mixup_epochs}) exceeds "
+                f"total epochs ({config.training.epochs})"
+            )
+
+    @classmethod
+    def _check_amp_device(cls, config: "Config") -> None:
+        """
+        Validate AMP-device alignment.
+
+        Auto-disables AMP on CPU with a warning instead of failing,
+        since this is a recoverable misconfiguration.
+        """
+        if config.hardware.device == "cpu" and config.training.use_amp:
+            import warnings
+
+            warnings.warn(
+                "AMP requires GPU (CUDA/MPS) but CPU detected. Disabling AMP automatically.",
+                UserWarning,
+                stacklevel=4,
+            )
+            object.__setattr__(config.training, "use_amp", False)
+
+    @classmethod
+    def _check_pretrained_channels(cls, config: "Config") -> None:
+        """
+        Validate pretrained model channel requirements.
+
+        Pretrained models require RGB (3 channels). Grayscale datasets
+        must use force_rgb=True or disable pretraining.
+
+        Raises:
+            ValueError: If pretrained model used with non-RGB input.
+        """
+        if config.architecture.pretrained and config.dataset.effective_in_channels != 3:
+            raise ValueError(
+                f"Pretrained {config.architecture.name} requires RGB (3 channels), "
+                f"but dataset will provide {config.dataset.effective_in_channels} channels. "
+                f"Set 'force_rgb: true' in dataset config or disable pretraining"
+            )
+
+    @classmethod
+    def _check_lr_bounds(cls, config: "Config") -> None:
+        """
+        Validate learning rate bounds consistency.
+
+        Raises:
+            ValueError: If min_lr >= learning_rate.
+        """
+        if config.training.min_lr >= config.training.learning_rate:
+            raise ValueError(
+                f"min_lr ({config.training.min_lr}) must be less than "
+                f"learning_rate ({config.training.learning_rate})"
+            )
+
+
 # MAIN CONFIGURATION
 class Config(BaseModel):
     """
@@ -87,7 +205,7 @@ class Config(BaseModel):
         """
         Cross-domain validation enforcing consistency across sub-configs.
 
-        Validates:
+        Invokes _CrossDomainValidator to check:
             - Model/resolution compatibility (ResNet-18 → 28x28)
             - Training epochs bounds (mixup_epochs ≤ epochs)
             - Hardware/feature alignment (AMP requires GPU)
@@ -100,82 +218,7 @@ class Config(BaseModel):
         Raises:
             ValueError: On irrecoverable validation failures
         """
-        # 1. Architecture-resolution compatibility
-        self._validate_architecture_resolution()
-
-        # 2. Training logic
-        if self.training.mixup_epochs > self.training.epochs:
-            raise ValueError(
-                f"mixup_epochs ({self.training.mixup_epochs}) exceeds "
-                f"total epochs ({self.training.epochs})"
-            )
-
-        # 3. Hardware-feature alignment (auto-disable AMP on CPU)
-        if self.hardware.device == "cpu" and self.training.use_amp:
-            import warnings
-
-            warnings.warn(
-                "AMP requires GPU (CUDA/MPS) but CPU detected. Disabling AMP automatically.",
-                UserWarning,
-                stacklevel=2,
-            )
-            object.__setattr__(self.training, "use_amp", False)
-
-        # 4. Model-dataset consistency
-        if self.architecture.pretrained and self.dataset.effective_in_channels != 3:
-            raise ValueError(
-                f"Pretrained {self.architecture.name} requires RGB (3 channels), "
-                f"but dataset will provide {self.dataset.effective_in_channels} channels. "
-                f"Set 'force_rgb: true' in dataset config or disable pretraining"
-            )
-
-        # 5. Optimizer bounds
-        if self.training.min_lr >= self.training.learning_rate:
-            msg = (
-                f"min_lr ({self.training.min_lr}) must be less than "
-                f"learning_rate ({self.training.learning_rate})"
-            )
-            raise ValueError(msg)
-
-        return self
-
-    def _validate_architecture_resolution(self) -> None:
-        """
-        Validates architecture-resolution compatibility.
-
-        Enforces that each model is used with its supported resolution(s):
-            - 28x28 only: mini_cnn
-            - 224x224 only: efficientnet_b0, vit_tiny, convnext_tiny
-            - Multi-resolution (28x28, 224x224): resnet_18
-
-        Raises:
-            ValueError: If architecture and resolution are incompatible
-        """
-        model_name = self.architecture.name.lower()
-        resolution = self.dataset.resolution
-
-        # Architecture -> supported resolutions mapping
-        resolution_28_only = {"mini_cnn"}
-        resolution_224_only = {"efficientnet_b0", "vit_tiny", "convnext_tiny"}
-        multi_resolution = {"resnet_18", "resnet_18_adapted"}
-
-        if model_name in resolution_28_only and resolution != 28:
-            raise ValueError(
-                f"'{self.architecture.name}' requires resolution=28, got {resolution}. "
-                f"Use a 224x224 architecture (efficientnet_b0, vit_tiny, convnext_tiny) "
-                f"or resnet_18 for high resolution."
-            )
-
-        if model_name in resolution_224_only and resolution != 224:
-            raise ValueError(
-                f"'{self.architecture.name}' requires resolution=224, got {resolution}. "
-                f"Use resnet_18 or mini_cnn for low resolution."
-            )
-
-        if model_name in multi_resolution and resolution not in (28, 224):
-            raise ValueError(
-                f"'{self.architecture.name}' supports resolutions 28 or 224, got {resolution}."
-            )
+        return _CrossDomainValidator.validate(self)
 
     @property
     def run_slug(self) -> str:

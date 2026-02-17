@@ -41,26 +41,38 @@ __all__ = [
     "InfraManagerProtocol",
     "ValidatedPath",
     "OptunaConfig",
+    "FloatRange",
+    "IntRange",
+    "SearchSpaceOverrides",
     "ExportConfig",
     "TrackingConfig",
+    "_CrossDomainValidator",
 ]
 
 # LAZY IMPORTS MAPPING
+_PKG = "orchard.core.config"
+_OPTUNA_MOD = f"{_PKG}.optuna_config"
+_INFRA_MOD = f"{_PKG}.infrastructure_config"
+
 _LAZY_IMPORTS: dict[str, str] = {
-    "Config": "orchard.core.config.manifest",
-    "HardwareConfig": "orchard.core.config.hardware_config",
-    "TelemetryConfig": "orchard.core.config.telemetry_config",
-    "TrainingConfig": "orchard.core.config.training_config",
-    "AugmentationConfig": "orchard.core.config.augmentation_config",
-    "DatasetConfig": "orchard.core.config.dataset_config",
-    "EvaluationConfig": "orchard.core.config.evaluation_config",
-    "ArchitectureConfig": "orchard.core.config.architecture_config",
-    "InfrastructureManager": "orchard.core.config.infrastructure_config",
-    "InfraManagerProtocol": "orchard.core.config.infrastructure_config",
-    "ValidatedPath": "orchard.core.config.types",
-    "OptunaConfig": "orchard.core.config.optuna_config",
-    "ExportConfig": "orchard.core.config.export_config",
-    "TrackingConfig": "orchard.core.config.tracking_config",
+    "Config": f"{_PKG}.manifest",
+    "HardwareConfig": f"{_PKG}.hardware_config",
+    "TelemetryConfig": f"{_PKG}.telemetry_config",
+    "TrainingConfig": f"{_PKG}.training_config",
+    "AugmentationConfig": f"{_PKG}.augmentation_config",
+    "DatasetConfig": f"{_PKG}.dataset_config",
+    "EvaluationConfig": f"{_PKG}.evaluation_config",
+    "ArchitectureConfig": f"{_PKG}.architecture_config",
+    "InfrastructureManager": _INFRA_MOD,
+    "InfraManagerProtocol": _INFRA_MOD,
+    "ValidatedPath": f"{_PKG}.types",
+    "OptunaConfig": _OPTUNA_MOD,
+    "FloatRange": _OPTUNA_MOD,
+    "IntRange": _OPTUNA_MOD,
+    "SearchSpaceOverrides": _OPTUNA_MOD,
+    "ExportConfig": f"{_PKG}.export_config",
+    "TrackingConfig": f"{_PKG}.tracking_config",
+    "_CrossDomainValidator": f"{_PKG}.manifest",
 }
 
 

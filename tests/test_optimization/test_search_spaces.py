@@ -9,15 +9,18 @@ from unittest.mock import MagicMock
 
 import pytest
 from optuna.trial import Trial
+from pydantic import ValidationError
 
+from orchard.core.config.optuna_config import FloatRange, IntRange, SearchSpaceOverrides
 from orchard.optimization import FullSearchSpace, SearchSpaceRegistry, get_search_space
 
 
-# TEST CASES
+# SEARCH SPACE REGISTRY: DEFAULT OVERRIDES
 @pytest.mark.unit
 def test_get_optimization_space():
     """Test retrieval of core optimization hyperparameters."""
-    space = SearchSpaceRegistry.get_optimization_space()
+    registry = SearchSpaceRegistry()
+    space = registry.get_optimization_space()
 
     assert "learning_rate" in space
     assert "weight_decay" in space
@@ -34,7 +37,8 @@ def test_get_optimization_space():
 @pytest.mark.unit
 def test_get_regularization_space():
     """Test retrieval of regularization strategies."""
-    space = SearchSpaceRegistry.get_regularization_space()
+    registry = SearchSpaceRegistry()
+    space = registry.get_regularization_space()
 
     assert "mixup_alpha" in space
     assert "label_smoothing" in space
@@ -50,7 +54,9 @@ def test_get_regularization_space():
 @pytest.mark.unit
 def test_get_batch_size_space():
     """Test retrieval of batch size space with resolution-aware choices."""
-    space_224 = SearchSpaceRegistry.get_batch_size_space(resolution=224)
+    registry = SearchSpaceRegistry()
+
+    space_224 = registry.get_batch_size_space(resolution=224)
     assert "batch_size" in space_224
     trial_mock = MagicMock(spec=Trial)
     trial_mock.suggest_categorical.side_effect = lambda _param, _choices: 12
@@ -58,7 +64,7 @@ def test_get_batch_size_space():
     assert batch_size_224 in [8, 12, 16]
     assert batch_size_224 == 12
 
-    space_28 = SearchSpaceRegistry.get_batch_size_space(resolution=28)
+    space_28 = registry.get_batch_size_space(resolution=28)
     assert "batch_size" in space_28
     trial_mock = MagicMock(spec=Trial)
     trial_mock.suggest_categorical.side_effect = lambda _param, _choices: 32
@@ -70,7 +76,8 @@ def test_get_batch_size_space():
 @pytest.mark.unit
 def test_get_full_space():
     """Test retrieval of combined full search space."""
-    space = SearchSpaceRegistry.get_full_space(resolution=28)
+    registry = SearchSpaceRegistry()
+    space = registry.get_full_space(resolution=28)
 
     assert "learning_rate" in space
     assert "mixup_alpha" in space
@@ -82,7 +89,8 @@ def test_get_full_space():
 @pytest.mark.unit
 def test_get_quick_space():
     """Test retrieval of the reduced quick search space."""
-    space = SearchSpaceRegistry.get_quick_space(resolution=28)
+    registry = SearchSpaceRegistry()
+    space = registry.get_quick_space(resolution=28)
 
     assert "learning_rate" in space
     assert "batch_size" in space
@@ -123,15 +131,18 @@ def test_get_model_space_28():
 @pytest.mark.unit
 def test_get_full_space_with_models():
     """Test retrieval of full space with model selection based on resolution."""
-    space_28 = SearchSpaceRegistry.get_full_space_with_models(resolution=28)
+    registry = SearchSpaceRegistry()
+
+    space_28 = registry.get_full_space_with_models(resolution=28)
     assert "model_name" in space_28
     assert "batch_size" in space_28
 
-    space_224 = SearchSpaceRegistry.get_full_space_with_models(resolution=224)
+    space_224 = registry.get_full_space_with_models(resolution=224)
     assert "model_name" in space_224
     assert "weight_variant" in space_224
 
 
+# PRESET FACTORY
 @pytest.mark.unit
 def test_get_search_space_invalid_preset():
     """Test behavior when an invalid preset is passed to get_search_space."""
@@ -151,27 +162,6 @@ def test_get_search_space_valid_presets():
     assert "learning_rate" in space_full
     assert "mixup_alpha" in space_full
     assert "batch_size" in space_full
-
-
-@pytest.mark.unit
-def test_full_search_space_sample_params():
-    """Test resolution-aware sampling in the FullSearchSpace class."""
-    full_space = FullSearchSpace(resolution=28)
-
-    trial_mock = MagicMock(spec=Trial)
-
-    trial_mock.suggest_float = MagicMock()
-    trial_mock.suggest_float.return_value = 0.001
-
-    trial_mock.suggest_categorical = MagicMock()
-    trial_mock.suggest_categorical.return_value = 32
-    sampled_params = full_space.sample_params(trial_mock)
-
-    assert sampled_params["batch_size"] in [16, 32, 48, 64]
-    assert sampled_params["batch_size"] == 32
-    assert "learning_rate" in sampled_params
-    assert "momentum" in sampled_params
-    assert "dropout" in sampled_params
 
 
 @pytest.mark.unit
@@ -196,6 +186,28 @@ def test_get_search_space_with_models_resolution_28():
     assert "batch_size" in space
 
 
+# FULL SEARCH SPACE CLASS
+@pytest.mark.unit
+def test_full_search_space_sample_params():
+    """Test resolution-aware sampling in the FullSearchSpace class."""
+    full_space = FullSearchSpace(resolution=28)
+
+    trial_mock = MagicMock(spec=Trial)
+
+    trial_mock.suggest_float = MagicMock()
+    trial_mock.suggest_float.return_value = 0.001
+
+    trial_mock.suggest_categorical = MagicMock()
+    trial_mock.suggest_categorical.return_value = 32
+    sampled_params = full_space.sample_params(trial_mock)
+
+    assert sampled_params["batch_size"] in [16, 32, 48, 64]
+    assert sampled_params["batch_size"] == 32
+    assert "learning_rate" in sampled_params
+    assert "momentum" in sampled_params
+    assert "dropout" in sampled_params
+
+
 @pytest.mark.unit
 def test_full_search_space_sample_params_high_resolution():
     """Test FullSearchSpace with 224x224 resolution uses smaller batch choices."""
@@ -212,3 +224,122 @@ def test_full_search_space_sample_params_high_resolution():
     assert sampled_params["batch_size"] == 12
 
     trial_mock.suggest_categorical.assert_called_with("batch_size", [8, 12, 16])
+
+
+# CUSTOM OVERRIDES
+@pytest.mark.unit
+def test_custom_overrides_applied():
+    """Test that custom SearchSpaceOverrides are used by the registry."""
+    custom_ov = SearchSpaceOverrides(
+        learning_rate=FloatRange(low=1e-3, high=1e-1, log=True),
+        batch_size_low_res=[64, 128, 256],
+    )
+    registry = SearchSpaceRegistry(custom_ov)
+
+    trial_mock = MagicMock(spec=Trial)
+    trial_mock.suggest_float = MagicMock(return_value=0.05)
+
+    space = registry.get_optimization_space()
+    space["learning_rate"](trial_mock)
+
+    trial_mock.suggest_float.assert_any_call("learning_rate", 1e-3, 1e-1, log=True)
+
+
+@pytest.mark.unit
+def test_custom_batch_size_overrides():
+    """Test custom batch size choices via overrides."""
+    custom_ov = SearchSpaceOverrides(
+        batch_size_low_res=[32, 64, 128],
+        batch_size_high_res=[4, 8],
+    )
+    registry = SearchSpaceRegistry(custom_ov)
+
+    trial_mock = MagicMock(spec=Trial)
+    trial_mock.suggest_categorical = MagicMock(return_value=64)
+
+    space = registry.get_batch_size_space(resolution=28)
+    space["batch_size"](trial_mock)
+
+    trial_mock.suggest_categorical.assert_called_with("batch_size", [32, 64, 128])
+
+
+@pytest.mark.unit
+def test_get_search_space_with_overrides():
+    """Test get_search_space factory passes overrides to registry."""
+    custom_ov = SearchSpaceOverrides(
+        batch_size_high_res=[4, 8, 12],
+    )
+    space = get_search_space(preset="full", resolution=224, overrides=custom_ov)
+
+    trial_mock = MagicMock(spec=Trial)
+    trial_mock.suggest_float = MagicMock(return_value=0.001)
+    trial_mock.suggest_int = MagicMock(return_value=5)
+    trial_mock.suggest_categorical = MagicMock(return_value=8)
+
+    space["batch_size"](trial_mock)
+
+    trial_mock.suggest_categorical.assert_called_with("batch_size", [4, 8, 12])
+
+
+@pytest.mark.unit
+def test_full_search_space_with_overrides():
+    """Test FullSearchSpace accepts and uses overrides."""
+    custom_ov = SearchSpaceOverrides(
+        dropout=FloatRange(low=0.2, high=0.8),
+    )
+    full_space = FullSearchSpace(resolution=28, overrides=custom_ov)
+
+    trial_mock = MagicMock(spec=Trial)
+    trial_mock.suggest_float = MagicMock(return_value=0.5)
+    trial_mock.suggest_int = MagicMock(return_value=5)
+    trial_mock.suggest_categorical = MagicMock(return_value=32)
+
+    full_space.sample_params(trial_mock)
+
+    trial_mock.suggest_float.assert_any_call("dropout", 0.2, 0.8)
+
+
+# SEARCH SPACE OVERRIDES VALIDATION
+@pytest.mark.unit
+def test_float_range_rejects_invalid_bounds():
+    """Test FloatRange raises ValueError when low >= high."""
+    with pytest.raises(ValidationError, match="strictly less than"):
+        FloatRange(low=0.5, high=0.5)
+
+    with pytest.raises(ValidationError, match="strictly less than"):
+        FloatRange(low=1.0, high=0.1)
+
+
+@pytest.mark.unit
+def test_int_range_rejects_invalid_bounds():
+    """Test IntRange raises ValueError when low >= high."""
+    with pytest.raises(ValidationError, match="strictly less than"):
+        IntRange(low=10, high=10)
+
+    with pytest.raises(ValidationError, match="strictly less than"):
+        IntRange(low=20, high=5)
+
+
+@pytest.mark.unit
+def test_search_space_overrides_defaults():
+    """Test SearchSpaceOverrides has sensible defaults."""
+    ov = SearchSpaceOverrides()
+
+    assert ov.learning_rate.low == pytest.approx(1e-5)
+    assert ov.learning_rate.high == pytest.approx(1e-2)
+    assert ov.learning_rate.log is True
+    assert ov.batch_size_low_res == [16, 32, 48, 64]
+    assert ov.batch_size_high_res == [8, 12, 16]
+    assert ov.dropout.low == pytest.approx(0.1)
+    assert ov.dropout.high == pytest.approx(0.5)
+
+
+@pytest.mark.unit
+def test_search_space_overrides_forbids_extra():
+    """Test SearchSpaceOverrides rejects unknown fields."""
+    with pytest.raises(ValidationError):
+        SearchSpaceOverrides(unknown_param=FloatRange(low=0.0, high=1.0))
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
