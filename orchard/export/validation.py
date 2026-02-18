@@ -13,7 +13,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from orchard.core import LOGGER_NAME
+from ..core import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

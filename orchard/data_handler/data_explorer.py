@@ -15,8 +15,7 @@ import matplotlib.pyplot as plt
 import torch
 from torchvision.utils import make_grid
 
-from orchard.core import LOGGER_NAME, Config, RunPaths
-
+from ..core import LOGGER_NAME, Config, RunPaths
 from .loader import DataLoader
 
 logger = logging.getLogger(LOGGER_NAME)

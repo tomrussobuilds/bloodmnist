@@ -17,8 +17,7 @@ from typing import Any, Callable
 
 import optuna
 
-from orchard.core import LOGGER_NAME
-
+from ...core import LOGGER_NAME
 from .utils import has_completed_trials
 
 logger = logging.getLogger(LOGGER_NAME)

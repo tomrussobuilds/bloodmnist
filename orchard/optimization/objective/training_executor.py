@@ -19,9 +19,8 @@ from typing import Dict
 import optuna
 import torch
 
-from orchard.core import LOGGER_NAME, Config, LogStyle
-from orchard.trainer import train_one_epoch, validate_epoch
-
+from ...core import LOGGER_NAME, Config, LogStyle
+from ...trainer import train_one_epoch, validate_epoch
 from .metric_extractor import MetricExtractor
 
 logger = logging.getLogger(LOGGER_NAME)

@@ -535,5 +535,80 @@ def test_terminate_duplicates_timeout_kill_no_such_process():
     mock_proc.kill.assert_called_once()
 
 
+# RANK-AWARE LOCKING
+@pytest.mark.unit
+@patch("platform.system", return_value="Linux")
+@patch("orchard.core.environment.guards.HAS_FCNTL", True)
+def test_ensure_single_instance_skips_on_non_main_rank(mock_platform, tmp_path, monkeypatch):
+    """Test ensure_single_instance skips lock acquisition for non-main rank."""
+    monkeypatch.setenv("RANK", "1")
+    lock_file = tmp_path / "test.lock"
+    logger = logging.getLogger("test")
+
+    with patch("fcntl.flock") as mock_flock:
+        ensure_single_instance(lock_file, logger)
+
+        mock_flock.assert_not_called()
+
+
+@pytest.mark.unit
+@patch("platform.system", return_value="Linux")
+@patch("orchard.core.environment.guards.HAS_FCNTL", True)
+def test_ensure_single_instance_acquires_on_rank_zero(mock_platform, tmp_path, monkeypatch):
+    """Test ensure_single_instance acquires lock for rank 0."""
+    monkeypatch.setenv("RANK", "0")
+    lock_file = tmp_path / "test.lock"
+    logger = logging.getLogger("test")
+
+    with patch("fcntl.flock") as mock_flock:
+        ensure_single_instance(lock_file, logger)
+
+        mock_flock.assert_called_once()
+
+
+@pytest.mark.unit
+@patch("platform.system", return_value="Linux")
+@patch("orchard.core.environment.guards.HAS_FCNTL", True)
+def test_ensure_single_instance_acquires_when_no_rank_env(mock_platform, tmp_path, monkeypatch):
+    """Test ensure_single_instance acquires lock when RANK is not set (single-process)."""
+    monkeypatch.delenv("RANK", raising=False)
+    monkeypatch.delenv("LOCAL_RANK", raising=False)
+    lock_file = tmp_path / "test.lock"
+    logger = logging.getLogger("test")
+
+    with patch("fcntl.flock") as mock_flock:
+        ensure_single_instance(lock_file, logger)
+
+        mock_flock.assert_called_once()
+
+
+# RANK-AWARE DUPLICATE PROCESS CLEANUP
+@pytest.mark.unit
+def test_terminate_duplicates_skips_in_distributed_mode(monkeypatch):
+    """Test terminate_duplicates returns 0 in distributed mode without scanning."""
+    monkeypatch.setenv("RANK", "0")
+    cleaner = DuplicateProcessCleaner()
+    logger = logging.getLogger("test")
+
+    with patch.object(cleaner, "detect_duplicates") as mock_detect:
+        count = cleaner.terminate_duplicates(logger=logger)
+
+    assert count == 0
+    mock_detect.assert_not_called()
+
+
+@pytest.mark.unit
+def test_terminate_duplicates_runs_outside_distributed(monkeypatch):
+    """Test terminate_duplicates runs normally when not in distributed mode."""
+    monkeypatch.delenv("RANK", raising=False)
+    monkeypatch.delenv("LOCAL_RANK", raising=False)
+    cleaner = DuplicateProcessCleaner()
+
+    with patch.object(cleaner, "detect_duplicates", return_value=[]):
+        count = cleaner.terminate_duplicates()
+
+    assert count == 0
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

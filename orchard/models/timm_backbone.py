@@ -18,7 +18,7 @@ import timm
 import torch
 import torch.nn as nn
 
-from orchard.core import Config
+from ..core import Config
 
 
 def build_timm_model(

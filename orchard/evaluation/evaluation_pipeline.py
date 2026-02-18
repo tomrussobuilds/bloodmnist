@@ -15,10 +15,10 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from orchard.core import LOGGER_NAME, Config, RunPaths
+from ..core import LOGGER_NAME, Config, RunPaths
 
 if TYPE_CHECKING:  # pragma: no cover
-    from orchard.tracking import TrackerProtocol
+    from ..tracking import TrackerProtocol
 
 from .evaluator import evaluate_model
 from .reporting import create_structured_report

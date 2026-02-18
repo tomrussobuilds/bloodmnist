@@ -25,13 +25,13 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol
 import optuna
 import torch
 
-from orchard.core import LOGGER_NAME, Config, log_trial_start
+from ...core import LOGGER_NAME, Config, log_trial_start
 
 if TYPE_CHECKING:  # pragma: no cover
-    from orchard.tracking import TrackerProtocol
-from orchard.data_handler import DatasetData, get_dataloaders, load_dataset
-from orchard.models import get_model
-from orchard.trainer import get_criterion, get_optimizer, get_scheduler
+    from ...tracking import TrackerProtocol
+from ...data_handler import DatasetData, get_dataloaders, load_dataset
+from ...models import get_model
+from ...trainer import get_criterion, get_optimizer, get_scheduler
 
 # Relative Imports
 from .config_builder import TrialConfigBuilder

@@ -21,8 +21,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils.dataframe import dataframe_to_rows
 
-from orchard.core import LOGGER_NAME, Config, RunPaths, save_config_as_yaml
-
+from ...core import LOGGER_NAME, Config, RunPaths, save_config_as_yaml
 from .config import map_param_to_config_path
 from .utils import get_completed_trials, has_completed_trials
 

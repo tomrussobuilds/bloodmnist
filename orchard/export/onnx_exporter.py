@@ -15,8 +15,8 @@ from typing import Tuple
 import torch
 import torch.nn as nn
 
-from orchard.core import LOGGER_NAME
-from orchard.core.logger import LogStyle
+from ..core import LOGGER_NAME
+from ..core.logger import LogStyle
 
 logger = logging.getLogger(LOGGER_NAME)
 

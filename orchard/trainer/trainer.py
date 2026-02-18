@@ -30,10 +30,10 @@ import torch.nn as nn
 from torch.optim.lr_scheduler import LRScheduler
 from torch.utils.data import DataLoader
 
-from orchard.core import LOGGER_NAME, Config, load_model_weights
+from ..core import LOGGER_NAME, Config, load_model_weights
 
 if TYPE_CHECKING:  # pragma: no cover
-    from orchard.tracking import TrackerProtocol
+    from ..tracking import TrackerProtocol
 
 from .engine import mixup_data, train_one_epoch, validate_epoch
 

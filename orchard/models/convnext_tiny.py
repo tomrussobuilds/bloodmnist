@@ -16,7 +16,7 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
-from orchard.core import Config
+from ..core import Config
 
 
 # MODEL BUILDER

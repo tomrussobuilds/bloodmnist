@@ -6,6 +6,9 @@ optimizations, and reproducibility protocols. It provides a unified interface
 to ensure consistent execution across Local, HPC, and Docker environments.
 """
 
+# Distributed Environment Detection (from .distributed)
+from .distributed import get_local_rank, get_rank, get_world_size, is_distributed, is_main_process
+
 # Process & Resource Guards (from .guards)
 from .guards import DuplicateProcessCleaner, ensure_single_instance, release_single_instance
 
@@ -45,6 +48,12 @@ __all__ = [
     "ensure_single_instance",
     "release_single_instance",
     "DuplicateProcessCleaner",
+    # Distributed
+    "get_rank",
+    "get_local_rank",
+    "get_world_size",
+    "is_distributed",
+    "is_main_process",
     # Timing
     "TimeTracker",
     "TimeTrackerProtocol",

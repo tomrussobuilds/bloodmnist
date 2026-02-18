@@ -19,7 +19,7 @@ Architecture:
 import torch
 import torch.nn as nn
 
-from orchard.core import Config
+from ..core import Config
 
 
 # MODEL DEFINITION

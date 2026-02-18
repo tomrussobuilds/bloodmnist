@@ -10,7 +10,7 @@ import logging
 import numpy as np
 from sklearn.metrics import f1_score, roc_auc_score
 
-from orchard.core import LOGGER_NAME
+from ..core import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

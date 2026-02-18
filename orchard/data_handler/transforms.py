@@ -11,7 +11,7 @@ from typing import Tuple
 import torch
 from torchvision.transforms import v2
 
-from orchard.core import Config, DatasetMetadata
+from ..core import Config, DatasetMetadata
 
 
 # TRANSFORMATION UTILITIES

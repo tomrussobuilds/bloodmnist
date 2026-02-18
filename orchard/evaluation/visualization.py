@@ -16,7 +16,7 @@ import torch.nn as nn
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 from torch.utils.data import DataLoader
 
-from orchard.core import LOGGER_NAME, Config
+from ..core import LOGGER_NAME, Config
 
 # Global logger instance
 logger = logging.getLogger(LOGGER_NAME)

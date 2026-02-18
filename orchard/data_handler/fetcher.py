@@ -15,8 +15,8 @@ from pathlib import Path
 
 import numpy as np
 
-from orchard.core import DatasetMetadata, validate_npz_keys
-from orchard.core.paths import LOGGER_NAME
+from ..core import DatasetMetadata, validate_npz_keys
+from ..core.paths import LOGGER_NAME
 
 
 # DATA CONTAINERS

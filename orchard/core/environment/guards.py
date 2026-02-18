@@ -32,6 +32,8 @@ except ImportError:  # pragma: no cover
 
 import psutil
 
+from .distributed import is_distributed, is_main_process
+
 # Global State
 # Persistent file descriptor to prevent garbage collection from releasing locks
 _lock_fd: Optional[IO] = None
@@ -47,6 +49,10 @@ def ensure_single_instance(lock_file: Path, logger: logging.Logger) -> None:
     is active, and the process will abort to prevent filesystem or GPU
     race conditions.
 
+    In distributed mode (torchrun / DDP), only the main process (rank 0)
+    acquires the lock.  Non-main ranks skip locking entirely to avoid
+    deadlocking against the rank-0 held lock.
+
     Args:
         lock_file (Path): Filesystem path where the lock sentinel will reside.
         logger (logging.Logger): Active logger for reporting acquisition status.
@@ -55,6 +61,11 @@ def ensure_single_instance(lock_file: Path, logger: logging.Logger) -> None:
         SystemExit: If an existing lock is detected on the system.
     """
     global _lock_fd
+
+    # In distributed mode, only rank 0 manages the lock
+    if not is_main_process():
+        logger.debug("Rank %d: skipping lock acquisition (non-main process).", os.getpid())
+        return
 
     # Locking is currently only supported on Unix-like systems via fcntl
     if platform.system() in ("Linux", "Darwin") and HAS_FCNTL:
@@ -161,12 +172,20 @@ class DuplicateProcessCleaner:
         """
         Terminates detected duplicate processes.
 
+        In distributed mode (torchrun / DDP), termination is skipped entirely
+        because sibling rank processes are intentional, not duplicates.
+
         Args:
             logger (Optional[logging.Logger]): Logger for reporting terminated PIDs.
 
         Returns:
-            Number of terminated duplicate processes.
+            Number of terminated duplicate processes (0 in distributed mode).
         """
+        if is_distributed():
+            if logger:
+                logger.debug("Distributed mode: skipping duplicate process cleanup.")
+            return 0
+
         duplicates = self.detect_duplicates()
         count = 0
 

@@ -28,7 +28,7 @@ from typing import TYPE_CHECKING
 
 import optuna
 
-from orchard.core import (
+from ...core import (
     LOGGER_NAME,
     Config,
     RunPaths,
@@ -36,7 +36,7 @@ from orchard.core import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover
-    from orchard.tracking import TrackerProtocol
+    from ....tracking import TrackerProtocol
 
 from ..objective.objective import OptunaObjective
 from ..search_spaces import get_search_space

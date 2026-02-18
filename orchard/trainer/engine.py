@@ -20,7 +20,7 @@ import torch.nn as nn
 from sklearn.metrics import roc_auc_score
 from tqdm.auto import tqdm
 
-from orchard.core import LOGGER_NAME
+from ..core import LOGGER_NAME
 
 # Module-level logger (avoid dynamic imports in exception handlers)
 logger = logging.getLogger(LOGGER_NAME)

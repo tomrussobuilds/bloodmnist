@@ -11,8 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 
-from orchard.core import Config
-
+from ..core import Config
 from .losses import FocalLoss
 
 

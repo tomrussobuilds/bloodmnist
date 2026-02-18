@@ -16,12 +16,12 @@ from typing import TYPE_CHECKING, Callable, Dict, Optional
 import optuna
 
 if TYPE_CHECKING:  # pragma: no cover
-    from orchard.core.config.optuna_config import SearchSpaceOverrides
+    from ..core.config.optuna_config import SearchSpaceOverrides
 
 
 def _default_overrides() -> SearchSpaceOverrides:
     """Lazy import to avoid circular dependency at module level."""
-    from orchard.core.config.optuna_config import SearchSpaceOverrides
+    from ..core.config.optuna_config import SearchSpaceOverrides
 
     return SearchSpaceOverrides()
 

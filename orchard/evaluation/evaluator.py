@@ -22,8 +22,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from orchard.core import LOGGER_NAME, Config
-
+from ..core import LOGGER_NAME, Config
 from .metrics import compute_classification_metrics
 from .tta import adaptive_tta_predict
 

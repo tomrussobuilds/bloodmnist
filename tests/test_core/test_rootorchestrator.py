@@ -824,5 +824,217 @@ def test_initialize_core_services_skips_when_already_initialized():
     mock_seed_setter.assert_not_called()
 
 
+# RANK-AWARENESS: INITIALIZATION
+@pytest.mark.unit
+def test_orchestrator_rank_defaults_to_zero(monkeypatch):
+    """Test rank defaults to 0 when RANK env var is not set."""
+    monkeypatch.delenv("RANK", raising=False)
+    mock_cfg = MagicMock()
+    mock_cfg.hardware.use_deterministic_algorithms = False
+    mock_cfg.hardware.effective_num_workers = 4
+
+    orch = RootOrchestrator(cfg=mock_cfg)
+
+    assert orch.rank == 0
+    assert orch.is_main_process is True
+
+
+@pytest.mark.unit
+def test_orchestrator_rank_from_env(monkeypatch):
+    """Test rank is read from RANK env var."""
+    monkeypatch.setenv("RANK", "3")
+    mock_cfg = MagicMock()
+    mock_cfg.hardware.use_deterministic_algorithms = False
+    mock_cfg.hardware.effective_num_workers = 4
+
+    orch = RootOrchestrator(cfg=mock_cfg)
+
+    assert orch.rank == 3
+    assert orch.is_main_process is False
+
+
+@pytest.mark.unit
+def test_orchestrator_rank_injectable():
+    """Test rank can be injected directly, overriding env var."""
+    mock_cfg = MagicMock()
+    mock_cfg.hardware.use_deterministic_algorithms = False
+    mock_cfg.hardware.effective_num_workers = 4
+
+    orch = RootOrchestrator(cfg=mock_cfg, rank=2)
+
+    assert orch.rank == 2
+    assert orch.is_main_process is False
+
+
+# RANK-AWARENESS: PHASE GATING
+@pytest.mark.unit
+def test_rank_zero_executes_all_phases(tmp_path):
+    """Test rank 0 executes all 7 phases."""
+    mock_cfg = MagicMock()
+    mock_cfg.training.seed = 42
+    mock_cfg.hardware.use_deterministic_algorithms = False
+    mock_cfg.hardware.effective_num_workers = 2
+    mock_cfg.hardware.device = "cpu"
+    mock_cfg.dataset.dataset_name = "ds"
+    mock_cfg.architecture.name = "arch"
+    mock_cfg.telemetry.output_dir = str(tmp_path)
+    mock_cfg.telemetry.log_level = "INFO"
+    mock_cfg.dump_serialized = MagicMock(return_value={"k": "v"})
+
+    mock_paths = MagicMock()
+    mock_paths.logs = str(tmp_path / "logs")
+    mock_paths.get_config_path = MagicMock(return_value=str(tmp_path / "config.yaml"))
+
+    mock_seed_setter = MagicMock()
+    mock_thread_applier = MagicMock(return_value=2)
+    mock_infra = MagicMock()
+    mock_reporter = MagicMock()
+    mock_log_initializer = MagicMock(return_value=MagicMock())
+    mock_config_saver = MagicMock()
+
+    with pytest.MonkeyPatch.context() as m:
+        m.setattr("orchard.core.orchestrator.RunPaths.create", lambda **kwargs: mock_paths)
+
+        orch = RootOrchestrator(
+            cfg=mock_cfg,
+            infra_manager=mock_infra,
+            reporter=mock_reporter,
+            log_initializer=mock_log_initializer,
+            seed_setter=mock_seed_setter,
+            thread_applier=mock_thread_applier,
+            system_configurator=MagicMock(),
+            static_dir_setup=MagicMock(),
+            config_saver=mock_config_saver,
+            device_resolver=MagicMock(return_value=torch.device("cpu")),
+            rank=0,
+        )
+
+        paths = orch.initialize_core_services()
+
+    # All phases executed
+    mock_seed_setter.assert_called_once()
+    mock_thread_applier.assert_called_once()
+    mock_log_initializer.assert_called_once()
+    mock_config_saver.assert_called_once()
+    mock_infra.prepare_environment.assert_called_once()
+    mock_reporter.log_initial_status.assert_called_once()
+    assert paths is mock_paths
+
+
+@pytest.mark.unit
+def test_non_main_rank_skips_phases_3_through_7():
+    """Test non-main rank only executes phases 1-2, skipping 3-7."""
+    mock_cfg = MagicMock()
+    mock_cfg.training.seed = 42
+    mock_cfg.hardware.use_deterministic_algorithms = False
+    mock_cfg.hardware.effective_num_workers = 2
+
+    mock_seed_setter = MagicMock()
+    mock_thread_applier = MagicMock(return_value=2)
+    mock_infra = MagicMock()
+    mock_reporter = MagicMock()
+    mock_log_initializer = MagicMock()
+    mock_config_saver = MagicMock()
+    mock_static_dir_setup = MagicMock()
+
+    orch = RootOrchestrator(
+        cfg=mock_cfg,
+        infra_manager=mock_infra,
+        reporter=mock_reporter,
+        log_initializer=mock_log_initializer,
+        seed_setter=mock_seed_setter,
+        thread_applier=mock_thread_applier,
+        system_configurator=MagicMock(),
+        static_dir_setup=mock_static_dir_setup,
+        config_saver=mock_config_saver,
+        device_resolver=MagicMock(return_value=torch.device("cpu")),
+        rank=1,
+    )
+
+    result = orch.initialize_core_services()
+
+    # Phases 1-2 executed
+    mock_seed_setter.assert_called_once_with(42, strict=False)
+    mock_thread_applier.assert_called_once_with(2)
+
+    # Phases 3-7 skipped
+    mock_static_dir_setup.assert_not_called()
+    mock_log_initializer.assert_not_called()
+    mock_config_saver.assert_not_called()
+    mock_infra.prepare_environment.assert_not_called()
+    mock_reporter.log_initial_status.assert_not_called()
+
+    # paths and run_logger remain None
+    assert result is None
+    assert orch.paths is None
+    assert orch.run_logger is None
+
+
+@pytest.mark.unit
+def test_non_main_rank_cleanup_is_noop():
+    """Test cleanup is a no-op for non-main ranks."""
+    mock_cfg = MagicMock()
+    mock_infra = MagicMock()
+    mock_logger = MagicMock()
+    mock_handler = MagicMock()
+    mock_logger.handlers = [mock_handler]
+
+    orch = RootOrchestrator(cfg=mock_cfg, infra_manager=mock_infra, rank=1)
+    orch.run_logger = mock_logger
+
+    orch.cleanup()
+
+    mock_infra.release_resources.assert_not_called()
+    mock_handler.close.assert_not_called()
+
+
+@pytest.mark.unit
+def test_rank_zero_cleanup_releases_resources():
+    """Test cleanup releases resources for rank 0."""
+    mock_cfg = MagicMock()
+    mock_infra = MagicMock()
+    mock_handler = MagicMock()
+    mock_logger = MagicMock()
+    mock_logger.handlers = [mock_handler]
+
+    orch = RootOrchestrator(cfg=mock_cfg, infra_manager=mock_infra, rank=0)
+    orch.run_logger = mock_logger
+
+    orch.cleanup()
+
+    mock_infra.release_resources.assert_called_once()
+    mock_handler.close.assert_called_once()
+
+
+@pytest.mark.unit
+def test_non_main_rank_context_manager_lifecycle():
+    """Test full context manager lifecycle for non-main rank."""
+    mock_cfg = MagicMock()
+    mock_cfg.training.seed = 42
+    mock_cfg.hardware.use_deterministic_algorithms = False
+    mock_cfg.hardware.effective_num_workers = 2
+
+    mock_infra = MagicMock()
+    mock_seed_setter = MagicMock()
+    mock_thread_applier = MagicMock(return_value=2)
+
+    orch = RootOrchestrator(
+        cfg=mock_cfg,
+        infra_manager=mock_infra,
+        seed_setter=mock_seed_setter,
+        thread_applier=mock_thread_applier,
+        system_configurator=MagicMock(),
+        rank=1,
+    )
+
+    with orch as orchestrator:
+        assert orchestrator.rank == 1
+        assert orchestrator.paths is None
+        assert orchestrator.run_logger is None
+
+    # No resource release on non-main rank
+    mock_infra.release_resources.assert_not_called()
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

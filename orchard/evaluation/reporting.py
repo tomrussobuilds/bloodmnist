@@ -15,7 +15,7 @@ from typing import Sequence
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 
-from orchard.core import LOGGER_NAME, Config
+from ..core import LOGGER_NAME, Config
 
 logger = logging.getLogger(LOGGER_NAME)
 

@@ -7,22 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Build
-
-- bump minimum Pillow and psutil versions
-
-### Documentation
-
-- comprehensive documentation overhaul and codebase polish
-- convert markdown headings to HTML and update test counts
-
-### Fixed
-
-- harden reproducibility, training safety, and type correctness
-- normalize docstring style and strengthen pre-commit hooks
-- add build and ci groups to git-cliff commit parsers
-- improve logging correctness, public API, and IO configurability
-
 ## [0.1.0] - 2026-02-15
 
 First public release of Orchard ML — a type-safe, reproducible deep learning

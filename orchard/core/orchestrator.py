@@ -38,6 +38,7 @@ from .config.infrastructure_config import InfraManagerProtocol, InfrastructureMa
 from .environment import (
     apply_cpu_threads,
     configure_system_libraries,
+    get_rank,
     set_seed,
     to_device_obj,
 )
@@ -112,11 +113,13 @@ class RootOrchestrator:
 
     Attributes:
         cfg (Config): Validated global configuration (Single Source of Truth)
+        rank (int): Global rank of this process (0 in single-process mode)
+        is_main_process (bool): True for rank 0, False for non-main ranks
         infra (InfraManagerProtocol): Infrastructure resource manager
         reporter (ReporterProtocol): Environment telemetry engine
         time_tracker (TimeTrackerProtocol): Pipeline duration tracker
-        paths (RunPaths): Session-specific directory structure
-        run_logger (logging.Logger): Active logger instance for session
+        paths (RunPaths | None): Session-specific directory structure (None on non-main ranks)
+        run_logger (logging.Logger | None): Active logger instance (None on non-main ranks)
         repro_mode (bool): Strict determinism flag
         num_workers (int): DataLoader worker processes
 
@@ -149,6 +152,7 @@ class RootOrchestrator:
         static_dir_setup: Callable | None = None,
         config_saver: Callable | None = None,
         device_resolver: Callable | None = None,
+        rank: int | None = None,
     ) -> None:
         """
         Initializes orchestrator with dependency injection.
@@ -165,10 +169,15 @@ class RootOrchestrator:
             static_dir_setup: Static directory creation (default: setup_static_directories)
             config_saver: Config persistence (default: save_config_as_yaml)
             device_resolver: Device resolution (default: to_device_obj)
+            rank: Global rank of this process (default: auto-detected from RANK env var).
+                Rank 0 executes all phases; rank N skips filesystem, logging,
+                config persistence, infrastructure locking, and reporting.
         """
         self.cfg = cfg
 
         # Dependency injection with defaults (using _resolve for uniform None-handling)
+        self.rank = _resolve(rank, get_rank)
+        self.is_main_process = self.rank == 0
         self.infra = _resolve(infra_manager, InfrastructureManager)
         self.reporter = _resolve(reporter, Reporter)
         self.time_tracker = _resolve(time_tracker, TimeTracker)
@@ -364,12 +373,17 @@ class RootOrchestrator:
 
     # --- Public Interface ---
 
-    def initialize_core_services(self) -> RunPaths:
+    def initialize_core_services(self) -> RunPaths | None:
         """
         Executes linear sequence of environment initialization phases.
 
         Synchronizes global state through 7 phases, progressing from
         deterministic seeding to full environment reporting.
+
+        In distributed mode (torchrun / DDP), only the main process (rank 0)
+        executes phases 3-7 (filesystem, logging, config persistence, infra
+        locking, reporting).  All ranks execute phases 1-2 (seeding, threads)
+        to ensure identical RNG state and thread affinity.
 
         Idempotent: guarded by ``_initialized`` flag. If already initialized,
         returns existing RunPaths without re-executing any phase. This prevents
@@ -377,23 +391,29 @@ class RootOrchestrator:
         resource leaks (Phase 6 acquires filesystem locks).
 
         Returns:
-            Verified and provisioned directory structure
+            Provisioned directory structure for rank 0, None for non-main ranks.
         """
         if self._initialized:
-            return self.paths  # type: ignore[return-value]
+            return self.paths
 
+        # All ranks: deterministic seeding and thread configuration
         self._phase_1_determinism()
         applied_threads = self._phase_2_runtime_configuration()
-        self._phase_3_filesystem_provisioning()
-        self._phase_4_logging_initialization()
 
-        # Type guards: paths and logger are guaranteed after phases 3-4
-        assert self.paths is not None, "Paths not initialized after phase 3"  # nosec B101
-        assert self.run_logger is not None, "Logger not initialized after phase 4"  # nosec B101
+        # Rank 0 only: filesystem, logging, persistence, locking, reporting
+        if self.is_main_process:
+            self._phase_3_filesystem_provisioning()
+            self._phase_4_logging_initialization()
 
-        self._phase_5_config_persistence()
-        self._phase_6_infrastructure_guarding()
-        self._phase_7_environment_reporting(applied_threads)
+            # Type guards: paths and logger are guaranteed after phases 3-4
+            assert self.paths is not None, "Paths not initialized after phase 3"  # nosec B101
+            assert self.run_logger is not None, "Logger not initialized after phase 4"  # nosec B101
+
+            self._phase_5_config_persistence()
+            self._phase_6_infrastructure_guarding()
+            self._phase_7_environment_reporting(applied_threads)
+        else:
+            logger.debug("Rank %d: skipping phases 3-7 (non-main process).", self.rank)
 
         self._initialized = True
         return self.paths
@@ -404,7 +424,12 @@ class RootOrchestrator:
 
         Guarantees clean state for subsequent runs by unlinking
         InfrastructureManager guards and closing logging handlers.
+        Non-main ranks skip resource release (they never acquired locks
+        or opened file-based log handlers).
         """
+        if not self.is_main_process:
+            return
+
         cleanup_logger = self.run_logger or logging.getLogger(LOGGER_NAME)
         try:
             if self.infra:

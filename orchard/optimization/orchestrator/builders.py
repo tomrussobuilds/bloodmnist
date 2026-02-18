@@ -18,8 +18,7 @@ from typing import List, cast
 import optuna
 from optuna.pruners import HyperbandPruner, MedianPruner, NopPruner, PercentilePruner
 
-from orchard.core import LOGGER_NAME, Config
-
+from ...core import LOGGER_NAME, Config
 from ..early_stopping import get_early_stopping_callback
 from .config import PRUNER_REGISTRY, SAMPLER_REGISTRY
 

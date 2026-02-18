@@ -24,6 +24,7 @@ The `RootOrchestrator` (`orchard/core/orchestrator.py`) is the central coordinat
 - **Protocol-Based Abstractions**: `InfraManagerProtocol`, `ReporterProtocol`, `TimeTrackerProtocol` provide type-safe interfaces for mocking
 - **Idempotent Initialization**: Guarded by `_initialized` flag -- safe to call multiple times without orphaned directories or lock leaks
 - **Device Caching**: `get_device()` resolves and caches the optimal compute device (CUDA/CPU/MPS) once, avoiding repeated detection overhead
+- **Rank-Aware Phase Gating**: Injectable `rank` parameter enables DDP/torchrun awareness -- rank 0 executes all 7 phases, non-main ranks execute only phases 1-2 (seeding + threads), skipping filesystem provisioning, logging, and infrastructure locks
 
 ```python
 args = parse_args()
@@ -34,6 +35,12 @@ with RootOrchestrator(cfg) as orch:
     logger = orch.run_logger
     # Pipeline execution with guaranteed cleanup
 ```
+
+> **Distributed Training (Phase 0 -- Preparatory):** The orchestrator, guards, and infrastructure
+> manager are rank-aware via `orchard.core.environment.distributed`. Single-instance locks and
+> duplicate process cleanup are automatically skipped on non-main ranks and in distributed
+> environments. Full DDP support (barrier synchronization, path broadcasting, per-rank device
+> assignment) is planned for a future release and has not yet been validated in multi-GPU training.
 
 <h3>Configuration Engine (SSOT)</h3>
 

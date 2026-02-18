@@ -24,7 +24,7 @@ import timm
 import torch
 import torch.nn as nn
 
-from orchard.core import LOGGER_NAME, Config
+from ..core import LOGGER_NAME, Config
 
 # LOGGER CONFIGURATION
 logger = logging.getLogger(LOGGER_NAME)

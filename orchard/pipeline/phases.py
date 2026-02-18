@@ -20,7 +20,7 @@ import optuna
 import torch
 import torch.nn as nn
 
-from orchard.core import (
+from ..core import (
     LOGGER_NAME,
     Config,
     DatasetRegistryWrapper,
@@ -29,20 +29,20 @@ from orchard.core import (
 )
 
 if TYPE_CHECKING:  # pragma: no cover
-    from orchard.core import RootOrchestrator
-    from orchard.tracking import TrackerProtocol
+    from ..core import RootOrchestrator
+    from ..tracking import TrackerProtocol
 
-from orchard.data_handler import (
+from ..data_handler import (
     get_augmentations_description,
     get_dataloaders,
     load_dataset,
     show_samples_for_dataset,
 )
-from orchard.evaluation import run_final_evaluation
-from orchard.export import export_to_onnx
-from orchard.models import get_model
-from orchard.optimization import run_optimization
-from orchard.trainer import ModelTrainer, get_criterion, get_optimizer, get_scheduler
+from ..evaluation import run_final_evaluation
+from ..export import export_to_onnx
+from ..models import get_model
+from ..optimization import run_optimization
+from ..trainer import ModelTrainer, get_criterion, get_optimizer, get_scheduler
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -80,8 +80,8 @@ def run_optimization_phase(
     run_logger = orchestrator.run_logger
 
     # Type guards for MyPy
-    assert run_logger is not None, _ERR_LOGGER_NOT_INIT
-    assert paths is not None, _ERR_PATHS_NOT_INIT
+    assert run_logger is not None, _ERR_LOGGER_NOT_INIT  # nosec B101
+    assert paths is not None, _ERR_PATHS_NOT_INIT  # nosec B101
 
     run_logger.info("")
     run_logger.info(LogStyle.DOUBLE)
@@ -135,8 +135,8 @@ def run_training_phase(
     run_logger = orchestrator.run_logger
 
     # Type guards for MyPy
-    assert run_logger is not None, _ERR_LOGGER_NOT_INIT
-    assert paths is not None, _ERR_PATHS_NOT_INIT
+    assert run_logger is not None, _ERR_LOGGER_NOT_INIT  # nosec B101
+    assert paths is not None, _ERR_PATHS_NOT_INIT  # nosec B101
 
     # Dataset metadata
     wrapper = DatasetRegistryWrapper(resolution=cfg.dataset.resolution)
@@ -246,8 +246,8 @@ def run_export_phase(
     run_logger = orchestrator.run_logger
 
     # Type guards for MyPy
-    assert run_logger is not None, _ERR_LOGGER_NOT_INIT
-    assert paths is not None, _ERR_PATHS_NOT_INIT
+    assert run_logger is not None, _ERR_LOGGER_NOT_INIT  # nosec B101
+    assert paths is not None, _ERR_PATHS_NOT_INIT  # nosec B101
 
     run_logger.info("")
     run_logger.info(LogStyle.HEAVY)

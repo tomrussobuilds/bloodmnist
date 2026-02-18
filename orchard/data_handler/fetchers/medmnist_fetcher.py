@@ -12,8 +12,8 @@ from pathlib import Path
 
 import requests
 
-from orchard.core import DatasetMetadata, md5_checksum
-from orchard.core.paths import LOGGER_NAME
+from ...core import DatasetMetadata, md5_checksum
+from ...core.paths import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

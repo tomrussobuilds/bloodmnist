@@ -28,8 +28,7 @@ from typing import Iterator
 import torch
 import torch.nn as nn
 
-from orchard.core import LOGGER_NAME, Config
-
+from ..core import LOGGER_NAME, Config
 from .convnext_tiny import build_convnext_tiny
 from .efficientnet_b0 import build_efficientnet_b0
 from .mini_cnn import build_mini_cnn

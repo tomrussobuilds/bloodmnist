@@ -31,8 +31,7 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, WeightedRandomSampler
 
-from orchard.core import Config, DatasetRegistryWrapper, worker_init_fn
-
+from ..core import Config, DatasetRegistryWrapper, worker_init_fn
 from .dataset import LazyNPZDataset, VisionDataset
 from .fetcher import DatasetData
 from .transforms import get_pipeline_transforms

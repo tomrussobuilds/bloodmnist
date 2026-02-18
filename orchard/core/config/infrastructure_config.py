@@ -109,8 +109,11 @@ class InfrastructureManager(BaseModel):
         if cfg.hardware.allow_process_kill:
             cleaner = DuplicateProcessCleaner()
 
-            # Skip on shared compute (SLURM, PBS, LSF)
-            is_shared = any(env in os.environ for env in ("SLURM_JOB_ID", "PBS_JOBID", "LSB_JOBID"))
+            # Skip on shared compute (SLURM, PBS, LSF) or distributed launchers (torchrun)
+            is_shared = any(
+                env in os.environ
+                for env in ("SLURM_JOB_ID", "PBS_JOBID", "LSB_JOBID", "RANK", "LOCAL_RANK")
+            )
 
             if not is_shared:
                 num_zombies = cleaner.terminate_duplicates(logger=log)

@@ -11,7 +11,7 @@ from typing import Optional
 from optuna.study import Study
 from optuna.trial import FrozenTrial, TrialState
 
-from orchard.core import LOGGER_NAME, LogStyle
+from ..core import LOGGER_NAME, LogStyle
 
 logger = logging.getLogger(LOGGER_NAME)
 

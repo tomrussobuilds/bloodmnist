@@ -157,6 +157,9 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 
+[tool.bandit]
+exclude_dirs = ["tests", "docs", "build", "dist"]
+
 [tool.mypy]
 python_version = "3.10"
 warn_return_any = false

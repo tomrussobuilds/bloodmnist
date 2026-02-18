@@ -11,7 +11,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, Protocol
 
-from orchard.core import LOGGER_NAME
+from ..core import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 

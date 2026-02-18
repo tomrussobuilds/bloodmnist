@@ -14,7 +14,7 @@ import numpy as np
 import requests
 from PIL import Image
 
-from orchard.core.paths import LOGGER_NAME
+from ...core.paths import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
 
@@ -216,7 +216,7 @@ def ensure_galaxy10_npz(metadata) -> Path:
     Returns:
         Path to validated NPZ file
     """
-    from orchard.core import md5_checksum
+    from ...core import md5_checksum
 
     target_npz = metadata.path
 

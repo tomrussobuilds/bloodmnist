@@ -16,7 +16,7 @@ from typing import Callable, Dict, Set, Tuple
 from optuna.pruners import HyperbandPruner, MedianPruner, NopPruner, PercentilePruner
 from optuna.samplers import CmaEsSampler, GridSampler, RandomSampler, TPESampler
 
-from orchard.core import LOGGER_NAME
+from ...core import LOGGER_NAME
 
 # Global logger instance
 logger = logging.getLogger(LOGGER_NAME)

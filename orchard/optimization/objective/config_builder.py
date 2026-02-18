@@ -8,7 +8,7 @@ metadata preservation, and validation.
 
 from typing import Any, Dict
 
-from orchard.core import Config
+from ...core import Config
 
 
 # CONFIG BUILDER

@@ -17,7 +17,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 
-from orchard.core import Config
+from ..core import Config
 
 
 # TTA HELPERS
@@ -155,5 +155,5 @@ def adaptive_tta_predict(
                 ensemble_probs += probs
 
     # Calculate the mean probability across all augmentation passes
-    assert ensemble_probs is not None, "TTA transforms list cannot be empty"
+    assert ensemble_probs is not None, "TTA transforms list cannot be empty"  # nosec B101
     return ensemble_probs / len(transforms)
