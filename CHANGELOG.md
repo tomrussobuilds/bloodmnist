@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Build
+
+- bump minimum Pillow and psutil versions
+
 ### Documentation
 
 - comprehensive documentation overhaul and codebase polish
@@ -15,10 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - harden reproducibility, training safety, and type correctness
-
-### Build
-
-- bump minimum Pillow and psutil versions
+- normalize docstring style and strengthen pre-commit hooks
 
 ## [0.1.0] - 2026-02-15
 
