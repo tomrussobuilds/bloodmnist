@@ -115,7 +115,7 @@ def _is_valid_npz(path: Path, expected_md5: str) -> bool:
     return md5_checksum(path) == expected_md5
 
 
-def _stream_download(url: str, tmp_path: Path):
+def _stream_download(url: str, tmp_path: Path, chunk_size: int = 8192):
     """Executes the streaming GET request and writes to a temporary file."""
     headers = {
         "User-Agent": "Wget/1.0",
@@ -131,6 +131,6 @@ def _stream_download(url: str, tmp_path: Path):
             raise ValueError("Downloaded file is an HTML page, not the expected NPZ file.")
 
         with open(tmp_path, "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
+            for chunk in r.iter_content(chunk_size=chunk_size):
                 if chunk:
                     f.write(chunk)

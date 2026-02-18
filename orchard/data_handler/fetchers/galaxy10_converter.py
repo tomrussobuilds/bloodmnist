@@ -24,6 +24,7 @@ def download_galaxy10_h5(
     target_h5: Path,
     retries: int = 3,
     timeout: int = 600,
+    chunk_size: int = 8192,
 ) -> None:
     """
     Downloads Galaxy10 HDF5 file with retry logic.
@@ -33,6 +34,7 @@ def download_galaxy10_h5(
         target_h5: Path to save HDF5 file
         retries: Number of download attempts
         timeout: Download timeout in seconds
+        chunk_size: Streaming chunk size in bytes (default: TelemetryConfig.io_chunk_size).
     """
     if target_h5.exists():
         logger.info(f"Galaxy10 HDF5 already exists: {target_h5}")
@@ -49,7 +51,7 @@ def download_galaxy10_h5(
                 r.raise_for_status()
 
                 with open(tmp_path, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=8192):
+                    for chunk in r.iter_content(chunk_size=chunk_size):
                         if chunk:
                             f.write(chunk)
 

@@ -40,19 +40,19 @@ def validate_npz_keys(data: np.lib.npyio.NpzFile) -> None:
         )
 
 
-def md5_checksum(path: Path) -> str:
+def md5_checksum(path: Path, chunk_size: int = 8192) -> str:
     """
     Calculates the MD5 checksum of a file using buffered reading.
 
     Args:
         path (Path): Path to the file to verify.
+        chunk_size (int): Read buffer size in bytes (default: TelemetryConfig.io_chunk_size).
 
     Returns:
         str: The calculated hexadecimal MD5 hash.
     """
     hash_md5 = hashlib.md5(usedforsecurity=False)
     with path.open("rb") as f:
-        # 8192 byte chunk size for memory efficiency
-        for chunk in iter(lambda: f.read(8192), b""):
+        for chunk in iter(lambda: f.read(chunk_size), b""):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()

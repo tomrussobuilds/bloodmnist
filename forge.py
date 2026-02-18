@@ -27,10 +27,18 @@ Pipeline Logic:
     - Pipeline duration tracked automatically by RootOrchestrator
 """
 
-from orchard.core import Config, LogStyle, RootOrchestrator, log_pipeline_summary, parse_args
-from orchard.core.paths import MLRUNS_DB
-from orchard.pipeline import run_export_phase, run_optimization_phase, run_training_phase
-from orchard.tracking import create_tracker
+from orchard import (
+    MLRUNS_DB,
+    Config,
+    LogStyle,
+    RootOrchestrator,
+    create_tracker,
+    log_pipeline_summary,
+    parse_args,
+    run_export_phase,
+    run_optimization_phase,
+    run_training_phase,
+)
 
 
 def main() -> None:

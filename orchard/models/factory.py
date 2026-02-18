@@ -124,11 +124,13 @@ def get_model(device: torch.device, cfg: Config, verbose: bool = True) -> nn.Mod
             raise ValueError(error_msg)
         builder = _builder
 
-    # Instance construction and adaptation
-    # When verbose=False (e.g. export phase), suppress builder-internal logs
-    # to avoid duplicating messages already shown during training
+    # Instance construction and adaptation.
+    # When verbose=False (e.g. export phase), suppress builder-internal INFO logs
+    # to avoid duplicating messages already shown during training.
+    # The logger.debug below is visible only at log_level: DEBUG in telemetry config.
+    _prev_level = logger.level
     if not verbose:
-        logger.disabled = True
+        logger.setLevel(logging.WARNING)
     try:
         with _suppress_download_noise():
             logger.debug(
@@ -139,7 +141,7 @@ def get_model(device: torch.device, cfg: Config, verbose: bool = True) -> nn.Mod
                 device=device, cfg=cfg, in_channels=in_channels, num_classes=num_classes
             )
     finally:
-        logger.disabled = False
+        logger.setLevel(_prev_level)
 
     # Final deployment and parameter telemetry
     model = model.to(device)

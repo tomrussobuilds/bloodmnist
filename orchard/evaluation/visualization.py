@@ -264,7 +264,7 @@ def _finalize_figure(plt_obj, save_path: Path | None, cfg: Config | None):
         logger.info(f"Predictions grid saved → {save_path.name}")
     else:
         plt_obj.show()
-        logger.debug("Displaying figure interactive mode")
+        logger.debug("Displaying figure interactive mode")  # visible at log_level: DEBUG
 
     plt_obj.close()
 

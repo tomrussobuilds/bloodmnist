@@ -25,7 +25,7 @@ from pathlib import Path
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ..paths import PROJECT_ROOT
-from .types import LogFrequency, LogLevel, ValidatedPath
+from .types import LogFrequency, LogLevel, PositiveInt, ValidatedPath
 
 
 # TELEMETRY CONFIGURATION
@@ -42,6 +42,7 @@ class TelemetryConfig(BaseModel):
         save_model: Whether to persist model checkpoints after training.
         log_interval: Batch frequency for progress logging (1-1000).
         log_level: Logging verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+        io_chunk_size: Streaming chunk size in bytes for checksums and downloads.
     """
 
     model_config = ConfigDict(
@@ -59,6 +60,9 @@ class TelemetryConfig(BaseModel):
     save_model: bool = True
     log_interval: LogFrequency = Field(default=10)
     log_level: LogLevel = Field(default="INFO")
+
+    # I/O
+    io_chunk_size: PositiveInt = Field(default=8192, description="Streaming chunk size (bytes)")
 
     @model_validator(mode="before")
     @classmethod

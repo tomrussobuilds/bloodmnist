@@ -242,6 +242,8 @@ class RootOrchestrator:
         return False
 
     # --- Private Lifecycle Phases ---
+    # Each phase emits a logger.debug marker for diagnostics.
+    # To activate: set log_level: DEBUG in the telemetry YAML section.
 
     def _phase_1_determinism(self) -> None:
         """Enforces global RNG seeding and algorithmic determinism."""
@@ -280,7 +282,7 @@ class RootOrchestrator:
         Reconfigures handlers for file-based persistence in run directory.
         """
         logger.debug("Phase 4: Initializing session logging")
-        assert self.paths is not None, "Paths must be initialized before logging"
+        assert self.paths is not None, "Paths must be initialized before logging"  # nosec B101
         self.run_logger = self._log_initializer(
             name=LOGGER_NAME, log_dir=self.paths.logs, level=self.cfg.telemetry.log_level
         )
@@ -291,7 +293,9 @@ class RootOrchestrator:
         Saves portable YAML manifest for session auditability.
         """
         logger.debug("Phase 5: Persisting configuration to YAML")
-        assert self.paths is not None, "Paths must be initialized before config persistence"
+        assert (
+            self.paths is not None
+        ), "Paths must be initialized before config persistence"  # nosec B101
         self._config_saver(data=self.cfg, yaml_path=self.paths.get_config_path())
 
     def _phase_6_infrastructure_guarding(self) -> None:
@@ -313,7 +317,7 @@ class RootOrchestrator:
         Summarizes hardware, dataset metadata, and execution policies.
         """
         logger.debug("Phase 7: Generating environment report")
-        assert self.paths is not None, "Paths must be initialized before reporting"
+        assert self.paths is not None, "Paths must be initialized before reporting"  # nosec B101
         phase_logger = self.run_logger or logging.getLogger(LOGGER_NAME)
 
         if self._device_cache is None:
@@ -384,8 +388,8 @@ class RootOrchestrator:
         self._phase_4_logging_initialization()
 
         # Type guards: paths and logger are guaranteed after phases 3-4
-        assert self.paths is not None, "Paths not initialized after phase 3"
-        assert self.run_logger is not None, "Logger not initialized after phase 4"
+        assert self.paths is not None, "Paths not initialized after phase 3"  # nosec B101
+        assert self.run_logger is not None, "Logger not initialized after phase 4"  # nosec B101
 
         self._phase_5_config_persistence()
         self._phase_6_infrastructure_guarding()

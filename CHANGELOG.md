@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - harden reproducibility, training safety, and type correctness
 - normalize docstring style and strengthen pre-commit hooks
+- add build and ci groups to git-cliff commit parsers
 
 ## [0.1.0] - 2026-02-15
 
