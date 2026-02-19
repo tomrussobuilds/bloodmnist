@@ -5,8 +5,6 @@ Tests inference settings, visualization parameters,
 and report export format validation.
 """
 
-from argparse import Namespace
-
 import pytest
 from pydantic import ValidationError
 
@@ -182,29 +180,6 @@ def test_save_flags_default_true():
 
 
 # EVALUATION CONFIG: FROM ARGS
-@pytest.mark.unit
-def test_from_args():
-    """Test EvaluationConfig.from_args() factory."""
-    args = Namespace(batch_size=128, n_samples=24, fig_dpi=300, report_format="json")
-
-    config = EvaluationConfig.from_args(args)
-
-    assert config.batch_size == 128
-    assert config.n_samples == 24
-    assert config.fig_dpi == 300
-    assert config.report_format == "json"
-
-
-@pytest.mark.unit
-def test_from_args_partial():
-    """Test from_args() with partial arguments uses defaults."""
-    args = Namespace(batch_size=32)
-
-    config = EvaluationConfig.from_args(args)
-
-    assert config.batch_size == 32
-    assert config.n_samples == 12
-    assert config.report_format == "xlsx"
 
 
 # EVALUATION CONFIG: IMMUTABILITY

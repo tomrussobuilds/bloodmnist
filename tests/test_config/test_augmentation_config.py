@@ -5,8 +5,6 @@ Tests training augmentation parameters and TTA configuration
 with validation of probability ranges and geometric constraints.
 """
 
-from argparse import Namespace
-
 import pytest
 from pydantic import ValidationError
 
@@ -151,41 +149,6 @@ def test_tta_blur_sigma_bounds():
 
 
 # AUGMENTATION CONFIG: FROM ARGS
-@pytest.mark.unit
-def test_from_args():
-    """Test AugmentationConfig.from_args() factory."""
-    args = Namespace(hflip=0.7, rotation_angle=20, jitter_val=0.25, min_scale=0.8)
-
-    config = AugmentationConfig.from_args(args)
-
-    assert config.hflip == pytest.approx(0.7)
-    assert config.rotation_angle == 20
-    assert config.jitter_val == pytest.approx(0.25)
-    assert config.min_scale == pytest.approx(0.8)
-
-
-@pytest.mark.unit
-def test_from_args_partial():
-    """Test from_args() with partial arguments uses defaults."""
-    args = Namespace(hflip=0.3)
-
-    config = AugmentationConfig.from_args(args)
-
-    assert config.hflip == pytest.approx(0.3)
-    assert config.rotation_angle == 10
-    assert config.jitter_val == pytest.approx(0.2)
-
-
-@pytest.mark.unit
-def test_from_args_empty():
-    """Test from_args() with no arguments uses all defaults."""
-    args = Namespace()
-
-    config = AugmentationConfig.from_args(args)
-
-    assert config.hflip == pytest.approx(0.5)
-    assert config.rotation_angle == 10
-    assert config.jitter_val == pytest.approx(0.2)
 
 
 # AUGMENTATION CONFIG: IMMUTABILITY

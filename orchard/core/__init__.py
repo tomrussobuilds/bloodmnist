@@ -6,9 +6,6 @@ system management, project constants, and the dynamic dataset registry.
 It also includes the RootOrchestrator to manage experiment lifecycle initialization.
 """
 
-# Command Line Interface
-from .cli import parse_args
-
 # Configuration
 from .config import (
     ArchitectureConfig,
@@ -140,6 +137,4 @@ __all__ = [
     "load_model_weights",
     "validate_npz_keys",
     "md5_checksum",
-    # CLI
-    "parse_args",
 ]

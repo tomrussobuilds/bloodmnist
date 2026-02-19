@@ -11,21 +11,17 @@ Layout:
         2. Properties (``run_slug``, ``num_workers``)
         3. Serialization (``dump_portable``, ``dump_serialized``)
         4. ``from_recipe`` — primary factory (``orchard`` CLI)
-        5. ``from_args`` / ``from_yaml`` — legacy factories (``forge.py``)
-        6. Private argparse helpers
     * ``_CrossDomainValidator`` — cross-domain validation logic
       (AMP vs Device, LR bounds, Mixup scheduling, resolution/model pairing)
     * ``_deep_set`` — dot-notation dict helper for CLI overrides
 """
 
-import argparse
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from ..io import load_config_from_yaml
-from ..metadata import DatasetMetadata
 from ..metadata.wrapper import DatasetRegistryWrapper
 from ..paths import PROJECT_ROOT
 from .architecture_config import ArchitectureConfig
@@ -233,192 +229,6 @@ class Config(BaseModel):
         raw_data.setdefault("dataset", {})["metadata"] = metadata
 
         cfg = cls(**raw_data)
-        return cls.model_validate(cfg)
-
-    # -- Factory: argparse (legacy, used by ``forge.py``) --------------------
-
-    @classmethod
-    def from_args(cls, args: argparse.Namespace) -> "Config":
-        """
-        Factory from CLI arguments.
-
-        Args:
-            args: Parsed argparse namespace
-
-        Returns:
-            Configured instance with resolved metadata
-        """
-        ds_meta = cls._resolve_dataset_metadata(args)
-        return cls._build_from_yaml_or_args(args, ds_meta)
-
-    @classmethod
-    def from_yaml(cls, yaml_path: Path, metadata: DatasetMetadata) -> "Config":
-        """
-        Factory from YAML file with metadata injection.
-
-        Args:
-            yaml_path: Path to config YAML
-            metadata: Dataset metadata
-
-        Returns:
-            Hydrated Config instance
-        """
-        return cls._hydrate_yaml(yaml_path, metadata)
-
-    # -- Private helpers (argparse path) -------------------------------------
-
-    @classmethod
-    def _resolve_dataset_metadata(cls, args: argparse.Namespace) -> DatasetMetadata:
-        """
-        Fetches dataset specs from registry.
-
-        Args:
-            args: Parsed CLI arguments
-
-        Returns:
-            Dataset metadata object
-
-        Raises:
-            ValueError: If dataset not found or name missing
-        """
-        ds_name_raw = getattr(args, "dataset", None)
-        if not ds_name_raw:
-            raise ValueError("Dataset name required via --dataset or config file")
-
-        resolution = getattr(args, "resolution", 28)
-        ds_name = ds_name_raw.lower()
-
-        try:
-            return DatasetConfig._resolve_metadata(ds_name, resolution)
-        except KeyError:
-            raise ValueError(
-                f"Dataset '{ds_name_raw}' not found in registry for resolution {resolution}"
-            )
-
-    @classmethod
-    def _build_from_yaml_or_args(
-        cls, args: argparse.Namespace, ds_meta: DatasetMetadata
-    ) -> "Config":
-        """
-        Constructs Config from YAML or CLI arguments.
-
-        **PRECEDENCE ORDER:**
-        1. If --config provided → YAML values take precedence (CLI ignored)
-        2. If no --config → CLI arguments used
-        3. Fallback → Pydantic field defaults
-
-        This ensures YAML recipes are the authoritative source when specified,
-        preventing configuration drift in reproducible research.
-
-        Args:
-            args: Parsed argparse namespace
-            ds_meta: Initial dataset metadata (may be overridden by YAML)
-
-        Returns:
-            Configured instance with correct metadata
-        """
-        if getattr(args, "config", None):
-            return cls._build_from_yaml(args, ds_meta)
-        return cls._build_from_cli(args)
-
-    @classmethod
-    def _build_from_yaml(cls, args: argparse.Namespace, ds_meta: DatasetMetadata) -> "Config":
-        """
-        Build Config from YAML file with metadata resolution.
-
-        Extracts dataset/resolution from YAML, re-resolves metadata if needed,
-        and hydrates config through the YAML path.
-
-        Args:
-            args: Parsed argparse namespace (must have config attribute)
-            ds_meta: Initial dataset metadata (may be overridden by YAML)
-
-        Returns:
-            Configured instance with correct metadata
-        """
-        yaml_path = Path(args.config)
-        raw_data = load_config_from_yaml(yaml_path)
-
-        # Extract critical values from YAML
-        dataset_section = raw_data.get("dataset", {})
-        yaml_dataset_name = dataset_section.get("name")
-        yaml_resolution = dataset_section.get("resolution")
-        yaml_img_size = dataset_section.get("img_size")
-
-        # Inject into args so sub-configs see them
-        if yaml_resolution is not None:
-            args.resolution = yaml_resolution
-        if yaml_img_size is not None:
-            args.img_size = yaml_img_size
-        if yaml_dataset_name:
-            args.dataset = yaml_dataset_name
-
-        # Re-resolve metadata with correct resolution if dataset specified
-        if yaml_dataset_name:
-            resolution = yaml_resolution if yaml_resolution is not None else 28
-            wrapper = DatasetRegistryWrapper(resolution=resolution)
-
-            if yaml_dataset_name not in wrapper.registry:
-                available = list(wrapper.registry.keys())
-                raise KeyError(
-                    f"Dataset '{yaml_dataset_name}' not found at resolution {resolution}. "
-                    f"Available at {resolution}px: {available}"
-                )
-
-            ds_meta = wrapper.get_dataset(yaml_dataset_name)
-
-        return cls.from_yaml(yaml_path, metadata=ds_meta)
-
-    @classmethod
-    def _build_from_cli(cls, args: argparse.Namespace) -> "Config":
-        """
-        Build Config from CLI arguments only.
-
-        Args:
-            args: Parsed argparse namespace
-
-        Returns:
-            Configured instance from CLI values
-        """
-        return cls(
-            hardware=HardwareConfig.from_args(args),
-            telemetry=TelemetryConfig.from_args(args),
-            training=TrainingConfig.from_args(args),
-            augmentation=AugmentationConfig.from_args(args),
-            dataset=DatasetConfig.from_args(args),
-            architecture=ArchitectureConfig.from_args(args),
-            evaluation=EvaluationConfig.from_args(args),
-            optuna=OptunaConfig.from_args(args) if hasattr(args, "study_name") else None,
-            export=ExportConfig.from_args(args) if hasattr(args, "format") else None,
-        )
-
-    @classmethod
-    def _hydrate_yaml(cls, yaml_path: Path, metadata: DatasetMetadata) -> "Config":
-        """
-        Loads YAML config and injects dataset metadata.
-
-        Metadata must be passed in from _build_from_yaml_or_args
-        after proper resolution handling.
-
-        Args:
-            yaml_path: Path to config YAML
-            metadata: Pre-resolved dataset metadata for correct resolution
-
-        Returns:
-            Validated Config instance
-        """
-        raw_data = load_config_from_yaml(yaml_path)
-
-        # Inject metadata into dataset section BEFORE instantiation
-        if "dataset" not in raw_data:
-            raw_data["dataset"] = {}
-
-        # Store metadata object (will be excluded from serialization)
-        raw_data["dataset"]["metadata"] = metadata
-
-        # Instantiate config with pre-injected metadata
-        cfg = cls(**raw_data)
-
         return cls.model_validate(cfg)
 
 

@@ -65,7 +65,7 @@ def set_seed(seed: int, strict: bool = False) -> None:
         only at interpreter startup — the runtime assignment has no effect on
         the running process. The project Dockerfile handles this correctly
         (``ENV PYTHONHASHSEED=0``). For bare-metal runs, prefix the command:
-        ``PYTHONHASHSEED=42 python forge.py``. Full bit-exact determinism
+        ``PYTHONHASHSEED=42 orchard run <recipe>``. Full bit-exact determinism
         additionally requires ``strict=True`` and ``num_workers=0`` (both
         enforced automatically in Docker via ``DOCKER_REPRODUCIBILITY_MODE``).
 
@@ -84,7 +84,7 @@ def set_seed(seed: int, strict: bool = False) -> None:
             "running process. Full determinism requires the variable to be "
             "set *before* the interpreter starts (the project Dockerfile "
             "does this via ENV PYTHONHASHSEED=0). For bare-metal runs use: "
-            "PYTHONHASHSEED=%s python forge.py",
+            "PYTHONHASHSEED=%s orchard run <recipe>",
             seed,
             seed,
         )

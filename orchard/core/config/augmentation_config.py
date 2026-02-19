@@ -15,8 +15,6 @@ Key Features:
       ranges for medical imaging
 """
 
-import argparse
-
 from pydantic import BaseModel, ConfigDict, Field
 
 from .types import BlurSigma, NonNegativeFloat, PixelShift, Probability, RotationDegrees, ZoomScale
@@ -58,22 +56,3 @@ class AugmentationConfig(BaseModel):
     tta_translate: PixelShift = Field(default=2.0, description="TTA pixel shift")
     tta_scale: ZoomScale = Field(default=1.1, description="TTA scaling factor")
     tta_blur_sigma: BlurSigma = Field(default=0.4, description="TTA Gaussian blur sigma")
-
-    @classmethod
-    def from_args(cls, args: argparse.Namespace) -> "AugmentationConfig":
-        """
-        Factory from CLI arguments.
-
-        Args:
-            args: Parsed argparse namespace
-
-        Returns:
-            Configured AugmentationConfig instance
-        """
-        # Extract with defaults matching Field definitions
-        params = {
-            field: getattr(args, field, cls.model_fields[field].default)
-            for field in cls.model_fields
-            if hasattr(args, field)
-        }
-        return cls(**params)

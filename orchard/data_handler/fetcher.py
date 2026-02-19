@@ -76,47 +76,53 @@ def ensure_dataset_npz(
 
 
 # LOADING INTERFACE
+def _load_and_inspect(
+    metadata: DatasetMetadata,
+    chunk_size: int | None = None,
+) -> DatasetData:
+    """
+    Shared loader: fetch NPZ, validate keys, infer format.
+
+    Args:
+        metadata: Dataset metadata (URL, MD5, name, path).
+        chunk_size: If given, only inspect the first *chunk_size* samples
+                    (cheaper for health-checks). ``None`` inspects all.
+
+    Returns:
+        DatasetData with path, name, is_rgb, num_classes.
+    """
+    path = ensure_dataset_npz(metadata)
+
+    with np.load(path) as data:
+        validate_npz_keys(data)
+
+        images = data["train_images"][:chunk_size]  # None → full array
+        labels = data["train_labels"][:chunk_size]
+
+        is_rgb = images.ndim == 4 and images.shape[-1] == 3
+        num_classes = len(np.unique(labels))
+
+    return DatasetData(path=path, name=metadata.name, is_rgb=is_rgb, num_classes=num_classes)
+
+
 def load_dataset(metadata: DatasetMetadata) -> DatasetData:
     """
     Ensures the dataset is present and returns its metadata container.
 
     Handles both MedMNIST (direct NPZ download) and Galaxy10 (HDF5 conversion).
     """
-    path = ensure_dataset_npz(metadata)
-
-    with np.load(path) as data:
-        validate_npz_keys(data)
-
-        train_shape = data["train_images"].shape
-        is_rgb = len(train_shape) == 4 and train_shape[-1] == 3
-
-        num_classes = len(np.unique(data["train_labels"]))
-
-        return DatasetData(path=path, name=metadata.name, is_rgb=is_rgb, num_classes=num_classes)
+    return _load_and_inspect(metadata)
 
 
 def load_dataset_health_check(metadata: DatasetMetadata, chunk_size: int = 100) -> DatasetData:
     """
-    Loads a small "chunk" of data (e.g., the first 100 images and labels)
-    for an initial health check, while retaining the download and verification logic.
+    Quick health-check: inspects only the first *chunk_size* samples.
 
     Args:
-        metadata (DatasetMetadata): Metadata containing URL, MD5, name, and path for the dataset.
-        chunk_size (int): Number of samples to load for the health check.
+        metadata: Dataset metadata (URL, MD5, name, path).
+        chunk_size: Number of samples to inspect (default 100).
 
     Returns:
-        DatasetData: Metadata of the dataset, including info about the loaded data.
+        DatasetData with format info derived from the chunk.
     """
-    path = ensure_dataset_npz(metadata)
-
-    with np.load(path) as data:
-        validate_npz_keys(data)
-
-        images_chunk = data["train_images"][:chunk_size]
-        labels_chunk = data["train_labels"][:chunk_size]
-
-        is_rgb = images_chunk.ndim == 4 and images_chunk.shape[-1] == 3
-
-        num_classes = len(np.unique(labels_chunk))
-
-        return DatasetData(path=path, name=metadata.name, is_rgb=is_rgb, num_classes=num_classes)
+    return _load_and_inspect(metadata, chunk_size=chunk_size)

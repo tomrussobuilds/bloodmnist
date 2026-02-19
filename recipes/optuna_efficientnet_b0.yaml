@@ -2,7 +2,7 @@
 # FILE: recipes/optuna_efficientnet_b0.yaml
 # Hyperparameter Optimization for EfficientNet-B0 (224x224)
 # ==============================================================================
-# Usage: python forge.py --config recipes/optuna_efficientnet_b0.yaml
+# Usage: orchard run recipes/optuna_efficientnet_b0.yaml
 # Estimated Time: ~3-5h GPU (20 trials × 15 epochs, RTX 5070, GPU required)
 # Memory Usage: ~4GB VRAM per trial with AMP
 #

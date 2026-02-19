@@ -92,19 +92,3 @@ class ExportConfig(BaseModel):
         default=1e-5,
         description="Maximum allowed output deviation between PyTorch and exported model",
     )
-
-    @classmethod
-    def from_args(cls, args) -> "ExportConfig":
-        """
-        Factory from CLI arguments.
-
-        Args:
-            args: Parsed argparse namespace
-
-        Returns:
-            ExportConfig instance
-        """
-        args_dict = vars(args)
-        valid_fields = cls.model_fields.keys()
-        params = {k: v for k, v in args_dict.items() if k in valid_fields and v is not None}
-        return cls(**params)

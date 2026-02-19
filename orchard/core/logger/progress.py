@@ -332,7 +332,7 @@ def log_pipeline_summary(
     """
     Log final pipeline completion summary.
 
-    Called at the end of forge.py after all phases complete.
+    Called at the end of the pipeline after all phases complete.
     Consolidates key metrics and artifact locations.
 
     Args:

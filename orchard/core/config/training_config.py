@@ -16,7 +16,6 @@ Strict boundary validation (probability ranges, LR bounds) prevents unstable
 training states before first batch processing.
 """
 
-import argparse
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -140,23 +139,3 @@ class TrainingConfig(BaseModel):
         if self.use_amp and self.batch_size < 4:
             raise ValueError("AMP enabled with very small batch size (<4) can cause NaN gradients.")
         return self
-
-    # ==================== Factory Method ====================
-    @classmethod
-    def from_args(cls, args: argparse.Namespace) -> "TrainingConfig":
-        """
-        Factory from CLI arguments.
-
-        Only overrides schema fields present in args and not None.
-        Automatically adapts to new schema fields.
-
-        Args:
-            args: Parsed command-line arguments
-
-        Returns:
-            TrainingConfig with CLI-overridden values
-        """
-        args_dict = vars(args)
-        valid_fields = cls.model_fields.keys()
-        params = {k: v for k, v in args_dict.items() if k in valid_fields and v is not None}
-        return cls(**params)

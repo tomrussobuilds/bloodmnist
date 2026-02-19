@@ -2,191 +2,100 @@
 
 <h1 align="center">Model Export Guide</h1>
 
-Convert trained Orchard ML models to ONNX format for production deployment.
+Convert trained Orchard ML models to ONNX or TorchScript for production deployment.
 
-<h2>Quick Start</h2>
+<h2>How It Works</h2>
 
-<h3>Integrated Export (Recommended)</h3>
-
-Add an `export:` section to your YAML recipe to export automatically after training:
-
-```yaml
-# recipes/config_efficientnet_b0.yaml
-dataset:
-  name: galaxy10
-  resolution: 224
-model:
-  name: efficientnet_b0
-training:
-  epochs: 60
-export:
-  format: onnx
-  opset_version: 18
-```
+Add an `export:` section to any YAML recipe. The pipeline will **train, evaluate, and export** in a single run:
 
 ```bash
 orchard run recipes/config_efficientnet_b0.yaml
 ```
 
-The pipeline will train, evaluate, and export to ONNX in a single run.
+After training completes, the export phase automatically:
+1. Loads the best checkpoint from `models/`
+2. Traces the model and converts to the target format
+3. Validates PyTorch vs exported output (optional)
+4. Saves the exported file alongside the checkpoint
 
-<h3>Standalone Export (via forge.py)</h3>
-
-To export a previously trained checkpoint without re-training, use `forge.py` directly:
-
-```bash
-python forge.py \
-    --checkpoint outputs/20260201_galaxy10_efficientnetb0_4a29ea_221107/models/best_efficientnetb0.pth \
-    --dataset galaxy10 \
-    --resolution 224 \
-    --model_name efficientnet_b0 \
-    --format onnx
+```
+outputs/20260219_galaxy10_efficientnetb0_abc123/
+  models/
+    best_efficientnetb0.pth     # PyTorch checkpoint
+    best_efficientnetb0.onnx    # Exported ONNX model
 ```
 
-**Important**: The `--dataset` parameter is used only to determine model architecture metadata (resolution, channels, classes). No actual data is loaded during export.
+<h2>Configuration</h2>
 
-<h2>Dataset Registry</h2>
+All export behavior is controlled via the `export:` section of your YAML recipe.
 
-Use `--dataset` to specify architecture metadata for your trained model.
+**Minimal (defaults are sensible):**
 
-<h3>Supported Datasets</h3>
-
-**MedMNIST** (28x28 and 224x224):
-- `bloodmnist`, `pathmnist`, `chestmnist`, `dermamnist`, etc.
-
-**Space/Astronomy** (224x224 only):
-- `galaxy10` - Galaxy morphology classification (10 classes, RGB)
-
-For datasets **not** in the registry, use any dataset name with matching resolution and class count - only the metadata is used.
-
-<h2>Common Options</h2>
-
-> [!NOTE]
-> The options below use `forge.py` for standalone export of existing checkpoints.
-> For integrated export during training, configure the `export:` section in your YAML recipe.
-
-<h3>Quantization (Reduce model size)</h3>
-
-**Mobile deployment:**
-```bash
-python forge.py \
-    --checkpoint outputs/run_xyz/models/best_model.pth \
-    --dataset galaxy10 \
-    --resolution 224 \
-    --model_name efficientnet_b0 \
-    --format onnx \
-    --quantize \
-    --quantization_backend qnnpack
+```yaml
+export:
+  format: onnx
 ```
 
-**Server deployment:**
-```bash
-python forge.py \
-    --checkpoint outputs/run_xyz/models/best_model.pth \
-    --dataset galaxy10 \
-    --resolution 224 \
-    --model_name efficientnet_b0 \
-    --format onnx \
-    --quantize \
-    --quantization_backend fbgemm
+**Full reference:**
+
+```yaml
+export:
+  # Format
+  format: onnx                    # onnx | torchscript | both
+  output_path: null               # auto-generated if omitted
+
+  # ONNX settings
+  opset_version: 18               # 18 = latest, no conversion warnings
+  dynamic_axes: true              # dynamic batch size for flexible inference
+  do_constant_folding: true       # fold constants at export time
+
+  # TorchScript settings
+  torchscript_method: trace       # trace | script
+
+  # Quantization
+  quantize: false                 # apply INT8 post-training quantization
+  quantization_backend: qnnpack   # qnnpack (mobile/ARM) | fbgemm (x86)
+
+  # Validation
+  validate_export: true           # compare PyTorch vs exported output
+  validation_samples: 10          # number of samples for validation
+  max_deviation: 1.0e-05          # max allowed numerical deviation
 ```
 
-<h3>Custom output path</h3>
+| Field | Default | Description |
+|-------|---------|-------------|
+| `format` | `onnx` | Export format: `onnx`, `torchscript`, or `both` |
+| `output_path` | `null` | Custom output path (auto-generated if omitted) |
+| `opset_version` | `18` | ONNX opset version (18 recommended) |
+| `dynamic_axes` | `true` | Enable dynamic batch size for inference flexibility |
+| `do_constant_folding` | `true` | Optimize constant operations during export |
+| `torchscript_method` | `trace` | TorchScript method: `trace` (recommended) or `script` |
+| `quantize` | `false` | Apply INT8 post-training quantization |
+| `quantization_backend` | `qnnpack` | Quantization backend: `qnnpack` (mobile/ARM), `fbgemm` (x86) |
+| `validate_export` | `true` | Run numerical validation after export |
+| `validation_samples` | `10` | Number of random samples for validation |
+| `max_deviation` | `1e-5` | Maximum allowed output deviation (PyTorch vs export) |
 
-```bash
-python forge.py \
-    --checkpoint outputs/run_xyz/models/best_model.pth \
-    --dataset galaxy10 \
-    --resolution 224 \
-    --model_name efficientnet_b0 \
-    --format onnx \
-    --output_path /path/to/production/model_v1.0.onnx
+<h2>Quantization</h2>
+
+INT8 quantization reduces model size ~4x and speeds up CPU inference, with minimal accuracy loss:
+
+```yaml
+export:
+  format: onnx
+  quantize: true
+  quantization_backend: fbgemm    # x86 server deployment
+  validate_export: true           # verify accuracy after quantization
+  max_deviation: 1.0e-03          # relax tolerance for quantized models
 ```
 
-<h3>Strict validation</h3>
-
-```bash
-python forge.py \
-    --checkpoint outputs/run_xyz/models/best_model.pth \
-    --dataset galaxy10 \
-    --resolution 224 \
-    --model_name efficientnet_b0 \
-    --format onnx \
-    --validation_samples 100 \
-    --max_deviation 1e-7
-```
-
-<h3>Skip validation (faster export)</h3>
-
-```bash
-python forge.py \
-    --checkpoint outputs/run_xyz/models/best_model.pth \
-    --dataset galaxy10 \
-    --resolution 224 \
-    --model_name efficientnet_b0 \
-    --format onnx \
-    --validate_export False
-```
-
-<h2>CLI Reference (forge.py standalone export)</h2>
-
-<h3>Required Arguments</h3>
-
-| Argument | Description |
-|----------|-------------|
-| `--checkpoint` / `--resume` | Path to trained `.pth` checkpoint |
-| `--format` | Export format: `onnx`, `torchscript`, or `both` |
-
-<h3>Model Architecture (required)</h3>
-
-| Argument | Description | Example |
-|----------|-------------|---------|
-| `--model_name` | Model architecture | `efficientnet_b0` |
-| `--dataset` | Dataset for metadata | `pathmnist`, `bloodmnist` |
-| `--resolution` | Input size | `28`, `224` |
-
-<h3>ONNX Options</h3>
-
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `--opset_version` | `18` | ONNX opset (18=latest, no warnings) |
-| `--dynamic_axes` | `True` | Variable batch size |
-| `--do_constant_folding` | `True` | Optimize constants |
-
-<h3>Quantization Options</h3>
-
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `--quantize` | `False` | Enable INT8 quantization |
-| `--quantization_backend` | `qnnpack` | `qnnpack` (mobile) or `fbgemm` (server) |
-
-<h3>Validation Options</h3>
-
-| Argument | Default | Description |
-|----------|---------|-------------|
-| `--validate_export` | `True` | Compare PyTorch vs ONNX |
-| `--validation_samples` | `10` | Number of test samples |
-| `--max_deviation` | `1e-5` | Max allowed difference |
+> **Note:** Use `qnnpack` for mobile/ARM targets, `fbgemm` for x86 servers.
 
 <h2>Troubleshooting</h2>
 
-<h3>Checkpoint not found</h3>
-
-Checkpoints are in the `models/` subdirectory:
-```bash
---checkpoint outputs/run_xyz/models/best_model.pth
-```
-
-<h3>Class count mismatch</h3>
-
-Match `--dataset` to your trained model:
-- Galaxy10 → `--dataset galaxy10` (10 classes)
-- PathMNIST → `--dataset pathmnist` (9 classes)
-- BloodMNIST → `--dataset bloodmnist` (8 classes)
-
 <h3>Validation failed</h3>
 
-Relax tolerance with `--max_deviation 1e-4` or skip with `--validate_export False`
+If quantization causes deviations beyond `max_deviation`, either relax the tolerance or set `validate_export: false`.
 
 <h3>Missing onnxscript</h3>
 
@@ -196,34 +105,7 @@ pip install onnx onnxruntime onnxscript
 
 <h3>Export warnings</h3>
 
-Default `--opset_version 18` produces clean output with no warnings. If using lower versions (<18), you may see opset conversion warnings that are safe to ignore.
-
----
-
-<h2>Dataset Reference</h2>
-
-| Resolution | Medical Datasets | Space/Astronomy |
-|------------|------------------|-----------------|
-| 28x28 | `bloodmnist`, `dermamnist`, `organmnist_axial` | - |
-| 224x224 | `pathmnist`, `chestmnist`, `octmnist` | `galaxy10` |
-
----
-
-<h2>What Happens During Export</h2>
-
-1. **Checkpoint loading**: Loads trained weights from `.pth` file
-2. **Model reconstruction**: Rebuilds architecture from config/CLI args
-3. **ONNX conversion**: Exports to ONNX format with optimization
-4. **Validation** (optional): Compares 10 random samples between PyTorch and ONNX
-5. **Benchmarking** (optional): Measures inference latency
-
-**Output location**: Same directory as checkpoint, with `.onnx` extension
-
-Example:
-```
-outputs/run_xyz/models/best_efficientnetb0.pth
-                     → best_efficientnetb0.onnx
-```
+`opset_version: 18` produces clean output. Lower versions may emit harmless conversion warnings.
 
 <h2>Next Steps</h2>
 

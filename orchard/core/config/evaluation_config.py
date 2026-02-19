@@ -18,8 +18,6 @@ Centralizes reporting parameters to ensure standardized, publication-quality
 diagnostic output for every experiment.
 """
 
-import argparse
-
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .types import BatchSize, PositiveInt
@@ -85,21 +83,3 @@ class EvaluationConfig(BaseModel):
         supported = {"xlsx", "csv", "json"}
         normalized = v.lower()
         return normalized if normalized in supported else "xlsx"
-
-    @classmethod
-    def from_args(cls, args: argparse.Namespace) -> "EvaluationConfig":
-        """
-        Factory from CLI arguments.
-
-        Args:
-            args: Parsed argparse namespace
-
-        Returns:
-            Configured EvaluationConfig instance
-        """
-        params = {
-            field: getattr(args, field, cls.model_fields[field].default)
-            for field in cls.model_fields
-            if hasattr(args, field) or cls.model_fields[field].default is not None
-        }
-        return cls(**params)

@@ -2,7 +2,7 @@
 # FILE: recipes/optuna_mini_cnn.yaml
 # Hyperparameter Optimization for MiniCNN (28x28)
 # ==============================================================================
-# Usage: python forge.py --config recipes/optuna_mini_cnn.yaml
+# Usage: orchard run recipes/optuna_mini_cnn.yaml
 # Estimated Time: ~5 min GPU / ~10 min CPU (50 trials × 10 epochs, RTX 5070)
 # Memory Usage: ~1GB VRAM per trial
 #

@@ -5,8 +5,6 @@ Tests hyperparameter validation, LR bounds, batch size limits,
 and cross-field validation logic.
 """
 
-import argparse
-
 import pytest
 from pydantic import ValidationError
 
@@ -193,41 +191,6 @@ def test_grad_clip_too_large_rejected():
 
 
 # UNIT TESTS: FROM_ARGS FACTORY
-@pytest.mark.unit
-def test_from_args_basic():
-    """Test TrainingConfig.from_args() with basic arguments."""
-    args = argparse.Namespace(
-        epochs=100, batch_size=32, learning_rate=0.001, min_lr=1e-7, use_amp=True
-    )
-
-    config = TrainingConfig.from_args(args)
-
-    assert config.epochs == 100
-    assert config.batch_size == 32
-    assert config.learning_rate == pytest.approx(0.001)
-    assert config.use_amp is True
-
-
-@pytest.mark.unit
-def test_from_args_ignores_none_values():
-    """Test from_args uses defaults for None values."""
-    args = argparse.Namespace(epochs=100, batch_size=None)
-
-    config = TrainingConfig.from_args(args)
-
-    assert config.epochs == 100
-    assert config.batch_size == 16
-
-
-@pytest.mark.unit
-def test_from_args_only_valid_fields():
-    """Test from_args ignores invalid field names."""
-    args = argparse.Namespace(epochs=100, invalid_field="should_be_ignored")
-
-    config = TrainingConfig.from_args(args)
-
-    assert config.epochs == 100
-    assert not hasattr(config, "invalid_field")
 
 
 # EDGE CASES & REGRESSION TESTS

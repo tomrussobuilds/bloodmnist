@@ -5,8 +5,6 @@ Tests architecture selection, pretrained weight variants,
 and dropout regularization configuration.
 """
 
-from argparse import Namespace
-
 import pytest
 from pydantic import ValidationError
 
@@ -121,40 +119,6 @@ def test_common_architecture_names():
 
 
 # ARCHITECTURE CONFIG: FROM ARGS
-@pytest.mark.unit
-def test_from_args():
-    """Test ArchitectureConfig.from_args() factory."""
-    args = Namespace(model_name="vit_tiny", pretrained=False, dropout=0.25)
-
-    config = ArchitectureConfig.from_args(args)
-
-    assert config.name == "vit_tiny"
-    assert config.pretrained is False
-    assert config.dropout == pytest.approx(0.25)
-
-
-@pytest.mark.unit
-def test_from_args_with_defaults():
-    """Test from_args() uses defaults for missing arguments."""
-    args = Namespace()
-
-    config = ArchitectureConfig.from_args(args)
-
-    assert config.name == "mini_cnn"
-    assert config.pretrained is False
-    assert config.dropout == pytest.approx(0.2)
-
-
-@pytest.mark.unit
-def test_from_args_partial():
-    """Test from_args() with partial arguments."""
-    args = Namespace(model_name="efficientnet_b0")
-
-    config = ArchitectureConfig.from_args(args)
-
-    assert config.name == "efficientnet_b0"
-    assert config.pretrained is False
-    assert config.dropout == pytest.approx(0.2)
 
 
 # ARCHITECTURE CONFIG: DESCRIPTION FIELD

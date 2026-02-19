@@ -41,15 +41,12 @@ jobs:
 
       - name: Run Black
         run: black --check --diff .
-        continue-on-error: true
 
       - name: Run isort
         run: isort --check-only --diff .
-        continue-on-error: true
 
       - name: Run Flake8
         run: flake8 --max-line-length=100 --ignore=E203,W503,E501 orchard/ tests/
-        continue-on-error: true
 
       - name: Run mypy (type checking)
         run: mypy orchard/
@@ -137,15 +134,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
 
-      - name: Run smoke test (use underscores in args!)
+      - name: Run smoke test
         run: |
           python -m tests.smoke_test \
             --dataset bloodmnist \
-            --epochs 1 \
-            --batch_size 4 \
-            --max_samples 32 \
-            --num_workers 0 \
-            --no_amp
+            --architecture mini_cnn
         timeout-minutes: 10
 
       - name: Upload smoke test artifacts
@@ -210,5 +203,5 @@ jobs:
           echo "Security: ${{ needs.security.result }}"
 
       - name: Fail if critical jobs failed
-        if: needs.test-pytest.result == 'failure' || needs.test-smoke.result == 'failure'
+        if: needs.lint.result == 'failure' || needs.test-pytest.result == 'failure' || needs.test-smoke.result == 'failure'
         run: exit 1

@@ -19,7 +19,6 @@ Attributes:
     log_level: Logging verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL).
 """
 
-import argparse
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -116,22 +115,3 @@ class TelemetryConfig(BaseModel):
                 data[field] = str(full_path)
 
         return data
-
-    @classmethod
-    def from_args(cls, args: argparse.Namespace) -> "TelemetryConfig":
-        """
-        Factory from CLI arguments.
-
-        Args:
-            args: Parsed argparse namespace
-
-        Returns:
-            Configured TelemetryConfig instance
-        """
-        schema_fields = cls.model_fields.keys()
-        params = {
-            k: getattr(args, k)
-            for k in schema_fields
-            if hasattr(args, k) and getattr(args, k) is not None
-        }
-        return cls(**params)

@@ -2,15 +2,10 @@
 Test Suite for Config Manifest.
 
 Tests main Config class integration, cross-validation,
-YAML hydration, and from_args factory.
+serialization, and from_recipe factory.
 """
 
-import argparse
-import tempfile
-from pathlib import Path
-
 import pytest
-import yaml
 from pydantic import ValidationError
 
 from orchard.core import ArchitectureConfig, Config, DatasetConfig, HardwareConfig, TrainingConfig
@@ -26,16 +21,6 @@ def test_config_defaults():
     assert config.training is not None
     assert config.dataset is not None
     assert config.architecture is not None
-
-
-@pytest.mark.unit
-def test_config_from_args_basic(basic_args):
-    """Test Config.from_args() with basic arguments."""
-    config = Config.from_args(basic_args)
-
-    assert config.dataset.dataset_name == "bloodmnist"
-    assert config.architecture.name == "resnet_18"
-    assert config.training.epochs == 60
 
 
 # CONFIG: CROSS-VALIDATION
@@ -140,37 +125,15 @@ def test_mixup_epochs_cannot_exceed_total_epochs_direct():
 
 
 @pytest.mark.unit
-def test_resolve_dataset_metadata_requires_name():
-    """_resolve_dataset_metadata should raise ValueError if dataset name is missing."""
-    args = argparse.Namespace(dataset=None)
-
-    with pytest.raises(ValueError, match="Dataset name required via --dataset or config file"):
-        Config._resolve_dataset_metadata(args)
-
-
-@pytest.mark.unit
-def test_resolve_dataset_metadata_not_in_registry():
-    """_resolve_dataset_metadata should raise ValueError if dataset not in registry."""
-    args = argparse.Namespace(dataset="nonexistent_dataset", resolution=28)
-
-    with pytest.raises(
-        ValueError, match="Dataset 'nonexistent_dataset' not found in registry for resolution 28"
-    ):
-        Config._resolve_dataset_metadata(args)
-
-
-@pytest.mark.unit
 def test_amp_auto_disabled_on_cpu():
     """Test AMP is automatically disabled on CPU with warning."""
-    args = argparse.Namespace(
-        dataset="bloodmnist",
-        device="cpu",
-        use_amp=True,
-        pretrained=True,
-    )
-
     with pytest.warns(UserWarning, match="AMP.*CPU"):
-        cfg = Config.from_args(args)
+        cfg = Config(
+            dataset=DatasetConfig(name="bloodmnist", resolution=28),
+            architecture=ArchitectureConfig(name="mini_cnn", pretrained=False),
+            training=TrainingConfig(use_amp=True),
+            hardware=HardwareConfig(device="cpu"),
+        )
 
     assert cfg.training.use_amp is False
 
@@ -178,30 +141,13 @@ def test_amp_auto_disabled_on_cpu():
 @pytest.mark.unit
 def test_pretrained_requires_rgb():
     """Test pretrained model validation enforces RGB channels."""
-    args = argparse.Namespace(
-        dataset="organcmnist",
-        model_name="resnet_18",
-        pretrained=True,
-        force_rgb=False,
-        resolution=28,
-    )
-
     with pytest.raises(ValidationError, match="Pretrained.*requires RGB"):
-        Config.from_args(args)
-
-
-@pytest.mark.unit
-def test_min_lr_less_than_lr_validation():
-    """Test min_lr < learning_rate validation (covers line 106)."""
-    args = argparse.Namespace(
-        dataset="bloodmnist",
-        learning_rate=0.001,
-        min_lr=0.01,
-        pretrained=True,
-    )
-
-    with pytest.raises(ValidationError, match="min_lr"):
-        Config.from_args(args)
+        Config(
+            dataset=DatasetConfig(name="organcmnist", resolution=28, force_rgb=False),
+            architecture=ArchitectureConfig(name="resnet_18", pretrained=True),
+            training=TrainingConfig(),
+            hardware=HardwareConfig(device="cpu"),
+        )
 
 
 @pytest.mark.unit
@@ -222,128 +168,6 @@ def test_min_lr_equals_lr_direct_instantiation(mock_metadata_28):
             ),
             hardware=HardwareConfig(device="cpu"),
         )
-
-
-@pytest.mark.unit
-def test_resolve_dataset_metadata_success():
-    """Test successful dataset metadata resolution."""
-    args = argparse.Namespace(dataset="bloodmnist", resolution=28)
-
-    metadata = Config._resolve_dataset_metadata(args)
-
-    assert metadata is not None
-    assert metadata.num_classes > 0
-    assert metadata.in_channels in [1, 3]
-
-
-# CONFIG: YAML HYDRATION
-@pytest.mark.integration
-def test_from_yaml_loads_correctly(temp_yaml_config, mock_metadata_28):
-    """Test Config.from_yaml() loads YAML correctly."""
-    config = Config.from_yaml(temp_yaml_config, metadata=mock_metadata_28)
-
-    assert config.dataset.dataset_name == "bloodmnist"
-    assert config.architecture.name == "mini_cnn"
-    assert config.training.epochs == 60
-    assert config.training.batch_size == 128
-
-
-@pytest.mark.integration
-def test_yaml_optuna_section_loaded(temp_yaml_config, mock_metadata_28):
-    """Test YAML with optuna section loads OptunaConfig."""
-    config = Config.from_yaml(temp_yaml_config, metadata=mock_metadata_28)
-
-    assert config.optuna is not None
-    assert config.optuna.study_name == "yaml_test_study"
-    assert config.optuna.n_trials == 20
-
-
-@pytest.mark.integration
-def test_yaml_precedence_over_args(temp_yaml_config):
-    """Test YAML values override CLI arguments."""
-    args = argparse.Namespace(
-        config=str(temp_yaml_config),
-        epochs=999,
-        batch_size=999,
-        dataset="bloodmnist",
-        pretrained=True,
-    )
-
-    config = Config.from_args(args)
-
-    assert config.training.epochs == 60
-    assert config.training.batch_size == 128
-
-
-@pytest.mark.integration
-def test_build_from_yaml_or_args_resolves_dataset(tmp_path, mock_metadata_28):
-    """
-    _build_from_yaml_or_args should trigger the 'if yaml_dataset_name' branch
-    and re-resolve dataset from the registry (covers line 255).
-    """
-    yaml_content = {
-        "dataset": {"name": "dermamnist", "resolution": 28},
-        "architecture": {"name": "mini_cnn"},
-        "training": {"epochs": 60},
-        "optuna": {"study_name": "yaml_test_study", "n_trials": 20},
-    }
-    yaml_path = tmp_path / "config.yaml"
-    with open(yaml_path, "w") as f:
-        yaml.dump(yaml_content, f)
-
-    args = argparse.Namespace(
-        config=str(yaml_path),
-        dataset="bloodmnist",
-    )
-
-    cfg = Config._build_from_yaml_or_args(args, ds_meta=mock_metadata_28)
-
-    assert cfg.dataset.dataset_name == "dermamnist"
-    assert cfg.architecture.name == "mini_cnn"
-    assert cfg.training.epochs == 60
-    assert cfg.optuna.study_name == "yaml_test_study"
-
-
-@pytest.mark.integration
-def test_yaml_different_dataset_triggers_wrapper_call(tmp_path):
-    """
-    Line 256: ds_meta = wrapper.get_dataset(yaml_dataset_name)
-    Using bloodmnist which definitely exists in registry.
-    """
-    yaml_content = {
-        "dataset": {"name": "bloodmnist", "resolution": 28},
-        "architecture": {"name": "mini_cnn", "pretrained": False},
-        "training": {"epochs": 100, "mixup_epochs": 0, "use_amp": False},
-        "hardware": {"device": "cpu"},
-    }
-    yaml_path = tmp_path / "config.yaml"
-    with open(yaml_path, "w") as f:
-        yaml.dump(yaml_content, f)
-
-    args = argparse.Namespace(
-        config=str(yaml_path),
-        dataset="dermamnist",
-        resolution=28,
-    )
-
-    config = Config.from_args(args)
-    assert config.dataset.dataset_name == "bloodmnist"
-
-
-@pytest.mark.integration
-def test_build_from_yaml_or_args_yaml_dataset_not_found(tmp_path):
-    """_build_from_yaml_or_args should raise KeyError if YAML dataset not in registry."""
-    yaml_content = {"dataset": {"name": "nonexistent_dataset", "resolution": 28}}
-    yaml_path = tmp_path / "bad_config.yaml"
-    with open(yaml_path, "w") as f:
-        yaml.dump(yaml_content, f)
-
-    args = argparse.Namespace(
-        config=str(yaml_path),
-        dataset="bloodmnist",
-    )
-    with pytest.raises(KeyError, match="nonexistent_dataset"):
-        Config._build_from_yaml_or_args(args, ds_meta={})
 
 
 # CONFIG: SERIALIZATION
@@ -442,139 +266,6 @@ def test_min_lr_boundary_condition_line_106(mock_metadata_28):
             ),
             hardware=HardwareConfig(device="cpu"),
         )
-
-
-@pytest.mark.integration
-def test_invalid_yaml_raises_error(temp_invalid_yaml):
-    """Test invalid YAML raises validation error."""
-    with pytest.raises(ValidationError):
-        args = argparse.Namespace(
-            config=str(temp_invalid_yaml), dataset="bloodmnist", pretrained=True
-        )
-        Config.from_args(args)
-
-
-@pytest.mark.unit
-def test_config_from_yaml_with_img_size_override():
-    """Test that YAML img_size overrides CLI args."""
-
-    yaml_content = {
-        "dataset": {
-            "name": "pathmnist",
-            "resolution": 28,
-            "img_size": 224,
-            "force_rgb": True,
-        },
-        "architecture": {
-            "name": "resnet_18",
-            "pretrained": False,
-        },
-        "training": {
-            "epochs": 5,
-            "mixup_epochs": 0,
-        },
-    }
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        yaml_path = Path(tmpdir) / "config.yaml"
-
-        with open(yaml_path, "w") as f:
-            yaml.dump(yaml_content, f)
-
-        args = argparse.Namespace(
-            config=str(yaml_path),
-            dataset="pathmnist",
-            resolution=28,
-            img_size=32,
-            device="cpu",
-            seed=42,
-        )
-
-        cfg = Config.from_args(args)
-
-        assert cfg.dataset.img_size == 224, "YAML img_size should override CLI img_size"
-        assert args.img_size == 224, "args.img_size should be updated from YAML"
-
-
-@pytest.mark.unit
-def test_config_from_yaml_without_img_size():
-    """Test that when YAML doesn't specify img_size, no override occurs."""
-
-    yaml_content = {
-        "dataset": {
-            "name": "pathmnist",
-            "resolution": 28,
-            "force_rgb": True,
-        },
-        "architecture": {
-            "name": "resnet_18",
-            "pretrained": False,
-        },
-        "training": {
-            "epochs": 5,
-            "mixup_epochs": 0,
-        },
-    }
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        yaml_path = Path(tmpdir) / "config.yaml"
-
-        with open(yaml_path, "w") as f:
-            yaml.dump(yaml_content, f)
-
-        args = argparse.Namespace(
-            config=str(yaml_path),
-            dataset="pathmnist",
-            resolution=28,
-            img_size=32,
-            device="cpu",
-            seed=42,
-        )
-
-        cfg = Config.from_args(args)
-
-        assert cfg.dataset is not None
-
-
-@pytest.mark.unit
-def test_config_yaml_img_size_none_explicit():
-    """Test when YAML explicitly sets img_size to None."""
-
-    yaml_content = {
-        "dataset": {
-            "name": "pathmnist",
-            "resolution": 28,
-            "img_size": None,
-            "force_rgb": True,
-        },
-        "architecture": {
-            "name": "resnet_18",
-            "pretrained": False,
-        },
-        "training": {
-            "epochs": 5,
-            "mixup_epochs": 0,
-        },
-    }
-
-    with tempfile.TemporaryDirectory() as tmpdir:
-        yaml_path = Path(tmpdir) / "config.yaml"
-
-        with open(yaml_path, "w") as f:
-            yaml.dump(yaml_content, f)
-
-        original_img_size = 64
-        args = argparse.Namespace(
-            config=str(yaml_path),
-            dataset="pathmnist",
-            resolution=28,
-            img_size=original_img_size,
-            device="cpu",
-            seed=42,
-        )
-        assert (
-            args.img_size == original_img_size
-        ), "args.img_size should not change when YAML has img_size: null"
 
 
 if __name__ == "__main__":

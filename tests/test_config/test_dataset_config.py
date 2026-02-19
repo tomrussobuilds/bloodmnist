@@ -5,8 +5,6 @@ Tests dataset configuration validation, metadata injection,
 force_rgb logic, and resolution handling.
 """
 
-import argparse
-
 import pytest
 from pydantic import ValidationError
 
@@ -128,82 +126,9 @@ def test_processing_mode_classification(mock_grayscale_metadata, mock_metadata_2
 
 
 # UNIT TESTS: FROM_ARGS FACTORY
-@pytest.mark.unit
-def test_from_args_basic(basic_args):
-    """Test DatasetConfig.from_args() with basic arguments."""
-    config = DatasetConfig.from_args(basic_args)
-
-    assert config.dataset_name == "bloodmnist"
-    assert config.resolution == 28
-    assert config.use_weighted_sampler is True
-
-
-@pytest.mark.unit
-def test_from_args_force_rgb_auto_enable_for_grayscale_pretrained():
-    """Test force_rgb auto-enables for grayscale + pretrained."""
-    args = argparse.Namespace(
-        dataset="pneumoniamnist", resolution=28, pretrained=True, force_rgb=None
-    )
-
-    config = DatasetConfig.from_args(args)
-
-    assert config.force_rgb is True
-
-
-@pytest.mark.unit
-def test_from_args_force_rgb_explicit_override():
-    """Test explicit force_rgb CLI argument overrides auto-logic."""
-    args = argparse.Namespace(
-        dataset="pneumoniamnist",
-        resolution=28,
-        pretrained=True,
-        force_rgb=False,
-    )
-
-    config = DatasetConfig.from_args(args)
-
-    assert config.force_rgb is False
-
-
-@pytest.mark.unit
-def test_from_args_max_samples_zero_becomes_none():
-    """Test max_samples=0 converts to None."""
-    args = argparse.Namespace(dataset="bloodmnist", resolution=28, max_samples=0)
-
-    config = DatasetConfig.from_args(args)
-
-    assert config.max_samples is None
-
-
-@pytest.mark.unit
-def test_from_args_max_samples_positive():
-    """Test max_samples with positive value."""
-    args = argparse.Namespace(dataset="bloodmnist", resolution=28, max_samples=1000)
-
-    config = DatasetConfig.from_args(args)
-
-    assert config.max_samples == 1000
 
 
 # INTEGRATION TESTS: VALIDATION
-@pytest.mark.integration
-def test_dataset_not_found_raises_error():
-    """Test error raised for non-existent dataset."""
-    args = argparse.Namespace(dataset="nonexistent_dataset", resolution=28, pretrained=True)
-
-    with pytest.raises(KeyError, match="not found"):
-        DatasetConfig.from_args(args)
-
-
-@pytest.mark.integration
-def test_resolution_224_loads_correct_metadata():
-    """Test resolution=224 loads high-res metadata."""
-    args = argparse.Namespace(dataset="organcmnist", resolution=224, pretrained=True)
-
-    config = DatasetConfig.from_args(args)
-
-    assert config.resolution == 224
-    assert config.metadata.native_resolution == 224
 
 
 # EDGE CASES & REGRESSION TESTS

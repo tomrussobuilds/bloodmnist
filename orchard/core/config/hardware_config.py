@@ -12,7 +12,6 @@ Single Source of Truth (SSOT) for:
     * Process-level synchronization (cross-platform lock files)
 """
 
-import argparse
 import tempfile
 from pathlib import Path
 from typing import cast
@@ -143,22 +142,3 @@ class HardwareConfig(BaseModel):
         """
         kwargs["reproducible"] = True
         return cls(**kwargs)
-
-    @classmethod
-    def from_args(cls, args: argparse.Namespace) -> "HardwareConfig":
-        """
-        Factory from command-line arguments.
-
-        Args:
-            args: Parsed argparse namespace
-
-        Returns:
-            Configured HardwareConfig instance
-        """
-        schema_fields = cls.model_fields.keys()
-        params = {
-            k: getattr(args, k)
-            for k in schema_fields
-            if hasattr(args, k) and getattr(args, k) is not None
-        }
-        return cls(**params)

@@ -11,6 +11,7 @@ with minimal computational overhead. Verifies all 5 orchestration stages:
 
 Usage:
     python -m tests.smoke_test
+    python -m tests.smoke_test --dataset bloodmnist --architecture mini_cnn
 
 Expected Runtime: ~30 seconds on GPU, ~2 minutes on CPU
 """
@@ -18,56 +19,42 @@ Expected Runtime: ~30 seconds on GPU, ~2 minutes on CPU
 import argparse
 import os
 
-from orchard.core import Config, DatasetRegistryWrapper, LogStyle, RootOrchestrator, parse_args
+from orchard.core import Config, DatasetRegistryWrapper, LogStyle, RootOrchestrator
 from orchard.data_handler import get_augmentations_description, get_dataloaders, load_dataset
 from orchard.evaluation import run_final_evaluation
 from orchard.models import get_model
 from orchard.trainer import ModelTrainer, get_criterion, get_optimizer, get_scheduler
 
 
+def _build_smoke_config(dataset: str = "bloodmnist", architecture: str = "mini_cnn") -> Config:
+    """Build a minimal Config for smoke testing (no YAML, no from_args)."""
+    return Config(
+        dataset={"name": dataset, "resolution": 28, "max_samples": 32},
+        architecture={"name": architecture, "pretrained": False},
+        training={
+            "epochs": 1,
+            "batch_size": 4,
+            "learning_rate": 0.001,
+            "use_amp": False,
+            "mixup_alpha": 0.0,
+            "mixup_epochs": 0,
+        },
+        hardware={"device": "cpu", "project_name": "smoke-test", "reproducible": True},
+        telemetry={"data_dir": "./dataset", "output_dir": "./outputs"},
+    )
+
+
 # SMOKE TEST EXECUTION
-def run_smoke_test(args: argparse.Namespace) -> None:
+def run_smoke_test(cfg: Config) -> None:
     """
     Orchestrates lightweight pipeline validation for regression testing.
 
-    Overrides configuration with minimal resource requirements:
-        - 1 epoch training
-        - 4 samples per batch
-        - 32 total samples
-        - No AMP (CPU compatibility)
-        - No MixUp (epoch count too low)
-        - Single worker (determinism)
-
     Args:
-        args: CLI arguments (will be overridden for smoke test)
+        cfg: Pre-built Config with minimal resource requirements.
 
     Raises:
-        Exception: Any failure during pipeline execution
+        Exception: Any failure during pipeline execution.
     """
-
-    # SMOKE TEST CONFIGURATION
-    # Bypass YAML config — use CLI args directly so overrides below take effect
-    args.config = None
-
-    # Disable AMP for CPU compatibility
-    args.use_amp = False
-
-    # Set minimal training parameters
-    args.epochs = 1
-    args.batch_size = 4
-    args.max_samples = 32
-    args.num_workers = 0
-
-    # Disable MixUp (requires multiple epochs)
-    args.mixup_alpha = 0.0
-    args.mixup_epochs = 0
-
-    # Remove Optuna config if present (incompatible with 1 epoch)
-    if hasattr(args, "study_name"):
-        delattr(args, "study_name")
-
-    # Create Config with smoke-test overrides
-    cfg = Config.from_args(args)
 
     # PIPELINE VALIDATION
     with RootOrchestrator(cfg) as orchestrator:
@@ -165,5 +152,10 @@ def run_smoke_test(args: argparse.Namespace) -> None:
 
 # ENTRY POINT
 if __name__ == "__main__":
-    cli_args = parse_args()
-    run_smoke_test(args=cli_args)
+    parser = argparse.ArgumentParser(description="Orchard ML Smoke Test")
+    parser.add_argument("--dataset", default="bloodmnist", help="Dataset name")
+    parser.add_argument("--architecture", default="mini_cnn", help="Architecture name")
+    args = parser.parse_args()
+
+    cfg = _build_smoke_config(dataset=args.dataset, architecture=args.architecture)
+    run_smoke_test(cfg)

@@ -11,7 +11,6 @@ Search Space Overrides:
     Overrides are applied by SearchSpaceRegistry at trial sampling time.
 """
 
-import argparse
 import warnings
 from typing import List, Literal, Optional
 
@@ -343,22 +342,6 @@ class OptunaConfig(BaseModel):
         if self.show_progress_bar and self.n_jobs != 1:
             warnings.warn("show_progress_bar=True with n_jobs>1 may corrupt tqdm output.")
         return self
-
-    @classmethod
-    def from_args(cls, args: argparse.Namespace) -> "OptunaConfig":
-        """
-        Create OptunaConfig from CLI arguments.
-
-        Args:
-            args: Parsed argparse namespace with optuna-related arguments.
-
-        Returns:
-            Configured OptunaConfig instance.
-        """
-        args_dict = vars(args)
-        valid_fields = cls.model_fields.keys()
-        params = {k: v for k, v in args_dict.items() if k in valid_fields and v is not None}
-        return cls(**params)
 
     def get_storage_url(self, paths) -> Optional[str]:
         """

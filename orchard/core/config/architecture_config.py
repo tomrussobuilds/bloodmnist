@@ -7,7 +7,6 @@ to the DatasetConfig, ensuring a Single Source of Truth (SSOT) and preventing
 architectural mismatches during model instantiation.
 """
 
-import argparse
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -58,23 +57,3 @@ class ArchitectureConfig(BaseModel):
             "If None, uses default variant for the selected architecture."
         ),
     )
-
-    @classmethod
-    def from_args(cls, args: argparse.Namespace) -> "ArchitectureConfig":
-        """
-        Create ArchitectureConfig from CLI arguments.
-
-        Geometric resolution (channels, classes) is handled by DatasetConfig,
-        so no metadata injection is required here.
-
-        Args:
-            args: Parsed argparse namespace with model-related arguments.
-
-        Returns:
-            Configured ArchitectureConfig instance.
-        """
-        return cls(
-            name=getattr(args, "model_name", "mini_cnn"),
-            pretrained=getattr(args, "pretrained", False),
-            dropout=getattr(args, "dropout", 0.2),
-        )

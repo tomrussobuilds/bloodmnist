@@ -2,7 +2,7 @@
 # FILE: recipes/optuna_vit_tiny.yaml
 # Hyperparameter Optimization for Vision Transformer Tiny (224x224)
 # ==============================================================================
-# Usage: python forge.py --config recipes/optuna_vit_tiny.yaml
+# Usage: orchard run recipes/optuna_vit_tiny.yaml
 # Estimated Time: ~3-5h GPU (20 trials × 15 epochs, RTX 5070, GPU required)
 # Memory Usage: ~4GB VRAM per trial with AMP
 #

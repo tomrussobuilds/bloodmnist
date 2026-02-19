@@ -73,12 +73,12 @@ bash scripts/check_quality_full.sh
 
 - **Black**: Opinionated code formatter (line length: 100)
   ```bash
-  black orchard/ tests/ forge.py  # Auto-fix
+  black orchard/ tests/  # Auto-fix
   ```
 
 - **isort**: Sorts imports alphabetically and by type
   ```bash
-  isort orchard/ tests/ forge.py  # Auto-fix
+  isort orchard/ tests/  # Auto-fix
   ```
 
 <h4>Linting Tools</h4>
@@ -123,13 +123,13 @@ bash scripts/check_quality_full.sh
 
 ```bash
 # Code formatting check
-black --check --diff orchard/ tests/ forge.py
+black --check --diff orchard/ tests/
 
 # Import sorting check
-isort --check-only --diff orchard/ tests/ forge.py
+isort --check-only --diff orchard/ tests/
 
 # Linting
-flake8 orchard/ tests/ forge.py --max-line-length=100 --extend-ignore=E203,W503
+flake8 orchard/ tests/ --max-line-length=100 --extend-ignore=E203,W503
 
 # Security scanning
 bandit -r orchard/ -ll -q
@@ -199,12 +199,12 @@ GitHub Actions automatically run on every push:
 
 | Job | Description | Status |
 |-----|-------------|--------|
-| **Code Quality** | Black, isort, Flake8, mypy | Continue-on-error (advisory) |
+| **Code Quality** | Black, isort, Flake8, mypy | ✅ Required to pass |
 | **Pytest Suite** | 1,100+ tests, 5 Python versions | ✅ Required to pass |
 | **Smoke Test** | 1-epoch E2E validation | ✅ Required to pass |
 | **Documentation** | README verification | ✅ Required to pass |
 | **Security Scan** | Bandit + pip-audit | Continue-on-error (advisory) |
-| **Build Status** | Aggregate summary | ✅ Fails if pytest or smoke test fails |
+| **Build Status** | Aggregate summary | ✅ Fails if lint, pytest, or smoke test fails |
 
 View the latest build: [![CI/CD](https://github.com/tomrussobuilds/orchard-ml/actions/workflows/ci.yml/badge.svg)](https://github.com/tomrussobuilds/orchard-ml/actions/workflows/ci.yml)
 

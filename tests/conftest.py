@@ -9,8 +9,6 @@ This module provides reusable test fixtures for configuration testing, including
 Fixtures are automatically discovered by pytest across all test modules.
 """
 
-import argparse
-
 import pytest
 
 from orchard.core.metadata import DatasetMetadata
@@ -71,68 +69,6 @@ def mock_grayscale_metadata(tmp_path):
         native_resolution=28,
         is_anatomical=True,
         is_texture_based=False,
-    )
-
-
-# CLI ARGUMENT FIXTURES
-@pytest.fixture
-def basic_args():
-    """Standard CLI arguments for training pipeline testing."""
-    return argparse.Namespace(
-        # Dataset
-        dataset="bloodmnist",
-        data_dir="./dataset",
-        resolution=28,
-        max_samples=None,
-        use_weighted_sampler=True,
-        force_rgb=True,
-        img_size=None,
-        # Model
-        model_name="resnet_18",
-        pretrained=True,
-        # Training
-        epochs=60,
-        batch_size=128,
-        learning_rate=0.001,
-        min_lr=1e-6,
-        weight_decay=5e-4,
-        momentum=0.9,
-        scheduler_patience=5,
-        cosine_fraction=0.8,
-        use_amp=False,
-        # Regularization
-        mixup_alpha=0.0,
-        mixup_epochs=None,
-        label_smoothing=0.0,
-        dropout=0.0,
-        # Augmentation
-        hflip=0.5,
-        rotation_angle=10,
-        jitter_val=0.2,
-        min_scale=0.95,
-        no_tta=False,
-        # System
-        seed=42,
-        reproducible=False,
-        num_workers=4,
-        device=None,
-        # Paths
-        output_root=None,
-        config=None,
-    )
-
-
-@pytest.fixture
-def optuna_args():
-    """CLI arguments for Optuna hyperparameter optimization testing."""
-    return argparse.Namespace(
-        dataset="bloodmnist",
-        resolution=28,
-        study_name="test_study",
-        n_trials=10,
-        epochs=15,
-        metric_name="auc",
-        direction="maximize",
     )
 
 

@@ -6,7 +6,6 @@ and lock file path generation.
 """
 
 import tempfile
-from argparse import Namespace
 
 import pytest
 import torch
@@ -196,38 +195,6 @@ def test_project_name_validation_invalid():
 
 
 # HARDWARE CONFIG: FROM ARGS
-@pytest.mark.unit
-def test_from_args_basic():
-    """Test HardwareConfig.from_args() with basic arguments."""
-    args = Namespace(device="cpu", project_name="test_exp", allow_process_kill=True)
-
-    config = HardwareConfig.from_args(args)
-
-    assert config.device == "cpu"
-    assert config.project_name == "test_exp"
-    assert config.allow_process_kill is True
-
-
-@pytest.mark.unit
-def test_from_args_ignores_none_values():
-    """Test from_args() ignores None values."""
-    args = Namespace(device="cpu", project_name=None)
-
-    config = HardwareConfig.from_args(args)
-
-    assert config.device == "cpu"
-    assert config.project_name == "vision_experiment"
-
-
-@pytest.mark.unit
-def test_from_args_partial():
-    """Test from_args() with partial arguments."""
-    args = Namespace(device="cuda")
-
-    config = HardwareConfig.from_args(args)
-
-    assert config.device in ("cuda", "cpu")
-    assert config.project_name == "vision_experiment"
 
 
 # HARDWARE CONFIG: DEFAULTS

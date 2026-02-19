@@ -2,7 +2,7 @@
 Orchard ML: Type-Safe Deep Learning for Reproducible Research.
 
 Top-level convenience API re-exporting the most commonly used components
-from subpackages, so users and entry points (forge.py) can write:
+from subpackages, so users and the ``orchard`` CLI can write:
 
     from orchard import Config, RootOrchestrator, get_model
 """
@@ -12,7 +12,6 @@ from .core import (
     LogStyle,
     RootOrchestrator,
     log_pipeline_summary,
-    parse_args,
 )
 from .core.paths import MLRUNS_DB
 from .models import get_model
@@ -25,7 +24,6 @@ __all__ = [
     "LogStyle",
     "RootOrchestrator",
     "log_pipeline_summary",
-    "parse_args",
     # Paths
     "MLRUNS_DB",
     # Models

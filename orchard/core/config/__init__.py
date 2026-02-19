@@ -19,7 +19,7 @@ Implementation:
 Example:
     >>> from orchard.core.config import Config, HardwareConfig
     >>> # torch is NOT imported yet (lazy loading)
-    >>> cfg = Config.from_args(args)
+    >>> cfg = Config.from_recipe(Path("recipes/config_mini_cnn.yaml"))
     >>> # NOW torch is imported (triggered by Config access)
 """
 

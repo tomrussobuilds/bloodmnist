@@ -291,27 +291,6 @@ def test_direction_minimize():
 
 
 # OPTUNA CONFIG: FROM ARGS
-@pytest.mark.unit
-def test_from_args(optuna_args):
-    """Test OptunaConfig.from_args() factory."""
-    config = OptunaConfig.from_args(optuna_args)
-
-    assert config.study_name == "test_study"
-    assert config.n_trials == 10
-    assert config.epochs == 15
-    assert config.metric_name == "auc"
-
-
-@pytest.mark.unit
-def test_from_args_partial():
-    """Test from_args() with partial arguments uses defaults."""
-    from argparse import Namespace
-
-    args = Namespace(n_trials=20)
-    config = OptunaConfig.from_args(args)
-
-    assert config.n_trials == 20
-    assert config.study_name == "vision_optimization"
 
 
 # OPTUNA CONFIG: MODEL SEARCH

@@ -20,13 +20,12 @@ Related Protocols (defined in their respective modules):
     TimeTrackerProtocol: environment/timing.py
 
 Typical Usage:
-    >>> from orchard.core import Config, RootOrchestrator, parse_args
-    >>> args = parse_args()
-    >>> cfg = Config.from_args(args)
+    >>> from orchard.core import Config, RootOrchestrator
+    >>> cfg = Config.from_recipe(Path("recipes/config_mini_cnn.yaml"))
     >>> with RootOrchestrator(cfg) as orchestrator:
     ...     device = orchestrator.get_device()
     ...     paths = orchestrator.paths
-    ...     # Run training pipeline via forge.py phases
+    ...     # Run training pipeline phases
 """
 
 import logging
@@ -124,7 +123,7 @@ class RootOrchestrator:
         num_workers (int): DataLoader worker processes
 
     Example:
-        >>> cfg = Config.from_args(args)
+        >>> cfg = Config.from_recipe(Path("recipes/config_mini_cnn.yaml"))
         >>> with RootOrchestrator(cfg) as orch:
         ...     device = orch.get_device()
         ...     logger = orch.run_logger
@@ -234,7 +233,7 @@ class RootOrchestrator:
         to cleanup() for infrastructure lock release and logging handler closure.
 
         Returns False so that any exception propagates to the caller unchanged;
-        forge.py's top-level handler is responsible for user-facing error reporting.
+        The CLI's top-level handler is responsible for user-facing error reporting.
 
         Args:
             exc_type: Exception class if the block raised, else None.

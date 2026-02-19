@@ -13,8 +13,6 @@ Key Responsibilities:
     * Multi-resolution support: Resolves metadata by selected resolution
 """
 
-import argparse
-from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -118,8 +116,7 @@ class DatasetConfig(BaseModel):
             ds_name = self.name if self.name else list(wrapper.registry.keys())[0]
             metadata = wrapper.get_dataset(ds_name)
             object.__setattr__(self, "metadata", metadata)
-        assert self.metadata is not None  # Guaranteed by the above
-        return self.metadata
+        return self.metadata  # type: ignore[return-value]
 
     @property
     def dataset_name(self) -> str:
@@ -201,73 +198,3 @@ class DatasetConfig(BaseModel):
         if self.in_channels == 3:
             return "NATIVE-RGB"
         return "RGB-PROMOTED" if self.effective_in_channels == 3 else "NATIVE-GRAY"
-
-    # --- Factory Methods ---
-
-    @classmethod
-    def _resolve_metadata(cls, dataset_name: str, resolution: int) -> DatasetMetadata:
-        """
-        Load dataset metadata from registry with error handling.
-
-        Args:
-            dataset_name: Dataset identifier
-            resolution: Target resolution (28 or 224)
-
-        Returns:
-            DatasetMetadata for the specified dataset
-
-        Raises:
-            KeyError: If dataset not found at specified resolution
-        """
-        wrapper = DatasetRegistryWrapper(resolution=resolution)
-        try:
-            return wrapper.get_dataset(dataset_name)
-        except KeyError:
-            available = list(wrapper.registry.keys())
-            raise KeyError(
-                f"Dataset '{dataset_name}' not found at resolution {resolution}. "
-                f"Available: {available}"
-            )
-
-    @classmethod
-    def from_args(cls, args: argparse.Namespace) -> "DatasetConfig":
-        """
-        Create DatasetConfig from CLI arguments with resolution-aware metadata.
-
-        Resolves dataset metadata from the registry based on the specified
-        resolution (28 or 224), then constructs a fully configured instance
-        with proper channel handling and sampling settings.
-
-        Args:
-            args: Parsed argparse namespace
-
-        Returns:
-            Fully configured DatasetConfig with metadata loaded from registry.
-
-        Raises:
-            KeyError: If dataset not found in registry at specified resolution.
-        """
-        # Extract core identifiers
-        dataset_name = getattr(args, "dataset", None) or getattr(args, "name", None) or "bloodmnist"
-        resolution = getattr(args, "resolution", 28)
-
-        # Load metadata from registry
-        resolved_metadata = cls._resolve_metadata(dataset_name, resolution)
-
-        # Resolve optional parameters
-        force_rgb_cli = getattr(args, "force_rgb", None)
-        resolved_force_rgb = force_rgb_cli if force_rgb_cli is not None else True
-
-        cli_max = getattr(args, "max_samples", None)
-        resolved_max = None if (cli_max is not None and cli_max <= 0) else cli_max
-
-        return cls(
-            name=dataset_name,
-            data_root=Path(getattr(args, "data_dir", DATASET_DIR)),
-            metadata=resolved_metadata,
-            max_samples=resolved_max,
-            use_weighted_sampler=getattr(args, "use_weighted_sampler", True),
-            force_rgb=resolved_force_rgb,
-            img_size=getattr(args, "img_size", None),
-            resolution=resolution,
-        )

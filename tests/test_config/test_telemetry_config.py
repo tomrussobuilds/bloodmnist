@@ -5,7 +5,6 @@ Tests filesystem resolution, logging configuration,
 and portable path serialization.
 """
 
-from argparse import Namespace
 from pathlib import Path
 
 import pytest
@@ -168,47 +167,6 @@ def test_handle_empty_config_with_values():
 
 
 # TELEMETRY CONFIG: FROM ARGS
-@pytest.mark.unit
-def test_from_args():
-    """Test TelemetryConfig.from_args() factory."""
-    args = Namespace(
-        data_dir=Path("./custom_data"),
-        output_dir=Path("./custom_out"),
-        log_level="DEBUG",
-        log_interval=15,
-        save_model=False,
-    )
-
-    config = TelemetryConfig.from_args(args)
-
-    assert config.data_dir.name == "custom_data"
-    assert config.output_dir.name == "custom_out"
-    assert config.log_level == "DEBUG"
-    assert config.log_interval == 15
-    assert config.save_model is False
-
-
-@pytest.mark.unit
-def test_from_args_partial():
-    """Test from_args() with partial arguments uses defaults."""
-    args = Namespace(log_level="WARNING")
-
-    config = TelemetryConfig.from_args(args)
-
-    assert config.log_level == "WARNING"
-    assert config.log_interval == 10
-    assert config.save_model is True
-
-
-@pytest.mark.unit
-def test_from_args_filters_none():
-    """Test from_args() filters out None values."""
-    args = Namespace(log_level="ERROR", log_interval=None)
-
-    config = TelemetryConfig.from_args(args)
-
-    assert config.log_level == "ERROR"
-    assert config.log_interval == 10
 
 
 # TELEMETRY CONFIG: IMMUTABILITY

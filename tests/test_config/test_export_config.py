@@ -5,7 +5,6 @@ Tests model export configuration, format validation, ONNX/TorchScript
 parameters, quantization settings, and validation options.
 """
 
-from argparse import Namespace
 from pathlib import Path
 
 import pytest
@@ -211,49 +210,6 @@ def test_output_path_accepts_string():
 
 
 # EXPORT CONFIG: FROM_ARGS FACTORY
-@pytest.mark.unit
-def test_from_args():
-    """Test ExportConfig.from_args() factory."""
-    args = Namespace(
-        format="onnx",
-        output_path=Path("/mock/model.onnx"),
-        opset_version=16,
-        dynamic_axes=True,
-        quantize=False,
-        validate_export=True,
-    )
-
-    config = ExportConfig.from_args(args)
-
-    assert config.format == "onnx"
-    assert config.output_path == Path("/mock/model.onnx")
-    assert config.opset_version == 16
-    assert config.dynamic_axes is True
-
-
-@pytest.mark.unit
-def test_from_args_partial():
-    """Test from_args() with partial arguments uses defaults."""
-    args = Namespace(format="torchscript", quantize=True)
-
-    config = ExportConfig.from_args(args)
-
-    assert config.format == "torchscript"
-    assert config.quantize is True
-    assert config.opset_version == 18
-    assert config.validate_export is True
-
-
-@pytest.mark.unit
-def test_from_args_ignores_none_values():
-    """Test from_args() ignores None values from argparse."""
-    args = Namespace(format="onnx", output_path=None, quantize=False)
-
-    config = ExportConfig.from_args(args)
-
-    assert config.format == "onnx"
-    assert config.output_path is None
-    assert config.quantize is False
 
 
 # EXPORT CONFIG: IMMUTABILITY

@@ -9,17 +9,17 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 echo "📝 Black (code formatting)..."
-black --check --diff orchard/ tests/ forge.py
+black --check --diff orchard/ tests/
 echo "✓ Black passed"
 echo ""
 
 echo "📦 isort (import sorting)..."
-isort --check-only --diff orchard/ tests/ forge.py
+isort --check-only --diff orchard/ tests/
 echo "✓ isort passed"
 echo ""
 
 echo "✨ Flake8 (linting)..."
-flake8 orchard/ tests/ forge.py
+flake8 orchard/ tests/
 echo "✓ Flake8 passed"
 echo ""
 
