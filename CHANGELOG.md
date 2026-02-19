@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - sanitize timm/ slash in artifact paths and polish v0.1.3
+- remove last from_args() references and clean stale artifacts
 
 ## [0.1.3] - 2026-02-19
 

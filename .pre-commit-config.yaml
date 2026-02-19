@@ -33,6 +33,13 @@ repos:
         entry: bandit -c pyproject.toml -r
         types: [python]
 
+      - id: smoke-guard
+        name: smoke test guard (import & config)
+        language: system
+        entry: python -m pytest tests/test_smoke_test.py -x -q --tb=short --no-header
+        pass_filenames: false
+        always_run: true
+
       - id: no-env-files
         name: block .env files
         language: fail
