@@ -7,6 +7,10 @@ from subpackages, so users and the ``orchard`` CLI can write:
     from orchard import Config, RootOrchestrator, get_model
 """
 
+from importlib.metadata import version as _pkg_version
+
+__version__ = _pkg_version("orchard-ml")
+
 from .core import (
     Config,
     LogStyle,
@@ -19,6 +23,7 @@ from .pipeline import run_export_phase, run_optimization_phase, run_training_pha
 from .tracking import create_tracker
 
 __all__ = [
+    "__version__",
     # Core
     "Config",
     "LogStyle",

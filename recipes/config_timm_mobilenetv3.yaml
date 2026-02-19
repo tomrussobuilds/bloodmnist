@@ -1,0 +1,89 @@
+# ==============================================================================
+# FILE: recipes/config_timm_mobilenetv3.yaml
+# MobileNetV3-Small via timm (28x28, edge-friendly)
+# ==============================================================================
+# Usage: orchard run recipes/config_timm_mobilenetv3.yaml
+# Estimated Time: ~5 min GPU / ~45 min CPU (60 epochs, RTX 5070)
+# Memory Usage: ~1GB VRAM
+# Architecture: MobileNetV3-Small (~1.5M parameters, mobile-optimized)
+
+dataset:
+  name: "bloodmnist"
+  data_root: ./dataset
+  resolution: 28
+  force_rgb: true
+  use_weighted_sampler: true
+  max_samples: null
+
+architecture:
+  name: "timm/mobilenetv3_small_100"
+  pretrained: true
+  dropout: 0.2
+
+training:
+  seed: 42
+
+  # Optimization (conservative LR for pretrained)
+  batch_size: 64
+  learning_rate: 0.0005
+  weight_decay: 1e-4
+  momentum: 0.9
+  min_lr: 1e-6
+
+  # Regularization
+  mixup_alpha: 0.1
+  label_smoothing: 0.1
+
+  # Training loop
+  epochs: 60
+  patience: 15
+  grad_clip: 1.0
+  mixup_epochs: 0
+
+  # Scheduler
+  scheduler_type: "cosine"
+  cosine_fraction: 0.8
+  scheduler_patience: 5
+  scheduler_factor: 0.1
+  step_size: 20
+
+  # Performance
+  use_amp: false
+  use_tta: false
+  criterion_type: "cross_entropy"
+  weighted_loss: false
+
+augmentation:
+  hflip: 0.5
+  rotation_angle: 10
+  jitter_val: 0.2
+  min_scale: 0.9
+
+hardware:
+  device: "auto"
+
+telemetry:
+  output_dir: ./outputs
+  log_level: "INFO"
+  log_interval: 50
+
+evaluation:
+  batch_size: 256
+  n_samples: 16
+  fig_dpi: 200
+  cmap_confusion: Blues
+  plot_style: seaborn-v0_8-muted
+  grid_cols: 4
+  fig_size_predictions: [12, 8]
+  report_format: xlsx
+  save_confusion_matrix: true
+  save_predictions_grid: true
+
+tracking:
+  enabled: true
+  experiment_name: "orchard-ml"
+
+export:
+  format: onnx
+  opset_version: 18
+  validate_export: true

@@ -126,16 +126,16 @@ def get_model(device: torch.device, cfg: Config, verbose: bool = True) -> nn.Mod
     # Instance construction and adaptation.
     # When verbose=False (e.g. export phase), suppress builder-internal INFO logs
     # to avoid duplicating messages already shown during training.
-    # The logger.debug below is visible only at log_level: DEBUG in telemetry config.
     _prev_level = logger.level
     if not verbose:
         logger.setLevel(logging.WARNING)
     try:
         with _suppress_download_noise():
-            logger.debug(
-                f"Loading weights for {cfg.architecture.name} "
-                f"(pretrained={cfg.architecture.pretrained})"
-            )
+            if verbose and cfg.architecture.pretrained:
+                logger.info(
+                    f"Downloading pretrained weights for {cfg.architecture.name} "
+                    f"(cached after first run)..."
+                )
             model = builder(
                 device=device, cfg=cfg, in_channels=in_channels, num_classes=num_classes
             )

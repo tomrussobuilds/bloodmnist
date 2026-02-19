@@ -104,6 +104,15 @@
 | **224×224** | `ConvNeXt-Tiny` | ~27.8M | Modern ConvNet design |
 | **224×224** | `ViT-Tiny` | ~5.5M | Patch-based attention, multiple weight variants |
 
+> [!TIP]
+> **1000+ additional architectures via [timm](https://huggingface.co/docs/timm)**: Any model in the `timm` registry can be used by prefixing the name with `timm/` in your recipe:
+> ```yaml
+> architecture:
+>   name: "timm/mobilenetv3_small_100"   # ~1.5M params, edge-friendly
+>   pretrained: true
+> ```
+> This works with MobileNet, DenseNet, RegNet, EfficientNet-V2, and any other architecture supported by `timm`. See `recipes/config_timm_mobilenetv3.yaml` for a ready-to-use example.
+
 ---
 
 <h2>Hardware Requirements</h2>

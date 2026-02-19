@@ -5,7 +5,7 @@
 # Usage: orchard run recipes/config_mini_cnn.yaml
 # Estimated Time: ~2-3 min GPU / ~30 min CPU (60 epochs, RTX 5070)
 # Memory Usage: ~500MB VRAM
-# Architecture: MiniCNN (~50K parameters, compact baseline)
+# Architecture: MiniCNN (~95K parameters, compact baseline)
 
 dataset:
   name: "bloodmnist"

@@ -54,6 +54,9 @@ def run_final_evaluation(
     # Resolve device from config
     device = torch.device(cfg.hardware.device)
 
+    # Filesystem-safe architecture tag (e.g. "timm/model" → "timm_model")
+    arch_tag = cfg.architecture.name.replace("/", "_")
+
     # --- 1) Inference & Metrics ---
     # Performance on the full test set
     all_preds, all_labels, test_metrics, macro_f1 = evaluate_model(
@@ -72,9 +75,7 @@ def run_final_evaluation(
         all_labels=all_labels,
         all_preds=all_preds,
         classes=class_names,
-        out_path=paths.get_fig_path(
-            f"confusion_matrix_{cfg.architecture.name}_{cfg.dataset.resolution}.png"
-        ),
+        out_path=paths.get_fig_path(f"confusion_matrix_{arch_tag}_{cfg.dataset.resolution}.png"),
         cfg=cfg,
     )
 
@@ -83,9 +84,7 @@ def run_final_evaluation(
     plot_training_curves(
         train_losses=train_losses,
         val_accuracies=val_acc_list,
-        out_path=paths.get_fig_path(
-            f"training_curves_{cfg.architecture.name}_{cfg.dataset.resolution}.png"
-        ),
+        out_path=paths.get_fig_path(f"training_curves_{arch_tag}_{cfg.dataset.resolution}.png"),
         cfg=cfg,
     )
 
@@ -95,9 +94,7 @@ def run_final_evaluation(
         loader=test_loader,
         device=device,
         classes=class_names,
-        save_path=paths.get_fig_path(
-            f"sample_predictions_{cfg.architecture.name}_{cfg.dataset.resolution}.png"
-        ),
+        save_path=paths.get_fig_path(f"sample_predictions_{arch_tag}_{cfg.dataset.resolution}.png"),
         cfg=cfg,
     )
 
