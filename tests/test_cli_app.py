@@ -321,5 +321,148 @@ class TestCLIRun:
         assert result.exit_code != 0
 
 
+# CLI INIT COMMAND
+@pytest.mark.unit
+class TestCLIInit:
+    """Tests for the ``init`` command."""
+
+    def test_init_creates_recipe(self, tmp_path):
+        from typer.testing import CliRunner
+
+        from orchard.cli_app import app
+
+        runner = CliRunner()
+        result = runner.invoke(app, ["init", str(tmp_path / "recipe.yaml")])
+        assert result.exit_code == 0
+        content = (tmp_path / "recipe.yaml").read_text()
+        for section in (
+            "dataset:",
+            "training:",
+            "augmentation:",
+            "hardware:",
+            "optuna:",
+            "export:",
+        ):
+            assert section in content
+
+    def test_init_custom_filename(self, tmp_path):
+        from typer.testing import CliRunner
+
+        from orchard.cli_app import app
+
+        runner = CliRunner()
+        out = tmp_path / "my_recipe.yaml"
+        result = runner.invoke(app, ["init", str(out)])
+        assert result.exit_code == 0
+        assert out.exists()
+        assert "my_recipe.yaml" in result.output
+
+    def test_init_refuses_overwrite(self, tmp_path):
+        from typer.testing import CliRunner
+
+        from orchard.cli_app import app
+
+        target = tmp_path / "recipe.yaml"
+        target.write_text("existing")
+        runner = CliRunner()
+        result = runner.invoke(app, ["init", str(target)])
+        assert result.exit_code == 1
+        assert "already exists" in result.output
+        assert target.read_text() == "existing"
+
+    def test_init_force_overwrites(self, tmp_path):
+        from typer.testing import CliRunner
+
+        from orchard.cli_app import app
+
+        target = tmp_path / "recipe.yaml"
+        target.write_text("existing")
+        runner = CliRunner()
+        result = runner.invoke(app, ["init", str(target), "--force"])
+        assert result.exit_code == 0
+        content = target.read_text()
+        assert "dataset:" in content
+
+    def test_init_valid_yaml(self, tmp_path):
+        """Generated YAML is parseable via load_config_from_yaml."""
+        from typer.testing import CliRunner
+
+        from orchard.cli_app import app
+        from orchard.core.io import load_config_from_yaml
+
+        runner = CliRunner()
+        target = tmp_path / "recipe.yaml"
+        result = runner.invoke(app, ["init", str(target)])
+        assert result.exit_code == 0
+        data = load_config_from_yaml(target)
+        assert data["dataset"]["name"] == "bloodmnist"
+        assert data["training"]["seed"] == 42
+
+    def test_init_no_internal_fields(self, tmp_path):
+        """metadata and img_size must not appear in generated YAML."""
+        from typer.testing import CliRunner
+
+        from orchard.cli_app import app
+
+        runner = CliRunner()
+        target = tmp_path / "recipe.yaml"
+        runner.invoke(app, ["init", str(target)])
+        content = target.read_text()
+        assert "metadata:" not in content
+        assert "img_size:" not in content
+
+    def test_init_device_is_auto(self, tmp_path):
+        """Hardware device should be 'auto', not resolved."""
+        from typer.testing import CliRunner
+
+        from orchard.cli_app import app
+        from orchard.core.io import load_config_from_yaml
+
+        runner = CliRunner()
+        target = tmp_path / "recipe.yaml"
+        runner.invoke(app, ["init", str(target)])
+        data = load_config_from_yaml(target)
+        assert data["hardware"]["device"] == "auto"
+
+    def test_init_paths_are_portable(self, tmp_path):
+        """Paths should be relative, not absolute."""
+        from typer.testing import CliRunner
+
+        from orchard.cli_app import app
+        from orchard.core.io import load_config_from_yaml
+
+        runner = CliRunner()
+        target = tmp_path / "recipe.yaml"
+        runner.invoke(app, ["init", str(target)])
+        data = load_config_from_yaml(target)
+        assert data["dataset"]["data_root"] == "./dataset"
+        assert data["telemetry"]["data_dir"] == "./dataset"
+        assert data["telemetry"]["output_dir"] == "./outputs"
+
+    def test_init_help(self):
+        from typer.testing import CliRunner
+
+        from orchard.cli_app import app
+
+        runner = CliRunner()
+        result = runner.invoke(app, ["init", "--help"])
+        assert result.exit_code == 0
+        clean = _strip_ansi(result.output)
+        assert "OUTPUT" in clean or "output" in clean.lower()
+
+    def test_init_header_present(self, tmp_path):
+        """Generated file starts with the header comment."""
+        from typer.testing import CliRunner
+
+        from orchard.cli_app import app
+
+        runner = CliRunner()
+        target = tmp_path / "recipe.yaml"
+        runner.invoke(app, ["init", str(target)])
+        content = target.read_text()
+        assert content.startswith("# =")
+        assert "orchard run" in content
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

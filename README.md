@@ -191,9 +191,11 @@ With development tools (linting, testing, type checking):
 pip install -e ".[dev]"
 ```
 
-**Option B**: Install from PyPI (package only — recipe files and tests require cloning the repository)
+**Option B**: Install from PyPI
 ```bash
 pip install orchard-ml
+orchard init            # generates recipe.yaml with all defaults
+orchard run recipe.yaml
 ```
 
 <h3>Step 2: Verify Installation (Optional)</h3>
