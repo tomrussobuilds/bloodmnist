@@ -53,7 +53,7 @@ class DatasetLoaderProtocol(Protocol):
 class DataloaderFactoryProtocol(Protocol):
     """Protocol for dataloader creation (enables dependency injection)."""
 
-    def __call__(self, medmnist_data: DatasetData, cfg: Config, is_optuna: bool = False) -> tuple:
+    def __call__(self, dataset_data: DatasetData, cfg: Config, is_optuna: bool = False) -> tuple:
         """Create train/val/test dataloaders."""
         ...  # pragma: no cover
 
@@ -88,7 +88,7 @@ class OptunaObjective:
         device: Training device (CPU/CUDA/MPS)
         config_builder: Builds trial-specific configs
         metric_extractor: Handles metric extraction
-        medmnist_data: Cached dataset (loaded once, reused across trials)
+        dataset_data: Cached dataset (loaded once, reused across trials)
 
     Example:
         >>> objective = OptunaObjective(
@@ -137,7 +137,7 @@ class OptunaObjective:
         self.metric_extractor = MetricExtractor(cfg.optuna.metric_name)
 
         # Load dataset once (reused across all trials)
-        self.medmnist_data = self._dataset_loader(self.config_builder.base_metadata)
+        self.dataset_data = self._dataset_loader(self.config_builder.base_metadata)
 
     def __call__(self, trial: optuna.Trial) -> float:
         """
@@ -176,7 +176,7 @@ class OptunaObjective:
         try:
             # Setup training components
             train_loader, val_loader, _ = self._dataloader_factory(
-                self.medmnist_data, trial_cfg, is_optuna=True
+                self.dataset_data, trial_cfg, is_optuna=True
             )
             model = self._model_factory(self.device, trial_cfg)
             optimizer = get_optimizer(model, trial_cfg)

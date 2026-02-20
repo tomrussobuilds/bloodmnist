@@ -14,7 +14,7 @@ import numpy as np
 # DATA VERIFICATION
 def validate_npz_keys(data: np.lib.npyio.NpzFile) -> None:
     """
-    Validates that the loaded NPZ dataset contains all required MedMNIST keys.
+    Validates that the loaded NPZ dataset contains all required dataset keys.
 
     Args:
         data (np.lib.npyio.NpzFile): The loaded NPZ file object.

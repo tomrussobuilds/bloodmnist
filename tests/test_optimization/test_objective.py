@@ -341,7 +341,7 @@ def test_optuna_objective_init_with_defaults():
     )
 
     mock_dataset_loader.assert_called_once_with(mock_cfg.dataset._ensure_metadata)
-    assert objective.medmnist_data == mock_dataset
+    assert objective.dataset_data == mock_dataset
     assert objective._dataset_loader == mock_dataset_loader
 
 
@@ -725,7 +725,7 @@ def test_optuna_objective_call_builds_trial_config():
             )
 
             mock_dataloader_factory.assert_called_once_with(
-                objective.medmnist_data, mock_trial_cfg, is_optuna=True
+                objective.dataset_data, mock_trial_cfg, is_optuna=True
             )
 
 

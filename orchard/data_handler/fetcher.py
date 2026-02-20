@@ -23,7 +23,7 @@ from ..core.paths import LOGGER_NAME
 @dataclass(frozen=True)
 class DatasetData:
     """
-    Metadata container for dataset (MedMNIST, Galaxy10, etc.).
+    Metadata container for a loaded dataset.
     Stores path and format info instead of raw arrays to save RAM.
     """
 
@@ -52,8 +52,8 @@ def ensure_dataset_npz(
 
     Args:
         metadata (DatasetMetadata): Metadata containing URL, MD5, name and target path.
-        retries (int): Max number of download attempts (MedMNIST only).
-        delay (float): Delay (seconds) between retries (MedMNIST only).
+        retries (int): Max number of download attempts (NPZ fetcher only).
+        delay (float): Delay (seconds) between retries (NPZ fetcher only).
 
     Returns:
         Path: Path to the successfully validated .npz file.
@@ -69,7 +69,7 @@ def ensure_dataset_npz(
     #     from .fetchers.your_fetcher import ensure_your_dataset_npz
     #     return ensure_your_dataset_npz(metadata)
 
-    # Default: standard MedMNIST NPZ download with retries and MD5 check
+    # Default: standard NPZ download with retries and MD5 check
     from .fetchers import ensure_medmnist_npz
 
     return ensure_medmnist_npz(metadata, retries=retries, delay=delay)
@@ -109,7 +109,7 @@ def load_dataset(metadata: DatasetMetadata) -> DatasetData:
     """
     Ensures the dataset is present and returns its metadata container.
 
-    Handles both MedMNIST (direct NPZ download) and Galaxy10 (HDF5 conversion).
+    Ensures the dataset is present and returns its metadata container.
     """
     return _load_and_inspect(metadata)
 

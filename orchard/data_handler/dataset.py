@@ -1,8 +1,8 @@
 """
 PyTorch Dataset Definition Module.
 
-This module contains the custom Dataset classes for MedMNIST, handling
-the conversion from NumPy arrays to PyTorch tensors and applying
+This module contains the custom Dataset classes for NPZ-based vision datasets,
+handling the conversion from NumPy arrays to PyTorch tensors and applying
 image transformations for training and inference.
 
 It implements selective RAM loading to balance I/O speed with memory
@@ -26,7 +26,7 @@ from torchvision import transforms
 # DATASET CLASS
 class VisionDataset(Dataset[Tuple[torch.Tensor, torch.Tensor]]):
     """
-    Enhanced PyTorch Dataset for MedMNIST data.
+    Enhanced PyTorch Dataset for NPZ-based vision data.
 
     Features:
         - In-memory caching of specific splits to eliminate disk I/O bottlenecks.
@@ -46,7 +46,7 @@ class VisionDataset(Dataset[Tuple[torch.Tensor, torch.Tensor]]):
         Initializes the dataset by loading the specified .npz split into RAM.
 
         Args:
-            path (Path): Path to the MedMNIST .npz archive.
+            path (Path): Path to the dataset .npz archive.
             split (str): Dataset split to load ('train', 'val', or 'test').
             transform (transforms.Compose | None): Pipeline of Torchvision transforms.
             max_samples (int | None): If set, limits the number of samples (subsampling).

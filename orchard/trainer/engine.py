@@ -158,7 +158,7 @@ def validate_epoch(
 
     Computes validation loss, accuracy, and ROC-AUC score under no_grad context.
     AUC calculated using One-vs-Rest (OvR) strategy with macro-averaging for
-    robust performance estimation on potentially imbalanced MedMNIST datasets.
+    robust performance estimation on potentially imbalanced datasets.
 
     Args:
         model: Neural network model to evaluate

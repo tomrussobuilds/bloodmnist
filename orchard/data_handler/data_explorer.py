@@ -1,7 +1,7 @@
 """
 Data Visualization Module
 
-Utilities to inspect MedMNIST datasets visually by generating grids of sample images
+Utilities to inspect datasets visually by generating grids of sample images
 from raw tensors or NumPy arrays. Supports grayscale and RGB images and optional
 denormalization via Config. Figures are saved inside the run's output directory
 managed by RunPaths.

@@ -2,7 +2,7 @@
 Lightweight CNN for 28×28 Low-Resolution Medical Imaging.
 
 Custom compact architecture designed specifically for small-scale datasets
-like MedMNIST 28×28. Provides a fast baseline alternative to adapted ResNet-18
+like 28×28 low-resolution datasets. Provides a fast baseline alternative to adapted ResNet-18
 with reduced parameter count and computational overhead.
 
 Key Features:

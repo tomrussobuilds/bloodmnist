@@ -32,7 +32,7 @@ class TrainingReport(BaseModel):
     Attributes:
         timestamp (str): ISO formatted execution time.
         model (str): Identifier of the architecture used.
-        dataset (str): Name of the MedMNIST subset.
+        dataset (str): Name of the dataset.
         best_val_accuracy (float): Peak accuracy achieved on validation set.
         test_accuracy (float): Final accuracy on the unseen test set.
         test_macro_f1 (float): Macro-averaged F1 score (key for imbalanced data).

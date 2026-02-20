@@ -17,8 +17,8 @@ Key Components:
     create_temp_loader: Quick DataLoader builder for health checks
 
 Example:
-    >>> from orchard.data_handler import get_dataloaders, load_medmnist
-    >>> data = load_medmnist(ds_meta)
+    >>> from orchard.data_handler import get_dataloaders, load_dataset
+    >>> data = load_dataset(ds_meta)
     >>> train_loader, val_loader, test_loader = get_dataloaders(data, cfg)
     >>> print(f"Batches: {len(train_loader)}")
 """
@@ -48,7 +48,7 @@ class DataLoaderFactory:
     Attributes:
         cfg (Config): Validated global configuration.
         metadata (DatasetData): Data path and raw format information.
-        ds_meta (DatasetMetadata): Official MedMNIST registry specifications.
+        ds_meta (DatasetMetadata): Official dataset registry specifications.
         logger (logging.Logger): Module-specific logger.
     """
 
@@ -230,7 +230,7 @@ def get_dataloaders(metadata, cfg, is_optuna: bool = False):
     automatic class balancing, hardware optimization, and Optuna support.
 
     Args:
-        metadata: Dataset metadata from load_medmnist (paths, splits)
+        metadata: Dataset metadata from load_dataset (paths, splits)
         cfg: Global configuration with batch size, workers, and augmentation settings
         is_optuna: If True, use memory-conservative settings for hyperparameter tuning
 
@@ -238,7 +238,7 @@ def get_dataloaders(metadata, cfg, is_optuna: bool = False):
         Tuple of (train_loader, val_loader, test_loader)
 
     Example:
-        >>> data = load_medmnist(ds_meta)
+        >>> data = load_dataset(ds_meta)
         >>> loaders = get_dataloaders(data, cfg, is_optuna=False)
         >>> train_loader, val_loader, test_loader = loaders
     """
