@@ -23,9 +23,10 @@ Example:
     >>> print(f"Batches: {len(train_loader)}")
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import Dict, Optional, Tuple
 
 import numpy as np
 import torch
@@ -66,7 +67,7 @@ class DataLoaderFactory:
         self.ds_meta = wrapper.get_dataset(cfg.dataset.dataset_name)
         self.logger = logging.getLogger(LOGGER_NAME)
 
-    def _get_transformation_pipelines(self) -> Tuple[torch.nn.Module, torch.nn.Module]:
+    def _get_transformation_pipelines(self) -> tuple[torch.nn.Module, torch.nn.Module]:
         """Retrieves specialized vision pipelines.
 
         Returns:
@@ -74,7 +75,7 @@ class DataLoaderFactory:
         """
         return get_pipeline_transforms(self.cfg, self.ds_meta)
 
-    def _get_balancing_sampler(self, dataset: VisionDataset) -> Optional[WeightedRandomSampler]:
+    def _get_balancing_sampler(self, dataset: VisionDataset) -> WeightedRandomSampler | None:
         """Calculates class weights and builds a WeightedRandomSampler.
 
         This method addresses class imbalance by assigning higher sampling
@@ -101,7 +102,7 @@ class DataLoaderFactory:
                 "Their sampling weight has been set to 1.0."
             )
         class_weights = 1.0 / safe_counts
-        weight_map: Dict[int, float] = dict(zip(classes, class_weights))
+        weight_map: dict[int, float] = dict(zip(classes, class_weights))
 
         sample_weights = torch.tensor(
             [weight_map[int(label)] for label in labels], dtype=torch.float
@@ -156,7 +157,7 @@ class DataLoaderFactory:
             "persistent_workers": (num_workers > 0) and (not is_optuna),
         }
 
-    def build(self, is_optuna: bool = False) -> Tuple[DataLoader, DataLoader, DataLoader]:
+    def build(self, is_optuna: bool = False) -> tuple[DataLoader, DataLoader, DataLoader]:
         """Constructs and returns the full suite of DataLoaders.
 
         Assembles train/val/test splits with transforms, optional class
@@ -229,7 +230,7 @@ class DataLoaderFactory:
 
 def get_dataloaders(
     metadata: DatasetData, cfg: Config, is_optuna: bool = False
-) -> Tuple[DataLoader, DataLoader, DataLoader]:
+) -> tuple[DataLoader, DataLoader, DataLoader]:
     """
     Convenience function for creating train/val/test DataLoaders.
 
@@ -242,7 +243,7 @@ def get_dataloaders(
         is_optuna: If True, use memory-conservative settings for hyperparameter tuning
 
     Returns:
-        Tuple of (train_loader, val_loader, test_loader)
+        tuple of (train_loader, val_loader, test_loader)
 
     Example:
         >>> data = load_dataset(ds_meta)

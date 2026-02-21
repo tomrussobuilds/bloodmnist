@@ -4,6 +4,8 @@ Unit tests for Galaxy10 Converter Module.
 Tests download, conversion, splitting, and NPZ creation for Galaxy10 DECals dataset.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, Mock, patch
 
 import numpy as np

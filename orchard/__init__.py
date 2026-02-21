@@ -1,5 +1,5 @@
 """
-Orchard ML: Type-Safe Deep Learning for Reproducible Research.
+Orchard ML: type-Safe Deep Learning for Reproducible Research.
 
 Top-level convenience API re-exporting the most commonly used components
 from subpackages, so users and the ``orchard`` CLI can write:

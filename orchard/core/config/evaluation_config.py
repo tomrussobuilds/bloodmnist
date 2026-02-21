@@ -18,6 +18,8 @@ Centralizes reporting parameters to ensure standardized, publication-quality
 diagnostic output for every experiment.
 """
 
+from __future__ import annotations
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .types import BatchSize, PositiveInt

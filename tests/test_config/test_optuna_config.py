@@ -5,6 +5,8 @@ Tests Optuna study configuration, early stopping parameters,
 sampler/pruner selection, and storage backend configuration.
 """
 
+from __future__ import annotations
+
 import warnings
 from pathlib import Path
 

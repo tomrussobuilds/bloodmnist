@@ -5,9 +5,11 @@ normalized confusion matrices, and sample prediction grids. Integrated with
 the Pydantic configuration engine for aesthetic and technical consistency.
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import List, Sequence
+from typing import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,7 +29,7 @@ def show_predictions(
     model: nn.Module,
     loader: DataLoader,
     device: torch.device,
-    classes: List[str],
+    classes: list[str],
     save_path: Path | None = None,
     cfg: Config | None = None,
     n: int | None = None,
@@ -121,7 +123,7 @@ def plot_training_curves(
 
 
 def plot_confusion_matrix(
-    all_labels: np.ndarray, all_preds: np.ndarray, classes: List[str], out_path: Path, cfg: Config
+    all_labels: np.ndarray, all_preds: np.ndarray, classes: list[str], out_path: Path, cfg: Config
 ) -> None:
     """Generate and save a row-normalized confusion matrix plot.
 
@@ -162,7 +164,7 @@ def _plot_single_prediction(
     image: np.ndarray,
     label: int,
     pred: int,
-    classes: List[str],
+    classes: list[str],
     cfg: "Config | None",
 ) -> None:
     """Render a single prediction cell with color-coded correctness title.
@@ -223,7 +225,7 @@ def _get_predictions_batch(model: nn.Module, loader: DataLoader, device: torch.d
         n: Number of samples to extract.
 
     Returns:
-        Tuple of ``(images, labels, preds)`` as numpy arrays.
+        tuple of ``(images, labels, preds)`` as numpy arrays.
     """
     batch = next(iter(loader))
     images_tensor = batch[0][:n].to(device)
@@ -245,7 +247,7 @@ def _setup_prediction_grid(num_samples: int, cols: int, cfg: Config | None):
         cfg: Configuration for figure size. Falls back to ``(12, 8)`` if None.
 
     Returns:
-        Tuple of ``(fig, axes)`` where axes is a flat 1-D array.
+        tuple of ``(fig, axes)`` where axes is a flat 1-D array.
     """
     rows = int(np.ceil(num_samples / cols))
     base_w, base_h = cfg.evaluation.fig_size_predictions if cfg else (12, 8)

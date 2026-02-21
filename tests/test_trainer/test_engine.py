@@ -4,6 +4,8 @@ Test Suite for Training Engine.
 Quick tests to cover core training/validation functions and eliminate codecov warnings.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest

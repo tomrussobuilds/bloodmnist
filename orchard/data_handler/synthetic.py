@@ -5,6 +5,8 @@ requiring any external downloads or network access. It generates random image
 data and labels that match the expected NPZ format specifications.
 """
 
+from __future__ import annotations
+
 import tempfile
 from pathlib import Path
 

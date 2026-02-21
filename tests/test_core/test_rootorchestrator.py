@@ -4,6 +4,8 @@ Tests all 7 phases, __enter__, __exit__, and edge cases.
 Achieves high coverage through dependency injection and mocking.
 """
 
+from __future__ import annotations
+
 import time
 from unittest.mock import MagicMock
 

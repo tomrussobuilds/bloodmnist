@@ -5,6 +5,8 @@ Tests cover initialization, training loop, checkpointing,
 early stopping, and scheduler interaction.
 """
 
+from __future__ import annotations
+
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -444,7 +446,7 @@ def test_train_loads_existing_checkpoint_when_no_improvement(
             output_path=output_path,
         )
 
-        # Set best_auc very high so model never improves
+        # set best_auc very high so model never improves
         trainer.best_auc = 0.9999
 
         mock_train.return_value = 0.5

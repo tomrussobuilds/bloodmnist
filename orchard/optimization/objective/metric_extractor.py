@@ -6,7 +6,7 @@ and tracking metrics from validation results during training
 or evaluation workflows.
 """
 
-from typing import Dict
+from __future__ import annotations
 
 
 # METRIC EXTRACTOR
@@ -38,7 +38,7 @@ class MetricExtractor:
         self.metric_name = metric_name
         self.best_metric = -float("inf")
 
-    def extract(self, val_metrics: Dict[str, float]) -> float:
+    def extract(self, val_metrics: dict[str, float]) -> float:
         """
         Extract target metric from validation results.
 

@@ -4,6 +4,8 @@ Smoke Tests for Data I/O and Checkpoints Modules.
 Tests to validate NPZ validation, checksums, and model loading.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 

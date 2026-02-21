@@ -13,8 +13,9 @@ Key responsibilities:
     - Provide error-resilient validation with fallback metrics
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Dict
 
 import optuna
 import torch
@@ -200,7 +201,7 @@ class TrialTrainingExecutor:
             use_tqdm=False,
         )
 
-    def _validate_epoch(self) -> Dict[str, float]:
+    def _validate_epoch(self) -> dict[str, float]:
         """
         Validate single epoch with error handling.
 

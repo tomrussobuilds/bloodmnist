@@ -16,8 +16,10 @@ Layout:
     * ``_deep_set`` — dot-notation dict helper for CLI overrides
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -72,9 +74,9 @@ class Config(BaseModel):
     dataset: DatasetConfig = Field(default_factory=DatasetConfig)
     evaluation: EvaluationConfig = Field(default_factory=EvaluationConfig)
     architecture: ArchitectureConfig = Field(default_factory=ArchitectureConfig)
-    optuna: Optional[OptunaConfig] = Field(default=None)
-    export: Optional[ExportConfig] = Field(default=None)
-    tracking: Optional[TrackingConfig] = Field(default=None)
+    optuna: OptunaConfig | None = Field(default=None)
+    export: ExportConfig | None = Field(default=None)
+    tracking: TrackingConfig | None = Field(default=None)
 
     @model_validator(mode="after")
     def validate_logic(self) -> "Config":
@@ -129,7 +131,7 @@ class Config(BaseModel):
 
     # -- Serialization -------------------------------------------------------
 
-    def dump_portable(self) -> Dict[str, Any]:
+    def dump_portable(self) -> dict[str, Any]:
         """
         Serialize config with environment-agnostic paths.
 
@@ -156,7 +158,7 @@ class Config(BaseModel):
 
         return full_data
 
-    def dump_serialized(self) -> Dict[str, Any]:
+    def dump_serialized(self) -> dict[str, Any]:
         """
         Convert config to JSON-compatible dict for YAML serialization.
 
@@ -174,7 +176,7 @@ class Config(BaseModel):
     def from_recipe(
         cls,
         recipe_path: Path,
-        overrides: Optional[Dict[str, Any]] = None,
+        overrides: dict[str, Any] | None = None,
     ) -> "Config":
         """
         Factory from YAML recipe with optional dot-notation overrides.
@@ -349,7 +351,7 @@ class _CrossDomainValidator:
             raise ValueError(
                 f"Pretrained {config.architecture.name} requires RGB (3 channels), "
                 f"but dataset will provide {config.dataset.effective_in_channels} channels. "
-                f"Set 'force_rgb: true' in dataset config or disable pretraining"
+                f"set 'force_rgb: true' in dataset config or disable pretraining"
             )
 
     @classmethod
@@ -413,9 +415,9 @@ class _CrossDomainValidator:
 
 
 # OVERRIDE UTILITIES
-def _deep_set(data: Dict[str, Any], dotted_key: str, value: Any) -> None:
+def _deep_set(data: dict[str, Any], dotted_key: str, value: Any) -> None:
     """
-    Set a nested dict value using a dot-separated key path.
+    set a nested dict value using a dot-separated key path.
 
     Creates intermediate dicts as needed. Used by ``Config.from_recipe``
     to apply CLI overrides before Pydantic instantiation.

@@ -12,8 +12,10 @@ Usage:
     orchard run recipes/optuna_mini_cnn.yaml --set training.epochs=30
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 import typer
 
@@ -40,7 +42,7 @@ def _version_callback(value: bool) -> None:
 @app.callback()
 def main(
     _: Annotated[
-        Optional[bool],
+        bool | None,
         typer.Option(
             "--version",
             "-V",
@@ -50,7 +52,7 @@ def main(
         ),
     ] = None,
 ) -> None:
-    """Orchard ML: Type-Safe Deep Learning for Reproducible Research."""
+    """Orchard ML: type-Safe Deep Learning for Reproducible Research."""
     ...  # pragma: no cover
 
 
@@ -93,7 +95,7 @@ def run(
         typer.Argument(help="Path to YAML recipe file."),
     ],
     set_: Annotated[
-        Optional[list[str]],
+        list[str] | None,
         typer.Option(
             "--set",
             help="Override config value (repeatable): key.path=value",
@@ -231,10 +233,10 @@ def _parse_overrides(raw: list[str]) -> dict[str, Any]:
     """Parse ``key.path=value`` strings into a flat override dict.
 
     Args:
-        raw: List of "dotted.key=value" strings from ``--set`` flags.
+        raw: list of "dotted.key=value" strings from ``--set`` flags.
 
     Returns:
-        Dict mapping dotted keys to auto-casted values.
+        dict mapping dotted keys to auto-casted values.
 
     Raises:
         typer.BadParameter: If an item has no ``=`` or an empty key.

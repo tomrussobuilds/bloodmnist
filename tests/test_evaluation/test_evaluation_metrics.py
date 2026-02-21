@@ -6,6 +6,8 @@ ensuring robust calculation of accuracy, F1-score, and ROC-AUC, including
 graceful handling of edge cases such as single-class labels.
 """
 
+from __future__ import annotations
+
 import numpy as np
 import pytest
 

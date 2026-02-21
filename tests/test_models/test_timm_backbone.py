@@ -5,6 +5,8 @@ Validates model creation, forward pass, channel adaptation,
 and error handling for arbitrary timm models.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest

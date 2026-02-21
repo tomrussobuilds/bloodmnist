@@ -6,13 +6,15 @@ at 32x32 native resolution. These datasets demonstrate framework domain-agnostic
 beyond medical and astronomical imaging.
 """
 
-from typing import Dict, Final, List
+from __future__ import annotations
+
+from typing import Final
 
 from ...paths import DATASET_DIR
 from ..base import DatasetMetadata
 
 # CIFAR-10 CLASS LABELS (index-ordered)
-_CIFAR10_CLASSES: Final[List[str]] = [
+_CIFAR10_CLASSES: Final[list[str]] = [
     "airplane",
     "automobile",
     "bird",
@@ -26,7 +28,7 @@ _CIFAR10_CLASSES: Final[List[str]] = [
 ]
 
 # CIFAR-100 FINE-GRAINED CLASS LABELS (alphabetical, matching torchvision index order)
-_CIFAR100_CLASSES: Final[List[str]] = [
+_CIFAR100_CLASSES: Final[list[str]] = [
     "apple",
     "aquarium_fish",
     "baby",
@@ -130,7 +132,7 @@ _CIFAR100_CLASSES: Final[List[str]] = [
 ]
 
 # BENCHMARK DATASET REGISTRY (32x32)
-REGISTRY_32: Final[Dict[str, DatasetMetadata]] = {
+REGISTRY_32: Final[dict[str, DatasetMetadata]] = {
     "cifar10": DatasetMetadata(
         name="cifar10",
         display_name="CIFAR-10",

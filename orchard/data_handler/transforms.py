@@ -6,7 +6,7 @@ Supports both RGB and Grayscale datasets with automatic channel promotion.
 Optimized for both CPU and GPU execution (torchvision v2).
 """
 
-from typing import Tuple
+from __future__ import annotations
 
 import torch
 from torchvision.transforms import v2
@@ -45,7 +45,7 @@ def get_augmentations_description(cfg: Config, ds_meta: DatasetMetadata | None =
     return ", ".join(descr)
 
 
-def get_pipeline_transforms(cfg: Config, ds_meta: DatasetMetadata) -> Tuple[v2.Compose, v2.Compose]:
+def get_pipeline_transforms(cfg: Config, ds_meta: DatasetMetadata) -> tuple[v2.Compose, v2.Compose]:
     """
     Constructs training and validation transformation pipelines.
 
@@ -64,7 +64,7 @@ def get_pipeline_transforms(cfg: Config, ds_meta: DatasetMetadata) -> Tuple[v2.C
         ds_meta: Dataset metadata (channels, normalization stats)
 
     Returns:
-        Tuple[v2.Compose, v2.Compose]: (train_transform, val_transform)
+        tuple[v2.Compose, v2.Compose]: (train_transform, val_transform)
     """
 
     # Determine if dataset is native RGB or requires grayscale promotion
@@ -84,7 +84,7 @@ def get_pipeline_transforms(cfg: Config, ds_meta: DatasetMetadata) -> Tuple[v2.C
         Foundational operations common to all pipelines.
 
         Returns:
-            List of base transforms (tensor conversion + channel promotion)
+            list of base transforms (tensor conversion + channel promotion)
         """
         ops = [
             v2.ToImage(),  # Convert PIL/ndarray to tensor

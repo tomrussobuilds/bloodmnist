@@ -6,6 +6,8 @@ and compute resource optimization. It manages the detection of available
 accelerators and synchronizes PyTorch threading with system capabilities.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import platform

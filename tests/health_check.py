@@ -7,6 +7,8 @@ Usage:
     python -m tests.health_check --dataset bloodmnist --resolution 28
 """
 
+from __future__ import annotations
+
 import argparse
 import logging
 

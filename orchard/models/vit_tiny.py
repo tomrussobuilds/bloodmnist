@@ -17,6 +17,8 @@ Pretrained Weight Options:
     - 'vit_tiny_patch16_224': ImageNet-1k baseline
 """
 
+from __future__ import annotations
+
 import logging
 from typing import cast
 
@@ -83,7 +85,7 @@ def build_vit_tiny(
     if in_channels != 3:
         logger.info(f"Adapting patch embedding from 3 to {in_channels} channels")
 
-        # Type-narrow patch_embed.proj to Conv2d for mypy
+        # type-narrow patch_embed.proj to Conv2d for mypy
         # Note: timm VisionTransformer.patch_embed has dynamic type, ignore for type checking
         old_proj = cast(nn.Conv2d, model.patch_embed.proj)  # type: ignore[union-attr]
 

@@ -5,6 +5,8 @@ These tests validate the functionality of the hyperparameter search space defini
 They ensure that search spaces are correctly defined and resolved for different configurations.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest

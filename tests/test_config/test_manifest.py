@@ -5,6 +5,8 @@ Tests main Config class integration, cross-validation,
 serialization, and from_recipe factory.
 """
 
+from __future__ import annotations
+
 import pytest
 from pydantic import ValidationError
 

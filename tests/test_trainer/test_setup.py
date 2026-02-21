@@ -4,6 +4,8 @@ Test Suite for Optimization Setup Module.
 Covers get_criterion, get_optimizer, and get_scheduler factories.
 """
 
+from __future__ import annotations
+
 from types import SimpleNamespace
 
 import pytest

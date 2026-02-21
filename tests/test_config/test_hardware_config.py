@@ -5,6 +5,8 @@ Tests device resolution, reproducibility mode, num_workers logic,
 and lock file path generation.
 """
 
+from __future__ import annotations
+
 import tempfile
 
 import pytest

@@ -21,6 +21,8 @@ Typical Usage:
     ...     save_checkpoint(model)
 """
 
+from __future__ import annotations
+
 import os
 
 

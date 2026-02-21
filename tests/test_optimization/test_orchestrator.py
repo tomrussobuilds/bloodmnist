@@ -5,6 +5,8 @@ Focused on testing the orchestrator logic with proper mocking
 to avoid triggering real downloads, file I/O, or network calls.
 """
 
+from __future__ import annotations
+
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 

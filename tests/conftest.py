@@ -9,6 +9,8 @@ This module provides reusable test fixtures for configuration testing, including
 Fixtures are automatically discovered by pytest across all test modules.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from orchard.core.metadata import DatasetMetadata

@@ -5,15 +5,17 @@ Downloads and converts Galaxy10 DECals HDF5 dataset to NPZ format
 compatible with the Orchard ML pipeline. Creates train/val/test splits.
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import Tuple
 
 import h5py
 import numpy as np
 import requests
 from PIL import Image
 
+from ...core.metadata import DatasetMetadata
 from ...core.paths import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
@@ -140,7 +142,7 @@ def _create_splits(
     seed: int = 42,
     train_ratio: float = 0.7,
     val_ratio: float = 0.15,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Creates stratified train/val/test splits.
 
@@ -152,7 +154,7 @@ def _create_splits(
         val_ratio: Validation split ratio
 
     Returns:
-        Tuple of (train_imgs, train_labels, val_imgs, val_labels, test_imgs, test_labels)
+        tuple of (train_imgs, train_labels, val_imgs, val_labels, test_imgs, test_labels)
     """
     rng = np.random.default_rng(seed)
 
@@ -206,7 +208,7 @@ def _create_splits(
     )
 
 
-def ensure_galaxy10_npz(metadata) -> Path:
+def ensure_galaxy10_npz(metadata: DatasetMetadata) -> Path:
     """
     Ensures Galaxy10 is downloaded and converted to NPZ format.
 
@@ -238,10 +240,11 @@ def ensure_galaxy10_npz(metadata) -> Path:
     download_galaxy10_h5(metadata.url, h5_path)
 
     # Convert to NPZ
+    target_size = metadata.native_resolution or 224
     convert_galaxy10_to_npz(
         h5_path=h5_path,
         output_npz=target_npz,
-        target_size=metadata.native_resolution,
+        target_size=target_size,
     )
 
     # Report MD5

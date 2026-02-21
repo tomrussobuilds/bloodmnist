@@ -7,7 +7,7 @@ to the DatasetConfig, ensuring a Single Source of Truth (SSOT) and preventing
 architectural mismatches during model instantiation.
 """
 
-from typing import Optional
+from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -46,7 +46,7 @@ class ArchitectureConfig(BaseModel):
         default=0.2, description="Dropout probability for the classification head."
     )
 
-    weight_variant: Optional[str] = Field(
+    weight_variant: str | None = Field(
         default=None,
         description=(
             "Pretrained weight variant for architectures with multiple options. "

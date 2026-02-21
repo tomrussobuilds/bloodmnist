@@ -14,8 +14,9 @@ Example:
     >>> print(f"Test AUC: {metrics['auc']:.4f}")
 """
 
+from __future__ import annotations
+
 import logging
-from typing import List, Tuple
 
 import numpy as np
 import torch
@@ -38,7 +39,7 @@ def evaluate_model(
     is_anatomical: bool = False,
     is_texture_based: bool = False,
     cfg: Config = None,
-) -> Tuple[np.ndarray, np.ndarray, dict, float]:
+) -> tuple[np.ndarray, np.ndarray, dict, float]:
     """
     Performs full-set inference and coordinates metric calculation.
 
@@ -52,11 +53,11 @@ def evaluate_model(
         cfg: Global configuration manifest.
 
     Returns:
-        Tuple containing predictions, labels, metrics dict, and macro-f1 scalar.
+        tuple containing predictions, labels, metrics dict, and macro-f1 scalar.
     """
     model.eval()
-    all_probs_list: List[np.ndarray] = []
-    all_labels_list: List[np.ndarray] = []
+    all_probs_list: list[np.ndarray] = []
+    all_labels_list: list[np.ndarray] = []
 
     actual_tta = use_tta and (cfg is not None)
 

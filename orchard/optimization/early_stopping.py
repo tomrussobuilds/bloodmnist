@@ -5,8 +5,9 @@ Terminates optimization when a satisfactory metric threshold is reached,
 preventing wasteful computation when near-perfect performance is achieved.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Optional
 
 from optuna.study import Study
 from optuna.trial import FrozenTrial, TrialState
@@ -139,10 +140,10 @@ class StudyEarlyStoppingCallback:
 def get_early_stopping_callback(
     metric_name: str,
     direction: str,
-    threshold: Optional[float] = None,
+    threshold: float | None = None,
     patience: int = 2,
     enabled: bool = True,
-) -> Optional[StudyEarlyStoppingCallback]:
+) -> StudyEarlyStoppingCallback | None:
     """
     Factory function to create appropriate early stopping callback.
 
@@ -182,7 +183,7 @@ def get_early_stopping_callback(
         if threshold is None:
             logger.warning(
                 f"No default threshold for metric '{metric_name}'. "
-                f"Early stopping disabled. Set threshold manually to enable."
+                f"Early stopping disabled. set threshold manually to enable."
             )
             return None
 

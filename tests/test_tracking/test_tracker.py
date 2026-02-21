@@ -5,6 +5,8 @@ Tests cover the create_tracker factory, NoOpTracker interface,
 and tracker integration points in trainer, evaluation, and optimization.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest

@@ -22,7 +22,7 @@ from __future__ import annotations
 import logging
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -76,9 +76,9 @@ class ModelTrainer:
         scaler (torch.amp.GradScaler): Automatic Mixed Precision scaler
         mixup_fn (callable | None): Mixup augmentation function (partial of mixup_data)
         best_path (Path): Filesystem path for best model checkpoint
-        train_losses (List[float]): Training loss history per epoch
-        val_metrics_history (List[dict]): Validation metrics history per epoch
-        val_aucs (List[float]): Validation AUC history per epoch
+        train_losses (list[float]): Training loss history per epoch
+        val_metrics_history (list[dict]): Validation metrics history per epoch
+        val_aucs (list[float]): Validation AUC history per epoch
 
     Example:
         >>> from orchard.trainer import ModelTrainer
@@ -156,16 +156,16 @@ class ModelTrainer:
         self.best_path.parent.mkdir(parents=True, exist_ok=True)
 
         # History tracking
-        self.train_losses: List[float] = []
-        self.val_metrics_history: List[dict] = []
-        self.val_aucs: List[float] = []
+        self.train_losses: list[float] = []
+        self.val_metrics_history: list[dict] = []
+        self.val_aucs: list[float] = []
 
         # Track if we saved at least one valid checkpoint during training
         self._checkpoint_saved: bool = False
 
         logger.info(f"Trainer initialized. Best model checkpoint: {self.best_path.name}")
 
-    def train(self) -> Tuple[Path, List[float], List[dict]]:
+    def train(self) -> tuple[Path, list[float], list[dict]]:
         """
         Executes the main training loop with checkpointing and early stopping.
 
@@ -177,10 +177,10 @@ class ModelTrainer:
             - Early stopping with patience-based criteria
 
         Returns:
-            Tuple containing:
+            tuple containing:
                 - Path: Filesystem path to best model checkpoint
-                - List[float]: Training loss history per epoch
-                - List[dict]: Validation metrics history (loss, accuracy, AUC per epoch)
+                - list[float]: Training loss history per epoch
+                - list[dict]: Validation metrics history (loss, accuracy, AUC per epoch)
 
         Notes:
             - Model weights are automatically restored to best checkpoint after training

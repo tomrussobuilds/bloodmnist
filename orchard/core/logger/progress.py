@@ -5,8 +5,10 @@ Provides formatted logging utilities for training progress, Optuna optimization,
 and pipeline completion summaries.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any
 
 import optuna
 
@@ -37,7 +39,7 @@ def _count_trial_states(study: "optuna.Study") -> tuple[list, list, list]:
         study: Optuna study containing trials to count.
 
     Returns:
-        Tuple of (completed, pruned, failed) trial lists.
+        tuple of (completed, pruned, failed) trial lists.
     """
     completed = [t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE]
     pruned = [t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED]
@@ -89,7 +91,7 @@ def log_optimization_header(cfg: "Config", logger_instance: logging.Logger | Non
 
 
 def log_trial_start(
-    trial_number: int, params: Dict[str, Any], logger_instance: logging.Logger | None = None
+    trial_number: int, params: dict[str, Any], logger_instance: logging.Logger | None = None
 ) -> None:
     """
     Log trial start with formatted parameters (grouped by category).
@@ -174,7 +176,7 @@ def log_study_summary(
 
 
 def log_trial_params_compact(
-    params: Dict[str, Any], logger_instance: logging.Logger | None = None
+    params: dict[str, Any], logger_instance: logging.Logger | None = None
 ) -> None:
     """
     Compact parameter logging for best trial summary.

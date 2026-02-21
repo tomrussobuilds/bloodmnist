@@ -5,6 +5,8 @@ Provides tools for verifying file integrity via checksums and validating
 the structure of NPZ dataset archives.
 """
 
+from __future__ import annotations
+
 import hashlib
 from pathlib import Path
 

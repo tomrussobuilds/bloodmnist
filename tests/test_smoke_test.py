@@ -6,6 +6,8 @@ that run real training. This module validates their imports and Config
 construction so breakage is caught by pytest before CI runs them.
 """
 
+from __future__ import annotations
+
 from health_check import _build_health_check_config
 from smoke_test import _build_smoke_config
 

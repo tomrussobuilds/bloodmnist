@@ -4,6 +4,8 @@ Test Suite for Reproducibility Utilities.
 Covers deterministic seeding and DataLoader worker initialization logic.
 """
 
+from __future__ import annotations
+
 import os
 import random
 from unittest.mock import MagicMock, patch

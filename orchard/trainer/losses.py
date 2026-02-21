@@ -7,7 +7,7 @@ Focal Loss to handle extreme class imbalances and difficult samples
 often encountered in medical imaging and fine-grained classification.
 """
 
-from typing import Optional
+from __future__ import annotations
 
 import torch
 import torch.nn as nn
@@ -35,9 +35,7 @@ class FocalLoss(nn.Module):
             each class.
     """
 
-    def __init__(
-        self, gamma: float = 2.0, alpha: float = 1.0, weight: Optional[torch.Tensor] = None
-    ):
+    def __init__(self, gamma: float = 2.0, alpha: float = 1.0, weight: torch.Tensor | None = None):
         super(FocalLoss, self).__init__()
         self.gamma = gamma
         self.alpha = alpha

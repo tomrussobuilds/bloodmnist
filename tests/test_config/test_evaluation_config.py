@@ -5,6 +5,8 @@ Tests inference settings, visualization parameters,
 and report export format validation.
 """
 
+from __future__ import annotations
+
 import pytest
 from pydantic import ValidationError
 

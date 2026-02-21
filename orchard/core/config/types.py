@@ -1,5 +1,5 @@
 """
-Semantic Type Definitions & Validation Primitives.
+Semantic type Definitions & Validation Primitives.
 
 Foundational type-system for the configuration engine. Leverages Pydantic's
 Annotated types and Functional Validators to enforce domain-specific
@@ -11,7 +11,7 @@ Core Responsibilities:
       expansion (~), ensuring consistency without disk I/O
     * Boundary enforcement: Strict validation of hyperparameters (LR,
       probabilities, smoothing) using field constraints to prevent unstable states
-    * Type aliasing: Centralized registry of domain-specific types (WorkerCount,
+    * type aliasing: Centralized registry of domain-specific types (WorkerCount,
       ProjectSlug, LearningRate) for semantic consistency
     * Serialization policy: Custom serialization for complex objects (Path)
       ensuring JSON/YAML compatibility
@@ -19,6 +19,8 @@ Core Responsibilities:
 Catches invalid states at application edge during schema initialization,
 preventing runtime failures in deeper orchestration layers.
 """
+
+from __future__ import annotations
 
 from pathlib import Path
 from typing import Annotated, Literal

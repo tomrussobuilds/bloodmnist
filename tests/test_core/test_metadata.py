@@ -5,6 +5,8 @@ Tests DatasetMetadata base model and DatasetRegistryWrapper
 for validation, property methods, and error handling.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 from unittest.mock import patch
 

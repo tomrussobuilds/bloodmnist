@@ -6,6 +6,8 @@ They ensure that early stopping occurs under appropriate conditions and that all
 states, such as patience and threshold checks, are correctly handled.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest

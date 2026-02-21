@@ -4,6 +4,8 @@ This module verifies the forward pass logic and validates output tensor shapes
 for image classification datasets.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest

@@ -5,6 +5,8 @@ Tests the YAML-first factory path used by the ``orchard`` CLI,
 including dot-notation override application.
 """
 
+from __future__ import annotations
+
 import pytest
 import yaml
 

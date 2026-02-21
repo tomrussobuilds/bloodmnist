@@ -13,8 +13,10 @@ Key Components:
     LazyNPZDataset: Memory-mapped dataset for lightweight health checks.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Final, Tuple
+from typing import Final
 
 import numpy as np
 import torch
@@ -24,7 +26,7 @@ from torchvision import transforms
 
 
 # DATASET CLASS
-class VisionDataset(Dataset[Tuple[torch.Tensor, torch.Tensor]]):
+class VisionDataset(Dataset[tuple[torch.Tensor, torch.Tensor]]):
     """
     Enhanced PyTorch Dataset for NPZ-based vision data.
 
@@ -84,7 +86,7 @@ class VisionDataset(Dataset[Tuple[torch.Tensor, torch.Tensor]]):
         """Returns the total number of samples currently in the dataset."""
         return len(self.labels)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Retrieves a standardized sample-label pair.
 
@@ -133,7 +135,7 @@ class LazyNPZDataset(Dataset):
         """Returns the total number of samples in the dataset."""
         return len(self.labels)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, int]:
         """Retrieves a normalized (C, H, W) tensor and its integer label.
 
         Args:

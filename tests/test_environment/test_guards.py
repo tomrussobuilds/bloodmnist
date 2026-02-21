@@ -5,6 +5,8 @@ Tests filesystem locking, duplicate process detection,
 and process termination utilities.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import sys

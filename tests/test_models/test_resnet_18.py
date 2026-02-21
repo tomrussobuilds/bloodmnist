@@ -4,6 +4,8 @@ Tests 28x28 (adapted stem), 32x32 (adapted stem), 64x64 (standard stem),
 and 224x224 (standard stem).
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest

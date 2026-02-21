@@ -5,6 +5,8 @@ Covers creation of RGB and grayscale synthetic datasets,
 NPZ file structure, metadata correctness, and data integrity.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 
 import numpy as np

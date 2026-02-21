@@ -5,6 +5,8 @@ Covers dataset initialization, deterministic subsampling,
 RGB vs grayscale handling, and __getitem__ behavior.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 
 import numpy as np

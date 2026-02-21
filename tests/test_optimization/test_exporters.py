@@ -6,6 +6,8 @@ configurations such as best config, study summary, and top trials. It ensures
 correct behavior of configuration serialization and export to formats such as YAML, JSON, and Excel.
 """
 
+from __future__ import annotations
+
 import json
 from datetime import datetime
 from unittest.mock import MagicMock, patch

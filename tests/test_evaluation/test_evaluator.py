@@ -4,6 +4,8 @@ This module verifies model inference, Test-Time Augmentation (TTA) logic,
 and logging behavior during the evaluation process.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest

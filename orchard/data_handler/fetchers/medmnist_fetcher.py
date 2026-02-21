@@ -6,6 +6,8 @@ and atomic file operations. Follows the same pattern as ``galaxy10_converter``
 to keep each domain's fetch logic self-contained.
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from pathlib import Path
@@ -126,7 +128,7 @@ def _stream_download(url: str, tmp_path: Path, chunk_size: int = 8192):
     with requests.get(url, headers=headers, timeout=60, stream=True, allow_redirects=True) as r:
         r.raise_for_status()
 
-        content_type = r.headers.get("Content-Type", "")
+        content_type = r.headers.get("Content-type", "")
         if "text/html" in content_type:
             raise ValueError("Downloaded file is an HTML page, not the expected NPZ file.")
 

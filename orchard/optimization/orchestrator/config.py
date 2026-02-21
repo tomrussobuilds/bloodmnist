@@ -10,8 +10,10 @@ These registries enable the factory pattern in builders.py and
 provide a single point of maintenance for supported algorithms.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Callable, Dict, Set, Tuple
+from typing import Callable
 
 from optuna.pruners import HyperbandPruner, MedianPruner, NopPruner, PercentilePruner
 from optuna.samplers import CmaEsSampler, GridSampler, RandomSampler, TPESampler
@@ -22,13 +24,13 @@ from ...core import LOGGER_NAME
 logger = logging.getLogger(LOGGER_NAME)
 
 
-# Type aliases for clarity
+# type aliases for clarity
 SamplerFactory = Callable[[], object]
 PrunerFactory = Callable[[], object]
 
 # ==================== SAMPLER REGISTRY ====================
 
-SAMPLER_REGISTRY: Dict[str, type] = {
+SAMPLER_REGISTRY: dict[str, type] = {
     "tpe": TPESampler,
     "cmaes": CmaEsSampler,
     "random": RandomSampler,
@@ -38,7 +40,7 @@ SAMPLER_REGISTRY: Dict[str, type] = {
 
 # ==================== PRUNER REGISTRY ====================
 
-PRUNER_REGISTRY: Dict[str, PrunerFactory] = {
+PRUNER_REGISTRY: dict[str, PrunerFactory] = {
     "median": MedianPruner,
     "percentile": lambda: PercentilePruner(percentile=25.0),
     "hyperband": HyperbandPruner,
@@ -48,7 +50,7 @@ PRUNER_REGISTRY: Dict[str, PrunerFactory] = {
 
 # ==================== PARAMETER MAPPING ====================
 
-TRAINING_PARAMS: Set[str] = {
+TRAINING_PARAMS: set[str] = {
     "learning_rate",
     "weight_decay",
     "momentum",
@@ -61,19 +63,19 @@ TRAINING_PARAMS: Set[str] = {
 }
 """Hyperparameters that belong in the training section of Config."""
 
-ARCHITECTURE_PARAMS: Set[str] = {
+ARCHITECTURE_PARAMS: set[str] = {
     "dropout",
 }
 """Hyperparameters that belong in the architecture section of Config."""
 
-AUGMENTATION_PARAMS: Set[str] = {
+AUGMENTATION_PARAMS: set[str] = {
     "rotation_angle",
     "jitter_val",
     "min_scale",
 }
 """Hyperparameters that belong in the augmentation section of Config."""
 
-SPECIAL_PARAMS: Dict[str, Tuple[str, str]] = {
+SPECIAL_PARAMS: dict[str, tuple[str, str]] = {
     "model_name": ("architecture", "name"),
     "weight_variant": ("architecture", "weight_variant"),
 }
@@ -81,7 +83,7 @@ SPECIAL_PARAMS: Dict[str, Tuple[str, str]] = {
 # ==================== HELPER FUNCTIONS ====================
 
 
-def map_param_to_config_path(param_name: str) -> Tuple[str, str]:
+def map_param_to_config_path(param_name: str) -> tuple[str, str]:
     """
     Map hyperparameter name to its location in Config hierarchy.
 
@@ -89,7 +91,7 @@ def map_param_to_config_path(param_name: str) -> Tuple[str, str]:
         param_name: Name of the hyperparameter from Optuna trial
 
     Returns:
-        Tuple of (section, key) for navigating the config dict
+        tuple of (section, key) for navigating the config dict
 
     Example:
         >>> section, key = map_param_to_config_path("learning_rate")

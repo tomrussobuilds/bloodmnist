@@ -4,6 +4,8 @@ Test Suite for Pipeline Phase Functions.
 Tests for run_optimization_phase, run_training_phase, and run_export_phase.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 

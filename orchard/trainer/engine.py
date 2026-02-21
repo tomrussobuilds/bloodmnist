@@ -11,8 +11,10 @@ Key Functions:
     mixup_data: Beta-distribution sample blending for regularization
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Callable, Optional, Tuple
+from typing import Callable
 
 import numpy as np
 import torch
@@ -31,7 +33,7 @@ def _backward_step(
     loss: torch.Tensor,
     optimizer: torch.optim.Optimizer,
     model: nn.Module,
-    scaler: Optional[torch.amp.grad_scaler.GradScaler],
+    scaler: torch.amp.grad_scaler.GradScaler | None,
     grad_clip: float,
 ) -> None:
     """Perform a backward pass with optional gradient scaling and clipping.
@@ -43,7 +45,7 @@ def _backward_step(
         loss (torch.Tensor): The computed loss for the current batch.
         optimizer (torch.optim.Optimizer): The optimizer used to update model parameters.
         model (nn.Module): The neural network model whose parameters will be updated.
-        scaler (Optional[torch.cuda.amp.GradScaler]): Automatic Mixed Precision (AMP) scaler.
+        scaler (torch.cuda.amp.GradScaler | None): Automatic Mixed Precision (AMP) scaler.
             If `None`, standard precision backward pass is used.
         grad_clip (float): Maximum norm for gradient clipping. If <= 0, no clipping is applied.
     """
@@ -69,8 +71,8 @@ def train_one_epoch(
     criterion: nn.Module,
     optimizer: torch.optim.Optimizer,
     device: torch.device,
-    mixup_fn: Optional[Callable] = None,
-    scaler: Optional[torch.amp.grad_scaler.GradScaler] = None,
+    mixup_fn: Callable | None = None,
+    scaler: torch.amp.grad_scaler.GradScaler | None = None,
     grad_clip: float = 0.0,
     epoch: int = 0,
     total_epochs: int = 1,
@@ -233,8 +235,8 @@ def mixup_data(
     x: torch.Tensor,
     y: torch.Tensor,
     alpha: float = 1.0,
-    rng: Optional[np.random.Generator] = None,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, float]:
+    rng: np.random.Generator | None = None,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, float]:
     """
     Applies MixUp augmentation by blending two random samples.
 
@@ -249,7 +251,7 @@ def mixup_data(
         rng: NumPy random generator for reproducibility (seeded from config)
 
     Returns:
-        Tuple containing:
+        tuple containing:
             - mixed_x: Blended input images
             - y_a: Original targets
             - y_b: Permuted targets

@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING
 
 import optuna
 import torch
@@ -54,7 +54,7 @@ def run_optimization_phase(
     orchestrator: RootOrchestrator,
     cfg: Config | None = None,
     tracker: TrackerProtocol | None = None,
-) -> Tuple[optuna.Study, Path | None]:
+) -> tuple[optuna.Study, Path | None]:
     """
     Execute hyperparameter optimization phase.
 
@@ -67,7 +67,7 @@ def run_optimization_phase(
         tracker: Optional experiment tracker for MLflow nested trial logging
 
     Returns:
-        Tuple of (completed study, path to best_config.yaml or None)
+        tuple of (completed study, path to best_config.yaml or None)
 
     Example:
         >>> with RootOrchestrator(cfg) as orch:
@@ -79,7 +79,7 @@ def run_optimization_phase(
     device = orchestrator.get_device()
     run_logger = orchestrator.run_logger
 
-    # Type guards for MyPy
+    # type guards for MyPy
     assert run_logger is not None, _ERR_LOGGER_NOT_INIT  # nosec B101
     assert paths is not None, _ERR_PATHS_NOT_INIT  # nosec B101
 
@@ -109,7 +109,7 @@ def run_training_phase(
     orchestrator: RootOrchestrator,
     cfg: Config | None = None,
     tracker: TrackerProtocol | None = None,
-) -> Tuple[Path, List[float], List[dict], nn.Module, float, float]:
+) -> tuple[Path, list[float], list[dict], nn.Module, float, float]:
     """
     Execute model training phase.
 
@@ -122,7 +122,7 @@ def run_training_phase(
         tracker: Optional experiment tracker for MLflow metric logging
 
     Returns:
-        Tuple of (best_model_path, train_losses, val_metrics, model, macro_f1, test_acc)
+        tuple of (best_model_path, train_losses, val_metrics, model, macro_f1, test_acc)
 
     Example:
         >>> with RootOrchestrator(cfg) as orch:
@@ -134,7 +134,7 @@ def run_training_phase(
     device = orchestrator.get_device()
     run_logger = orchestrator.run_logger
 
-    # Type guards for MyPy
+    # type guards for MyPy
     assert run_logger is not None, _ERR_LOGGER_NOT_INIT  # nosec B101
     assert paths is not None, _ERR_PATHS_NOT_INIT  # nosec B101
 
@@ -245,7 +245,7 @@ def run_export_phase(
     paths = orchestrator.paths
     run_logger = orchestrator.run_logger
 
-    # Type guards for MyPy
+    # type guards for MyPy
     assert run_logger is not None, _ERR_LOGGER_NOT_INIT  # nosec B101
     assert paths is not None, _ERR_PATHS_NOT_INIT  # nosec B101
 

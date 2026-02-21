@@ -6,6 +6,8 @@ under anatomical, texture-based, and config-driven tta_mode constraints.
 Forced to CPU for consistent testing.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest

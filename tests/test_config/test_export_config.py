@@ -5,6 +5,8 @@ Tests model export configuration, format validation, ONNX/TorchScript
 parameters, quantization settings, and validation options.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 
 import pytest

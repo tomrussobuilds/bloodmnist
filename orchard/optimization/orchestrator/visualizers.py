@@ -11,6 +11,8 @@ All functions handle missing dependencies (plotly) and plot generation
 failures gracefully with informative logging.
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
 from typing import Any, Callable

@@ -5,6 +5,8 @@ Tests infrastructure resource management, lock file handling,
 and compute cache flushing.
 """
 
+from __future__ import annotations
+
 from types import SimpleNamespace
 from unittest.mock import patch
 

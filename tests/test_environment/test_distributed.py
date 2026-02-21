@@ -5,6 +5,8 @@ Tests rank, local_rank, world_size detection from environment variables
 and the is_distributed / is_main_process helpers.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from orchard.core.environment.distributed import (

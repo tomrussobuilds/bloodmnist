@@ -5,6 +5,8 @@ Tests the builder functions that construct Optuna components from configuration
 strings, ensuring proper error handling and component instantiation.
 """
 
+from __future__ import annotations
+
 import pytest
 from optuna.pruners import HyperbandPruner, MedianPruner, NopPruner, PercentilePruner
 from optuna.samplers import CmaEsSampler, RandomSampler, TPESampler

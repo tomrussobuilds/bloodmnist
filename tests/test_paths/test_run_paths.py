@@ -5,6 +5,8 @@ Tests atomic run isolation, unique ID generation, directory creation,
 and path resolution for experiment artifacts.
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 from pathlib import Path

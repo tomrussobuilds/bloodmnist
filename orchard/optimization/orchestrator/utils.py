@@ -9,13 +9,13 @@ Provides helper functions for working with Optuna studies:
 These utilities eliminate code duplication across orchestrator modules.
 """
 
-from typing import List
+from __future__ import annotations
 
 import optuna
 
 
 # HELPER FUNCTIONS
-def get_completed_trials(study: optuna.Study) -> List[optuna.trial.FrozenTrial]:
+def get_completed_trials(study: optuna.Study) -> list[optuna.trial.FrozenTrial]:
     """
     Extract all successfully completed trials from study.
 
@@ -23,7 +23,7 @@ def get_completed_trials(study: optuna.Study) -> List[optuna.trial.FrozenTrial]:
         study: Optuna study instance
 
     Returns:
-        List of trials with state == TrialState.COMPLETE
+        list of trials with state == TrialState.COMPLETE
 
     Example:
         >>> completed = get_completed_trials(study)

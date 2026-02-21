@@ -5,7 +5,9 @@ Contains DatasetMetadata instances for the MedMNIST v2 collection at
 28x28, 64x64, and 224x224 resolutions. All datasets sourced from Zenodo.
 """
 
-from typing import Dict, Final, List
+from __future__ import annotations
+
+from typing import Final
 
 from ...paths import DATASET_DIR
 from ..base import DatasetMetadata
@@ -14,7 +16,7 @@ from ..base import DatasetMetadata
 # Shared class-label constants (single source of truth across resolutions)
 # ---------------------------------------------------------------------------
 
-_PATHMNIST_CLASSES: Final[List[str]] = [
+_PATHMNIST_CLASSES: Final[list[str]] = [
     "adipose",
     "background",
     "debris",
@@ -26,7 +28,7 @@ _PATHMNIST_CLASSES: Final[List[str]] = [
     "colorectal adenocarcinoma epithelium",
 ]
 
-_BLOODMNIST_CLASSES: Final[List[str]] = [
+_BLOODMNIST_CLASSES: Final[list[str]] = [
     "basophil",
     "eosinophil",
     "erythroblast",
@@ -37,7 +39,7 @@ _BLOODMNIST_CLASSES: Final[List[str]] = [
     "platelet",
 ]
 
-_DERMAMNIST_CLASSES: Final[List[str]] = [
+_DERMAMNIST_CLASSES: Final[list[str]] = [
     "actinic keratoses",
     "basal cell carcinoma",
     "benign keratosis",
@@ -47,16 +49,16 @@ _DERMAMNIST_CLASSES: Final[List[str]] = [
     "vascular lesions",
 ]
 
-_OCTMNIST_CLASSES: Final[List[str]] = [
+_OCTMNIST_CLASSES: Final[list[str]] = [
     "choroidal neovascularization",
     "diabetic macular edema",
     "drusen",
     "normal",
 ]
 
-_PNEUMONIAMNIST_CLASSES: Final[List[str]] = ["normal", "pneumonia"]
+_PNEUMONIAMNIST_CLASSES: Final[list[str]] = ["normal", "pneumonia"]
 
-_RETINAMNIST_CLASSES: Final[List[str]] = [
+_RETINAMNIST_CLASSES: Final[list[str]] = [
     "No DR",
     "Mild DR",
     "Moderate DR",
@@ -64,9 +66,9 @@ _RETINAMNIST_CLASSES: Final[List[str]] = [
     "Proliferative DR",
 ]
 
-_BREASTMNIST_CLASSES: Final[List[str]] = ["malignant", "benign"]
+_BREASTMNIST_CLASSES: Final[list[str]] = ["malignant", "benign"]
 
-_ORGAN_CLASSES: Final[List[str]] = [
+_ORGAN_CLASSES: Final[list[str]] = [
     "bladder",
     "femur-left",
     "femur-right",
@@ -80,7 +82,7 @@ _ORGAN_CLASSES: Final[List[str]] = [
     "spleen",
 ]
 
-_TISSUEMNIST_CLASSES: Final[List[str]] = [
+_TISSUEMNIST_CLASSES: Final[list[str]] = [
     "Collecting Duct",
     "Distal Tubule",
     "Glomerulus",
@@ -94,7 +96,7 @@ _TISSUEMNIST_CLASSES: Final[List[str]] = [
 # ---------------------------------------------------------------------------
 # MEDMNIST v2 REGISTRY (28x28 Resolution)
 # ---------------------------------------------------------------------------
-REGISTRY_28: Final[Dict[str, DatasetMetadata]] = {
+REGISTRY_28: Final[dict[str, DatasetMetadata]] = {
     "pathmnist": DatasetMetadata(
         name="pathmnist",
         display_name="PathMNIST",
@@ -254,7 +256,7 @@ REGISTRY_28: Final[Dict[str, DatasetMetadata]] = {
 # ---------------------------------------------------------------------------
 # MEDMNIST v2 REGISTRY (224x224 Resolution)
 # ---------------------------------------------------------------------------
-REGISTRY_224: Final[Dict[str, DatasetMetadata]] = {
+REGISTRY_224: Final[dict[str, DatasetMetadata]] = {
     "pathmnist": DatasetMetadata(
         name="pathmnist",
         display_name="PathMNIST",
@@ -414,7 +416,7 @@ REGISTRY_224: Final[Dict[str, DatasetMetadata]] = {
 # ---------------------------------------------------------------------------
 # MEDMNIST v2 REGISTRY (64x64 Resolution)
 # ---------------------------------------------------------------------------
-REGISTRY_64: Final[Dict[str, DatasetMetadata]] = {
+REGISTRY_64: Final[dict[str, DatasetMetadata]] = {
     "pathmnist": DatasetMetadata(
         name="pathmnist",
         display_name="PathMNIST",

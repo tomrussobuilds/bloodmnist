@@ -10,10 +10,11 @@ All export functions handle edge cases (no completed trials, missing
 timestamps) and provide informative logging with professional Excel formatting.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import optuna
 import pandas as pd
@@ -223,7 +224,7 @@ def _auto_adjust_column_widths(ws) -> None:
 # ==================== HELPER FUNCTIONS ====================
 
 
-def build_best_config_dict(best_params: Dict, cfg: Config) -> Dict:
+def build_best_config_dict(best_params: dict, cfg: Config) -> dict:
     """
     Construct config dictionary from best trial parameters.
 
@@ -250,14 +251,14 @@ def build_best_config_dict(best_params: Dict, cfg: Config) -> Dict:
 
 
 def build_best_trial_data(
-    study: optuna.Study, completed: List[optuna.trial.FrozenTrial]
-) -> Optional[Dict]:
+    study: optuna.Study, completed: list[optuna.trial.FrozenTrial]
+) -> dict | None:
     """
     Build best trial metadata dictionary.
 
     Args:
         study: Optuna study instance
-        completed: List of completed trials
+        completed: list of completed trials
 
     Returns:
         Dictionary with best trial info, or None if no completed trials
@@ -281,7 +282,7 @@ def build_best_trial_data(
         return None
 
 
-def build_trial_data(trial: optuna.trial.FrozenTrial) -> Dict:
+def build_trial_data(trial: optuna.trial.FrozenTrial) -> dict:
     """
     Build trial metadata dictionary.
 
@@ -312,13 +313,13 @@ def build_trial_data(trial: optuna.trial.FrozenTrial) -> Dict:
 
 
 def build_top_trials_dataframe(
-    sorted_trials: List[optuna.trial.FrozenTrial], metric_name: str
+    sorted_trials: list[optuna.trial.FrozenTrial], metric_name: str
 ) -> pd.DataFrame:
     """
     Build DataFrame from sorted trials.
 
     Args:
-        sorted_trials: List of trials sorted by performance
+        sorted_trials: list of trials sorted by performance
         metric_name: Name of optimization metric (for column header)
 
     Returns:

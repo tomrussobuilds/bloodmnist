@@ -5,6 +5,8 @@ Tests project root discovery, static directory constants,
 and filesystem initialization logic.
 """
 
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from unittest.mock import patch

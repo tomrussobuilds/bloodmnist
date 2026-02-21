@@ -5,7 +5,9 @@ Pydantic v2 schema defining model export parameters for ONNX and TorchScript.
 Supports quantization, optimization, and validation settings.
 """
 
-from typing import Literal, Optional
+from __future__ import annotations
+
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -48,7 +50,7 @@ class ExportConfig(BaseModel):
         default="onnx", description="Export format"
     )
 
-    output_path: Optional[ValidatedPath] = Field(
+    output_path: ValidatedPath | None = Field(
         default=None, description="Output path (auto-generated if None)"
     )
 

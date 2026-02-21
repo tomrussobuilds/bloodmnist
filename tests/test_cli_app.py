@@ -5,6 +5,8 @@ Tests the Typer-based CLI utilities: override parsing, auto-casting,
 and basic command invocation.
 """
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
 from unittest.mock import MagicMock, patch

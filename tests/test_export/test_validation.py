@@ -5,6 +5,8 @@ Tests numerical validation comparing PyTorch models against
 exported ONNX models for output consistency.
 """
 
+from __future__ import annotations
+
 import pytest
 import torch
 import torch.nn as nn

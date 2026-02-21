@@ -11,7 +11,7 @@ fully customized via YAML through OptunaConfig.search_space_overrides.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Callable
 
 import optuna
 
@@ -41,15 +41,15 @@ class SearchSpaceRegistry:
         overrides: Configurable search range bounds. Uses defaults if None.
     """
 
-    def __init__(self, overrides: Optional[SearchSpaceOverrides] = None):
+    def __init__(self, overrides: SearchSpaceOverrides | None = None):
         self.ov = overrides if overrides is not None else _default_overrides()
 
-    def get_optimization_space(self) -> Dict[str, Callable]:
+    def get_optimization_space(self) -> dict[str, Callable]:
         """
         Core optimization hyperparameters (learning rate, weight decay, etc.).
 
         Returns:
-            Dict mapping parameter names to sampling functions
+            dict mapping parameter names to sampling functions
         """
         ov = self.ov
         return {
@@ -78,12 +78,12 @@ class SearchSpaceRegistry:
             ),
         }
 
-    def get_regularization_space(self) -> Dict[str, Callable]:
+    def get_regularization_space(self) -> dict[str, Callable]:
         """
         Regularization strategies (mixup, label smoothing, dropout).
 
         Returns:
-            Dict of regularization parameter samplers
+            dict of regularization parameter samplers
         """
         ov = self.ov
         return {
@@ -104,7 +104,7 @@ class SearchSpaceRegistry:
             ),
         }
 
-    def get_batch_size_space(self, resolution: int = 28) -> Dict[str, Callable]:
+    def get_batch_size_space(self, resolution: int = 28) -> dict[str, Callable]:
         """
         Batch size as categorical (resolution-aware).
 
@@ -112,7 +112,7 @@ class SearchSpaceRegistry:
             resolution: Input image resolution (28 or 224)
 
         Returns:
-            Dict with batch_size sampler
+            dict with batch_size sampler
         """
         if resolution >= 224:
             batch_choices = list(self.ov.batch_size_high_res)
@@ -123,12 +123,12 @@ class SearchSpaceRegistry:
             "batch_size": lambda trial: trial.suggest_categorical("batch_size", batch_choices),
         }
 
-    def get_scheduler_space(self) -> Dict[str, Callable]:
+    def get_scheduler_space(self) -> dict[str, Callable]:
         """
         Learning rate scheduler parameters.
 
         Returns:
-            Dict of scheduler-related samplers
+            dict of scheduler-related samplers
         """
         ov = self.ov
         return {
@@ -144,12 +144,12 @@ class SearchSpaceRegistry:
             ),
         }
 
-    def get_augmentation_space(self) -> Dict[str, Callable]:
+    def get_augmentation_space(self) -> dict[str, Callable]:
         """
         Data augmentation intensity parameters.
 
         Returns:
-            Dict of augmentation samplers
+            dict of augmentation samplers
         """
         ov = self.ov
         return {
@@ -170,7 +170,7 @@ class SearchSpaceRegistry:
             ),
         }
 
-    def get_full_space(self, resolution: int = 28) -> Dict[str, Callable]:
+    def get_full_space(self, resolution: int = 28) -> dict[str, Callable]:
         """
         Combined search space with all available parameters.
 
@@ -180,7 +180,7 @@ class SearchSpaceRegistry:
         Returns:
             Unified dict of all parameter samplers
         """
-        full_space: Dict[str, Callable] = {}
+        full_space: dict[str, Callable] = {}
         full_space.update(self.get_optimization_space())
         full_space.update(self.get_regularization_space())
         full_space.update(self.get_batch_size_space(resolution))
@@ -188,7 +188,7 @@ class SearchSpaceRegistry:
         full_space.update(self.get_augmentation_space())
         return full_space
 
-    def get_quick_space(self, resolution: int = 28) -> Dict[str, Callable]:
+    def get_quick_space(self, resolution: int = 28) -> dict[str, Callable]:
         """
         Reduced search space for fast exploration (most impactful params).
 
@@ -202,9 +202,9 @@ class SearchSpaceRegistry:
             resolution: Input image resolution for batch size calculation
 
         Returns:
-            Dict of high-impact parameter samplers
+            dict of high-impact parameter samplers
         """
-        space: Dict[str, Callable] = {}
+        space: dict[str, Callable] = {}
         space.update(self.get_optimization_space())
         space.update(
             {
@@ -215,7 +215,7 @@ class SearchSpaceRegistry:
         return space
 
     @staticmethod
-    def get_model_space_224() -> Dict[str, Callable]:
+    def get_model_space_224() -> dict[str, Callable]:
         """Search space for 224x224 architectures with weight variants."""
         return {
             "model_name": lambda trial: trial.suggest_categorical(
@@ -236,7 +236,7 @@ class SearchSpaceRegistry:
         }
 
     @staticmethod
-    def get_model_space_28() -> Dict[str, Callable]:
+    def get_model_space_28() -> dict[str, Callable]:
         """Search space for 28x28 architectures."""
         return {
             "model_name": lambda trial: trial.suggest_categorical(
@@ -244,7 +244,7 @@ class SearchSpaceRegistry:
             ),
         }
 
-    def get_full_space_with_models(self, resolution: int = 28) -> Dict[str, Callable]:
+    def get_full_space_with_models(self, resolution: int = 28) -> dict[str, Callable]:
         """
         Combined search space including model architecture selection.
 
@@ -269,8 +269,8 @@ def get_search_space(
     preset: str = "quick",
     resolution: int = 28,
     include_models: bool = False,
-    model_pool: Optional[List[str]] = None,
-    overrides: Optional[SearchSpaceOverrides] = None,
+    model_pool: list[str] | None = None,
+    overrides: SearchSpaceOverrides | None = None,
 ):
     """
     Factory function to retrieve a search space preset.
@@ -284,7 +284,7 @@ def get_search_space(
         overrides: Configurable search range bounds (uses defaults if None)
 
     Returns:
-        Dict of parameter samplers
+        dict of parameter samplers
 
     Raises:
         ValueError: If preset name not recognized
@@ -312,17 +312,17 @@ def get_search_space(
     return space
 
 
-def _build_model_space_from_pool(pool: List[str]) -> Dict[str, Callable]:
+def _build_model_space_from_pool(pool: list[str]) -> dict[str, Callable]:
     """
     Build model search space from a user-specified pool of architectures.
 
     Args:
-        pool: List of model names to include in the search.
+        pool: list of model names to include in the search.
 
     Returns:
-        Dict with model_name sampler (and weight_variant if vit_tiny is in pool).
+        dict with model_name sampler (and weight_variant if vit_tiny is in pool).
     """
-    space: Dict[str, Callable] = {
+    space: dict[str, Callable] = {
         "model_name": lambda trial, _p=pool: trial.suggest_categorical("model_name", _p),
     }
 
@@ -354,7 +354,7 @@ class FullSearchSpace:
     def __init__(
         self,
         resolution: int = 28,
-        overrides: Optional[SearchSpaceOverrides] = None,
+        overrides: SearchSpaceOverrides | None = None,
     ):
         """
         Initialize search space with resolution context.
@@ -374,7 +374,7 @@ class FullSearchSpace:
             trial: Optuna trial object
 
         Returns:
-            Dict of sampled hyperparameters
+            dict of sampled hyperparameters
         """
         ov = self.ov
 

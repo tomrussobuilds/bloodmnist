@@ -1,13 +1,14 @@
 """
 Pydantic Wrapper for Multi-Domain Dataset Registries.
 
-Type-safe, validated access to multiple dataset domains (medical, space)
+type-safe, validated access to multiple dataset domains (medical, space)
 and resolutions (28x28, 64x64, 224x224). Merges domain registries based on
 selected resolution while avoiding global metadata overwrites.
 """
 
+from __future__ import annotations
+
 import copy
-from typing import Dict
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -34,7 +35,7 @@ class DatasetRegistryWrapper(BaseModel):
 
     resolution: int = Field(default=28, description="Target resolution (28, 32, 64, or 224)")
 
-    registry: Dict[str, DatasetMetadata] = Field(
+    registry: dict[str, DatasetMetadata] = Field(
         default_factory=dict, description="Dataset registry for selected resolution"
     )
 

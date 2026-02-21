@@ -5,13 +5,15 @@ Contains DatasetMetadata for astronomical imagery and galaxy classification.
 Currently supports Galaxy10 DECals at 224x224 resolution (resized from 256x256 native).
 """
 
-from typing import Dict, Final
+from __future__ import annotations
+
+from typing import Final
 
 from ...paths import DATASET_DIR
 from ..base import DatasetMetadata
 
 # SPACE DATASET REGISTRY (224x224)
-REGISTRY_224: Final[Dict[str, DatasetMetadata]] = {
+REGISTRY_224: Final[dict[str, DatasetMetadata]] = {
     "galaxy10": DatasetMetadata(
         name="galaxy10",
         display_name="Galaxy10 DECals",

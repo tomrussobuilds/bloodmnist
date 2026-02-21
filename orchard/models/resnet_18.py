@@ -14,6 +14,8 @@ Resolution-Specific Adaptations:
         - Only channel adaptation for grayscale inputs
 """
 
+from __future__ import annotations
+
 from typing import cast
 
 import torch

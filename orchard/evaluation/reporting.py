@@ -7,6 +7,8 @@ validation of experiment results and transforms raw metrics into structured,
 professionally formatted Excel summaries.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from pathlib import Path

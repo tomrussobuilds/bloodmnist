@@ -7,9 +7,10 @@ denormalization via Config. Figures are saved inside the run's output directory
 managed by RunPaths.
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import List, Optional
 
 import matplotlib.pyplot as plt
 import torch
@@ -25,9 +26,9 @@ logger = logging.getLogger(LOGGER_NAME)
 def show_sample_images(
     loader: DataLoader,
     save_path: Path,
-    cfg: Optional[Config] = None,
+    cfg: Config | None = None,
     num_samples: int = 16,
-    title_prefix: Optional[str] = None,
+    title_prefix: str | None = None,
 ) -> None:
     """
     Extracts a batch from the DataLoader and saves a grid of sample images
@@ -90,10 +91,10 @@ def show_sample_images(
 
 def show_samples_for_dataset(
     loader: DataLoader,
-    classes: List[str],
+    classes: list[str],
     dataset_name: str,
     run_paths: RunPaths,
-    cfg: Optional[Config] = None,
+    cfg: Config | None = None,
     num_samples: int = 16,
     resolution: int | None = None,
 ) -> None:
@@ -104,7 +105,7 @@ def show_samples_for_dataset(
 
     Args:
         loader (DataLoader): PyTorch DataLoader to sample images from.
-        classes (List[str]): List of class names (unused here, for metadata).
+        classes (list[str]): list of class names (unused here, for metadata).
         dataset_name (str): Name of the dataset, used in the filename and title.
         run_paths (RunPaths): RunPaths instance to resolve figure saving path.
         cfg (Config, optional): Config object with architecture.name, dataset.mean/std.

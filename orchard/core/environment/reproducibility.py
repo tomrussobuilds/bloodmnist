@@ -25,6 +25,8 @@ Detection:
     resolved from the recipe YAML or direct Config construction.
 """
 
+from __future__ import annotations
+
 import os
 import random
 import warnings

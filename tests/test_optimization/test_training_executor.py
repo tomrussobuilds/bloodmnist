@@ -5,6 +5,8 @@ Tests cover initialization, Optuna integration (reporting/pruning),
 scheduler stepping, and error handling during validation.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import optuna

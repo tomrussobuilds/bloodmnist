@@ -4,6 +4,8 @@ Logging style constants for consistent visual hierarchy.
 Provides unified formatting symbols and separators used across all logging modules.
 """
 
+from __future__ import annotations
+
 
 class LogStyle:
     """Unified logging style constants for consistent visual hierarchy."""

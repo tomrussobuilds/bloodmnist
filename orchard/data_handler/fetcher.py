@@ -9,6 +9,8 @@ Adding a new domain only requires a new branch in ``ensure_dataset_npz``
 and a corresponding module in ``fetchers/``.
 """
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
 from pathlib import Path

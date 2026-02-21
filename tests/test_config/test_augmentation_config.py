@@ -5,6 +5,8 @@ Tests training augmentation parameters and TTA configuration
 with validation of probability ranges and geometric constraints.
 """
 
+from __future__ import annotations
+
 import pytest
 from pydantic import ValidationError
 

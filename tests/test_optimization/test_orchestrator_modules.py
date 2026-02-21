@@ -5,6 +5,8 @@ Quick tests to eliminate codecov warnings for newly created modules.
 Focuses on testing the most critical functions in each module.
 """
 
+from __future__ import annotations
+
 import tempfile
 from datetime import datetime
 from pathlib import Path

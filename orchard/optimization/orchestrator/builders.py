@@ -12,8 +12,10 @@ Functions:
     - build_callbacks: Construct optimization callbacks list
 """
 
+from __future__ import annotations
+
 import logging
-from typing import List, cast
+from typing import cast
 
 import optuna
 from optuna.pruners import HyperbandPruner, MedianPruner, NopPruner, PercentilePruner
@@ -70,11 +72,11 @@ def build_pruner(cfg: Config) -> MedianPruner | PercentilePruner | HyperbandPrun
             f"Unknown pruner: {cfg.optuna.pruner_type}. "
             f"Valid options: {list(PRUNER_REGISTRY.keys())}"
         )
-    # Type narrowing: PRUNER_REGISTRY values are concrete pruner factories
+    # type narrowing: PRUNER_REGISTRY values are concrete pruner factories
     return cast(MedianPruner | PercentilePruner | HyperbandPruner | NopPruner, pruner_factory())
 
 
-def build_callbacks(cfg: Config) -> List:
+def build_callbacks(cfg: Config) -> list:
     """
     Construct list of optimization callbacks from configuration.
 
@@ -85,7 +87,7 @@ def build_callbacks(cfg: Config) -> List:
         cfg: Global configuration with optuna section
 
     Returns:
-        List of Optuna callback objects (may be empty)
+        list of Optuna callback objects (may be empty)
 
     Example:
         >>> callbacks = build_callbacks(cfg)

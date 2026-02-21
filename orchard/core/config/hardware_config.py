@@ -12,6 +12,8 @@ Single Source of Truth (SSOT) for:
     * Process-level synchronization (cross-platform lock files)
 """
 
+from __future__ import annotations
+
 import tempfile
 from pathlib import Path
 from typing import cast

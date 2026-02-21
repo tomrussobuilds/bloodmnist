@@ -5,6 +5,8 @@ Tests augmentation description generation and torchvision v2
 training/validation pipelines for both RGB and Grayscale datasets.
 """
 
+from __future__ import annotations
+
 from types import SimpleNamespace
 
 import pytest

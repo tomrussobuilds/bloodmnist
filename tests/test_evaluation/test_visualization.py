@@ -6,6 +6,8 @@ confusion matrices, and prediction grids.
 These are essential smoke tests to boost coverage from 0% to ~30%.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import numpy as np

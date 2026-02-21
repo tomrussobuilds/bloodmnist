@@ -6,12 +6,14 @@ compatible with the Orchard ML pipeline. Creates stratified train/val/test split
 from the original train/test partition.
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import Tuple
 
 import numpy as np
 
+from ...core.metadata import DatasetMetadata
 from ...core.paths import LOGGER_NAME
 
 logger = logging.getLogger(LOGGER_NAME)
@@ -22,7 +24,7 @@ def _create_stratified_split(
     labels: np.ndarray,
     val_ratio: float = 0.15,
     seed: int = 42,
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Splits training data into train and validation sets using stratified sampling.
 
@@ -33,7 +35,7 @@ def _create_stratified_split(
         seed: Random seed for reproducibility
 
     Returns:
-        Tuple of (train_images, train_labels, val_images, val_labels)
+        tuple of (train_images, train_labels, val_images, val_labels)
     """
     rng = np.random.default_rng(seed)
 
@@ -73,7 +75,7 @@ def _create_stratified_split(
     )
 
 
-def _download_and_convert(metadata, cifar_cls) -> Path:
+def _download_and_convert(metadata: DatasetMetadata, cifar_cls: type) -> Path:
     """
     Downloads a CIFAR dataset via torchvision and converts to NPZ.
 
@@ -136,7 +138,7 @@ def _download_and_convert(metadata, cifar_cls) -> Path:
     return target_npz
 
 
-def ensure_cifar_npz(metadata) -> Path:
+def ensure_cifar_npz(metadata: DatasetMetadata) -> Path:
     """
     Ensures a CIFAR dataset is downloaded and converted to NPZ format.
 

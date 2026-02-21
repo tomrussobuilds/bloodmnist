@@ -19,6 +19,8 @@ Attributes:
     log_level: Logging verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL).
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator

@@ -20,7 +20,7 @@ Key features:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 import optuna
 import torch
@@ -103,11 +103,11 @@ class OptunaObjective:
     def __init__(
         self,
         cfg: Config,
-        search_space: Dict[str, Any],
+        search_space: dict[str, Any],
         device: torch.device,
-        dataset_loader: Optional[DatasetLoaderProtocol] = None,
-        dataloader_factory: Optional[DataloaderFactoryProtocol] = None,
-        model_factory: Optional[ModelFactoryProtocol] = None,
+        dataset_loader: DatasetLoaderProtocol | None = None,
+        dataloader_factory: DataloaderFactoryProtocol | None = None,
+        model_factory: ModelFactoryProtocol | None = None,
         tracker: TrackerProtocol | None = None,
     ):
         """
@@ -219,7 +219,7 @@ class OptunaObjective:
             # Cleanup GPU memory between trials
             self._cleanup()
 
-    def _sample_params(self, trial: optuna.Trial) -> Dict[str, Any]:
+    def _sample_params(self, trial: optuna.Trial) -> dict[str, Any]:
         """
         Sample hyperparameters from search space.
 

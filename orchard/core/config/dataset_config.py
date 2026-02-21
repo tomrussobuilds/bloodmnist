@@ -13,7 +13,7 @@ Key Responsibilities:
     * Multi-resolution support: Resolves metadata by selected resolution
 """
 
-from typing import Optional
+from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -48,18 +48,18 @@ class DatasetConfig(BaseModel):
     name: str = Field(
         default="bloodmnist", description="Dataset identifier (e.g., 'bloodmnist', 'organcmnist')"
     )
-    metadata: Optional[DatasetMetadata] = Field(default=None, exclude=True)
+    metadata: DatasetMetadata | None = Field(default=None, exclude=True)
 
     # Runtime parameters
     data_root: ValidatedPath = DATASET_DIR
     use_weighted_sampler: bool = True
-    max_samples: Optional[PositiveInt] = Field(default=None)
+    max_samples: PositiveInt | None = Field(default=None)
     val_ratio: Probability = Field(
         default=0.10,
         description="Fraction of max_samples used for val/test splits (0.0-1.0)",
     )
 
-    img_size: Optional[ImageSize] = Field(
+    img_size: ImageSize | None = Field(
         description="Target square resolution for model input",
         default=None,
     )
@@ -189,7 +189,7 @@ class DatasetConfig(BaseModel):
         on a grayscale dataset.
 
         Returns:
-            Tuple of mean values per channel.
+            tuple of mean values per channel.
         """
         m = self._ensure_metadata.mean
         return (m[0],) * 3 if self.force_rgb and self.in_channels == 1 else m
@@ -203,7 +203,7 @@ class DatasetConfig(BaseModel):
         on a grayscale dataset.
 
         Returns:
-            Tuple of std values per channel.
+            tuple of std values per channel.
         """
         s = self._ensure_metadata.std
         return (s[0],) * 3 if self.force_rgb and self.in_channels == 1 else s

@@ -5,6 +5,8 @@ Tests LogStyle constants, Reporter logging methods,
 and summary logging functions.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, PropertyMock, patch
 
 import optuna

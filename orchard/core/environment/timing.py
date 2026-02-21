@@ -5,8 +5,10 @@ Provides time tracking for pipeline execution duration measurement.
 Used by RootOrchestrator to report total execution time.
 """
 
+from __future__ import annotations
+
 import time
-from typing import Optional, Protocol
+from typing import Protocol
 
 
 class TimeTrackerProtocol(Protocol):
@@ -40,8 +42,8 @@ class TimeTracker:
     """
 
     def __init__(self) -> None:
-        self._start_time: Optional[float] = None
-        self._end_time: Optional[float] = None
+        self._start_time: float | None = None
+        self._end_time: float | None = None
 
     def start(self) -> None:
         """Record pipeline start time."""

@@ -13,6 +13,8 @@ Key Features:
     - Timestamp-based Files: Unique log files per experiment session
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import re
@@ -20,7 +22,7 @@ import sys
 from datetime import datetime, timezone
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-from typing import Dict, Final, Optional
+from typing import Final
 
 from ..paths import LOGGER_NAME
 from .styles import LogStyle
@@ -146,12 +148,12 @@ class Logger:
         4. Audit Trail: Log file path stored in _active_log_file for reference
 
     Class Attributes:
-        _configured_names (Dict[str, bool]): Tracks which logger names have been configured
-        _active_log_file (Optional[Path]): Current active log file path for auditing
+        _configured_names (dict[str, bool]): Tracks which logger names have been configured
+        _active_log_file (Path | None): Current active log file path for auditing
 
     Attributes:
         name (str): Logger identifier (typically LOGGER_NAME constant)
-        log_dir (Optional[Path]): Directory for log file storage
+        log_dir (Path | None): Directory for log file storage
         log_to_file (bool): Enable file logging (requires log_dir)
         level (int): Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         max_bytes (int): Maximum log file size before rotation (default: 5MB)
@@ -182,13 +184,13 @@ class Logger:
         - RotatingFileHandler prevents disk space exhaustion
     """
 
-    _configured_names: Final[Dict[str, bool]] = {}
-    _active_log_file: Optional[Path] = None
+    _configured_names: Final[dict[str, bool]] = {}
+    _active_log_file: Path | None = None
 
     def __init__(
         self,
         name: str = LOGGER_NAME,
-        log_dir: Optional[Path] = None,
+        log_dir: Path | None = None,
         log_to_file: bool = True,
         level: int = logging.INFO,
         max_bytes: int = 5 * 1024 * 1024,
@@ -277,7 +279,7 @@ class Logger:
         return self._log
 
     @classmethod
-    def get_log_file(cls) -> Optional[Path]:
+    def get_log_file(cls) -> Path | None:
         """
         Returns the current active log file path for auditing.
 
@@ -288,7 +290,7 @@ class Logger:
 
     @classmethod
     def setup(
-        cls, name: str, log_dir: Optional[Path] = None, level: str = "INFO", **kwargs
+        cls, name: str, log_dir: Path | None = None, level: str = "INFO", **kwargs
     ) -> logging.Logger:
         """
         Main entry point for configuring the logger, called by RootOrchestrator.

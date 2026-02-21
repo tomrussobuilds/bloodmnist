@@ -4,6 +4,8 @@ Tracking Configuration.
 Pydantic sub-config for experiment tracking settings (MLflow).
 """
 
+from __future__ import annotations
+
 from pydantic import BaseModel, Field
 
 

@@ -21,12 +21,14 @@ Example:
     PosixPath('outputs/20260208_organcmnist_efficientnetb0_a3f7c2')
 """
 
+from __future__ import annotations
+
 import hashlib
 import json
 import re
 import time
 from pathlib import Path
-from typing import Any, ClassVar, Dict, Optional
+from typing import Any, ClassVar
 
 from pydantic import BaseModel, ConfigDict
 
@@ -98,8 +100,8 @@ class RunPaths(BaseModel):
         cls,
         dataset_slug: str,
         architecture_name: str,
-        training_cfg: Dict[str, Any],
-        base_dir: Optional[Path] = None,
+        training_cfg: dict[str, Any],
+        base_dir: Path | None = None,
     ) -> "RunPaths":
         """
         Factory method to create and initialize a unique run environment.
@@ -170,7 +172,7 @@ class RunPaths(BaseModel):
 
     # Internal Methods
     @staticmethod
-    def _generate_unique_id(ds_slug: str, a_slug: str, cfg: Dict[str, Any]) -> str:
+    def _generate_unique_id(ds_slug: str, a_slug: str, cfg: dict[str, Any]) -> str:
         """
         Generate a deterministic unique run identifier.
 

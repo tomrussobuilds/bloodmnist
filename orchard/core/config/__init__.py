@@ -23,8 +23,6 @@ Example:
     >>> # NOW torch is imported (triggered by Config access)
 """
 
-from __future__ import annotations
-
 from importlib import import_module
 from typing import Any
 

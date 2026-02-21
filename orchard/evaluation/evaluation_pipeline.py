@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Tuple
+from typing import TYPE_CHECKING
 
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -31,15 +31,15 @@ logger = logging.getLogger(LOGGER_NAME)
 def run_final_evaluation(
     model: nn.Module,
     test_loader: DataLoader,
-    train_losses: List[float],
-    val_metrics_history: List[dict],
-    class_names: List[str],
+    train_losses: list[float],
+    val_metrics_history: list[dict],
+    class_names: list[str],
     paths: RunPaths,
     cfg: Config,
     aug_info: str = "N/A",
     log_path: Path | None = None,
     tracker: TrackerProtocol | None = None,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """
     Executes the complete evaluation pipeline.
 

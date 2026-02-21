@@ -5,6 +5,8 @@ Quick coverage tests to validate pipeline orchestration.
 These are minimal tests to boost coverage from 0% to ~20%.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 

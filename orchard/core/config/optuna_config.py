@@ -11,8 +11,10 @@ Search Space Overrides:
     Overrides are applied by SearchSpaceRegistry at trial sampling time.
 """
 
+from __future__ import annotations
+
 import warnings
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -116,8 +118,8 @@ class SearchSpaceOverrides(BaseModel):
     min_scale: FloatRange = Field(default_factory=lambda: FloatRange(low=0.9, high=1.0))
 
     # ---- Batch size (categorical, resolution-aware) ----
-    batch_size_low_res: List[int] = Field(default=[16, 32, 48, 64])
-    batch_size_high_res: List[int] = Field(default=[8, 12, 16])
+    batch_size_low_res: list[int] = Field(default=[16, 32, 48, 64])
+    batch_size_high_res: list[int] = Field(default=[8, 12, 16])
 
 
 # OPTUNA CONFIGURATION
@@ -166,7 +168,7 @@ class OptunaConfig(BaseModel):
         default=15, description="Epochs per trial (shorter than final training)"
     )
 
-    timeout: Optional[NonNegativeInt] = Field(
+    timeout: NonNegativeInt | None = Field(
         default=None, description="Max seconds for optimization (None = unlimited)"
     )
 
@@ -196,7 +198,7 @@ class OptunaConfig(BaseModel):
         ),
     )
 
-    model_pool: Optional[List[str]] = Field(
+    model_pool: list[str] | None = Field(
         default=None,
         description=(
             "Restrict model search to a subset of architectures. "
@@ -211,7 +213,7 @@ class OptunaConfig(BaseModel):
         default=True, description="Stop study when target performance is reached"
     )
 
-    early_stopping_threshold: Optional[float] = Field(
+    early_stopping_threshold: float | None = Field(
         default=None, description="Metric threshold for early stopping (None=auto from metric_name)"
     )
 
@@ -237,7 +239,7 @@ class OptunaConfig(BaseModel):
         default="sqlite", description="Backend for study persistence"
     )
 
-    storage_path: Optional[ValidatedPath] = Field(
+    storage_path: ValidatedPath | None = Field(
         default=None, description="Path to SQLite database (auto-generated if None)"
     )
 
@@ -343,7 +345,7 @@ class OptunaConfig(BaseModel):
             warnings.warn("show_progress_bar=True with n_jobs>1 may corrupt tqdm output.")
         return self
 
-    def get_storage_url(self, paths) -> Optional[str]:
+    def get_storage_url(self, paths) -> str | None:
         """
         Constructs storage URL for Optuna study.
 

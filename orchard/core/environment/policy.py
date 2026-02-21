@@ -14,6 +14,8 @@ Key Policies:
       acceleration to prevent CPU bottlenecks while maximizing GPU throughput
 """
 
+from __future__ import annotations
+
 
 def determine_tta_mode(use_tta: bool, device_type: str, tta_mode: str = "full") -> str:
     """

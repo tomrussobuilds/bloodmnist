@@ -6,6 +6,8 @@ components (optimizers, schedulers, and loss functions) based on the
 hierarchical configuration manifest.
 """
 
+from __future__ import annotations
+
 import torch
 import torch.nn as nn
 import torch.optim as optim

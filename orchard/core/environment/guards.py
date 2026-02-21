@@ -14,13 +14,15 @@ These utilities ensure each run is isolated, reproducible, and safe
 even on clusters or shared systems.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import platform
 import sys
 import time
 from pathlib import Path
-from typing import IO, Optional
+from typing import IO
 
 # Tentative import for Unix-specific file locking
 try:
@@ -36,7 +38,7 @@ from .distributed import is_distributed, is_main_process
 
 # Global State
 # Persistent file descriptor to prevent garbage collection from releasing locks
-_lock_fd: Optional[IO] = None
+_lock_fd: IO | None = None
 
 
 # PROCESS MANAGEMENT
@@ -134,7 +136,7 @@ class DuplicateProcessCleaner:
         current_pid (int): PID of the current process.
     """
 
-    def __init__(self, script_name: Optional[str] = None):
+    def __init__(self, script_name: str | None = None):
         self.script_path = os.path.realpath(script_name or sys.argv[0])
         self.current_pid = os.getpid()
 
@@ -143,7 +145,7 @@ class DuplicateProcessCleaner:
         Detects other Python processes running the same script.
 
         Returns:
-            List of psutil.Process instances representing duplicates.
+            list of psutil.Process instances representing duplicates.
         """
         duplicates = []
 
@@ -168,7 +170,7 @@ class DuplicateProcessCleaner:
 
         return duplicates
 
-    def terminate_duplicates(self, logger: Optional[logging.Logger] = None) -> int:
+    def terminate_duplicates(self, logger: logging.Logger | None = None) -> int:
         """
         Terminates detected duplicate processes.
 
@@ -176,7 +178,7 @@ class DuplicateProcessCleaner:
         because sibling rank processes are intentional, not duplicates.
 
         Args:
-            logger (Optional[logging.Logger]): Logger for reporting terminated PIDs.
+            logger (logging.Logger | None): Logger for reporting terminated PIDs.
 
         Returns:
             Number of terminated duplicate processes (0 in distributed mode).

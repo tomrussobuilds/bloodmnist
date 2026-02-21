@@ -1,9 +1,11 @@
 """
-Test Suite for Semantic Type Definitions.
+Test Suite for Semantic type Definitions.
 
 Tests Pydantic annotated types and validators for domain-specific
 constraints (paths, hyperparameters, probabilities).
 """
+
+from __future__ import annotations
 
 from pathlib import Path
 

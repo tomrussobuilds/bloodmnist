@@ -5,12 +5,13 @@ Converts trained PyTorch models to ONNX format for production deployment.
 Supports dynamic batch sizes, optimization, and validation.
 """
 
+from __future__ import annotations
+
 import contextlib
 import io
 import logging
 import warnings
 from pathlib import Path
-from typing import Tuple
 
 import torch
 import torch.nn as nn
@@ -25,7 +26,7 @@ def export_to_onnx(
     model: nn.Module,
     checkpoint_path: Path,
     output_path: Path,
-    input_shape: Tuple[int, int, int],
+    input_shape: tuple[int, int, int],
     opset_version: int = 18,
     dynamic_axes: bool = True,
     do_constant_folding: bool = True,
@@ -153,7 +154,7 @@ def export_to_onnx(
 
 def benchmark_onnx_inference(
     onnx_path: Path,
-    input_shape: Tuple[int, int, int],
+    input_shape: tuple[int, int, int],
     num_runs: int = 100,
 ) -> float:
     """

@@ -14,6 +14,8 @@ Usage via YAML config:
 The ``timm/`` prefix is stripped by the factory before reaching this builder.
 """
 
+from __future__ import annotations
+
 import timm
 import torch
 import torch.nn as nn

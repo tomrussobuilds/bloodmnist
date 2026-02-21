@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, Optional, Protocol
+from typing import Any, Protocol
 
 from ..core import LOGGER_NAME
 
@@ -23,7 +23,7 @@ except ImportError:  # pragma: no cover
     _MLFLOW_AVAILABLE = False
 
 
-def _flatten_dict(d: Dict[str, Any], parent_key: str = "", sep: str = ".") -> Dict[str, Any]:
+def _flatten_dict(d: dict[str, Any], parent_key: str = "", sep: str = ".") -> dict[str, Any]:
     """Flatten a nested dict into dot-separated keys for MLflow params."""
     items: list[tuple[str, Any]] = []
     for k, v in d.items():
@@ -52,7 +52,7 @@ class TrackerProtocol(Protocol):
 
     def log_artifacts_dir(self, directory: Path) -> None: ...
 
-    def start_optuna_trial(self, trial_number: int, params: Dict[str, Any]) -> None: ...
+    def start_optuna_trial(self, trial_number: int, params: dict[str, Any]) -> None: ...
 
     def end_optuna_trial(self, best_metric: float) -> None: ...
 
@@ -83,7 +83,7 @@ class NoOpTracker:  # pragma: no cover
     def log_artifacts_dir(self, directory: Path) -> None:  # noqa: ARG002
         """No-op: skip directory artifact logging."""
 
-    def start_optuna_trial(self, trial_number: int, params: Dict[str, Any]) -> None:  # noqa: ARG002
+    def start_optuna_trial(self, trial_number: int, params: dict[str, Any]) -> None:  # noqa: ARG002
         """No-op: skip nested Optuna trial run creation."""
 
     def end_optuna_trial(self, best_metric: float) -> None:  # noqa: ARG002
@@ -112,7 +112,7 @@ class MLflowTracker:  # pragma: no cover
 
     def __init__(self, experiment_name: str = "orchard-ml") -> None:
         self.experiment_name = experiment_name
-        self._parent_run_id: Optional[str] = None
+        self._parent_run_id: str | None = None
 
     def start_run(self, cfg: Any, run_name: str, tracking_uri: str) -> None:
         """Start an MLflow run and log all config parameters.
@@ -188,7 +188,7 @@ class MLflowTracker:  # pragma: no cover
         if directory.exists() and directory.is_dir():
             mlflow.log_artifacts(str(directory))
 
-    def start_optuna_trial(self, trial_number: int, params: Dict[str, Any]) -> None:
+    def start_optuna_trial(self, trial_number: int, params: dict[str, Any]) -> None:
         """Start a nested MLflow run for an Optuna trial.
 
         Args:

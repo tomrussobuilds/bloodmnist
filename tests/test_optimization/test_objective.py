@@ -6,6 +6,8 @@ supporting components using dependency injection, enabling high
 coverage through isolated and deterministic unit tests.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import optuna

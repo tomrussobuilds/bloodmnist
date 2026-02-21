@@ -5,6 +5,8 @@ Quick coverage tests to validate factory pattern and model instantiation.
 These are minimal tests to boost coverage from 0% to ~20%.
 """
 
+from __future__ import annotations
+
 import os
 from unittest.mock import MagicMock, patch
 

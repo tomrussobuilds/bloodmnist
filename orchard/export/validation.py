@@ -5,9 +5,10 @@ Validates exported models by comparing outputs against original PyTorch models.
 Ensures numerical consistency and correctness after export.
 """
 
+from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import Tuple
 
 import numpy as np
 import torch
@@ -21,7 +22,7 @@ logger = logging.getLogger(LOGGER_NAME)
 def validate_export(
     pytorch_model: nn.Module,
     onnx_path: Path,
-    input_shape: Tuple[int, int, int],
+    input_shape: tuple[int, int, int],
     num_samples: int = 10,
     max_deviation: float = 1e-5,
 ) -> bool:

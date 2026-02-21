@@ -5,6 +5,8 @@ Provides a standardized interface for calculating classification performance
 metrics from model outputs. Isolates statistical logic from inference loops.
 """
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np

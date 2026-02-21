@@ -16,6 +16,8 @@ Usage:
 Expected Runtime: ~30 seconds on GPU, ~2 minutes on CPU
 """
 
+from __future__ import annotations
+
 import argparse
 import os
 

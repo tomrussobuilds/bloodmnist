@@ -16,7 +16,9 @@ Strict boundary validation (probability ranges, LR bounds) prevents unstable
 training states before first batch processing.
 """
 
-from typing import Literal, Optional
+from __future__ import annotations
+
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -87,7 +89,7 @@ class TrainingConfig(BaseModel):
     min_lr: LearningRate = Field(default=1e-6, description="Minimum learning rate")
     momentum: Momentum = Field(default=0.9, description="SGD momentum")
     weight_decay: WeightDecay = Field(default=5e-4, description="L2 regularization")
-    grad_clip: Optional[GradNorm] = Field(default=1.0, description="Max gradient norm")
+    grad_clip: GradNorm | None = Field(default=1.0, description="Max gradient norm")
 
     # ==================== Regularization ====================
     label_smoothing: SmoothingValue = Field(default=0.0, description="Label smoothing factor")

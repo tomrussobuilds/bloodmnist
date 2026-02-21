@@ -5,8 +5,9 @@ Defines dataset metadata schema using Pydantic for immutability, type safety,
 and seamless integration with the global configuration engine.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -47,17 +48,17 @@ class DatasetMetadata(BaseModel):
     path: Path = Field(..., description="Path to .npz archive")
 
     # Classification
-    classes: List[str] = Field(..., description="Class labels in index order")
+    classes: list[str] = Field(..., description="Class labels in index order")
 
     # Image properties
     in_channels: int = Field(..., description="1 for grayscale, 3 for RGB")
-    native_resolution: Optional[int] = Field(
+    native_resolution: int | None = Field(
         default=None, description="Native pixel resolution (28 or 224)"
     )
 
     # Normalization
-    mean: Tuple[float, ...] = Field(..., description="Channel-wise mean")
-    std: Tuple[float, ...] = Field(..., description="Channel-wise std")
+    mean: tuple[float, ...] = Field(..., description="Channel-wise mean")
+    std: tuple[float, ...] = Field(..., description="Channel-wise std")
 
     # Behavioral flags
     is_anatomical: bool = Field(

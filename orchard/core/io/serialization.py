@@ -6,10 +6,12 @@ models and Path objects) into YAML format, ensuring thread-safe and
 environment-agnostic persistence to the filesystem.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -103,7 +105,7 @@ def dump_requirements(output_path: Path) -> None:
         logger.warning(f"Failed to dump requirements: {e}")
 
 
-def load_config_from_yaml(yaml_path: Path) -> Dict[str, Any]:
+def load_config_from_yaml(yaml_path: Path) -> dict[str, Any]:
     """
     Loads a raw configuration dictionary from a YAML file.
 
@@ -111,7 +113,7 @@ def load_config_from_yaml(yaml_path: Path) -> Dict[str, Any]:
         yaml_path (Path): Path to the source YAML file.
 
     Returns:
-        Dict[str, Any]: The loaded configuration manifest.
+        dict[str, Any]: The loaded configuration manifest.
 
     Raises:
         FileNotFoundError: If the specified path does not exist.

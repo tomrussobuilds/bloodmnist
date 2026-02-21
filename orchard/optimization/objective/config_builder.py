@@ -6,7 +6,9 @@ Config instances for Optuna experiments, handling parameter mapping,
 metadata preservation, and validation.
 """
 
-from typing import Any, Dict
+from __future__ import annotations
+
+from typing import Any
 
 from ...core import Config
 
@@ -60,7 +62,7 @@ class TrialConfigBuilder:
         self.optuna_epochs = base_cfg.optuna.epochs
         self.base_metadata = base_cfg.dataset._ensure_metadata
 
-    def build(self, trial_params: Dict[str, Any]) -> Config:
+    def build(self, trial_params: dict[str, Any]) -> Config:
         """
         Build trial-specific Config with parameter overrides.
 
@@ -88,7 +90,7 @@ class TrialConfigBuilder:
         return Config(**config_dict)
 
     def _apply_param_overrides(
-        self, config_dict: Dict[str, Any], trial_params: Dict[str, Any]
+        self, config_dict: dict[str, Any], trial_params: dict[str, Any]
     ) -> None:
         """
         Apply parameter overrides to config dict (in-place).

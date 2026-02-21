@@ -5,6 +5,8 @@ Tests hardware detection, device configuration, CUDA utilities,
 and CPU thread management.
 """
 
+from __future__ import annotations
+
 import os
 from unittest.mock import patch
 

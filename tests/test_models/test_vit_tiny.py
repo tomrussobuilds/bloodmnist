@@ -4,6 +4,8 @@ This module validates model initialization, forward pass consistency,
 and output tensor shapes across various configurations.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest

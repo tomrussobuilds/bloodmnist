@@ -11,16 +11,18 @@ Module Attributes:
     PROJECT_ROOT: Dynamically resolved absolute path to the project root.
     DATASET_DIR: Absolute path to the raw datasets directory.
     OUTPUTS_ROOT: Default root directory for all experiment results.
-    STATIC_DIRS: List of directories that must exist at startup.
+    STATIC_DIRS: list of directories that must exist at startup.
 """
+
+from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Final, FrozenSet, List
+from typing import Final
 
 # GLOBAL CONSTANTS
 # Supported image resolutions across all model architectures
-SUPPORTED_RESOLUTIONS: Final[FrozenSet[int]] = frozenset({28, 32, 64, 224})
+SUPPORTED_RESOLUTIONS: Final[frozenset[int]] = frozenset({28, 32, 64, 224})
 
 # Global logger identity used by all modules to ensure log synchronization
 LOGGER_NAME: Final[str] = "OrchardML"
@@ -85,7 +87,7 @@ OUTPUTS_ROOT: Final[Path] = (PROJECT_ROOT / "outputs").resolve()
 MLRUNS_DB: Final[Path] = (PROJECT_ROOT / "mlruns.db").resolve()
 
 # Directories that must exist at startup
-STATIC_DIRS: Final[List[Path]] = [DATASET_DIR, OUTPUTS_ROOT]
+STATIC_DIRS: Final[list[Path]] = [DATASET_DIR, OUTPUTS_ROOT]
 
 
 # INITIAL SETUP

@@ -5,6 +5,8 @@ This suite validates the integrity of the TrainingReport Pydantic model,
 the Excel export logic, and the factory function for report generation.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 from unittest.mock import ANY, MagicMock, patch
 

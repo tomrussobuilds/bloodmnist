@@ -5,6 +5,8 @@ Tests dataset configuration validation, metadata injection,
 force_rgb logic, and resolution handling.
 """
 
+from __future__ import annotations
+
 import pytest
 from pydantic import ValidationError
 

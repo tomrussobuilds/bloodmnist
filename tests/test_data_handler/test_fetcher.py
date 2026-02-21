@@ -5,6 +5,8 @@ Covers download logic, retry behavior, NPZ validation,
 and metadata extraction without performing real network calls.
 """
 
+from __future__ import annotations
+
 from types import SimpleNamespace
 
 import numpy as np
@@ -342,7 +344,7 @@ def test_stream_download_success(tmp_path, monkeypatch):
 
     class FakeResponse:
         def __init__(self):
-            self.headers = {"Content-Type": "application/octet-stream"}
+            self.headers = {"Content-type": "application/octet-stream"}
 
         def raise_for_status(self):
             """No-op: simulates a successful HTTP response (no error to raise)."""
@@ -374,7 +376,7 @@ def test_stream_download_html_content_raises_error(tmp_path, monkeypatch):
 
     class FakeResponse:
         def __init__(self):
-            self.headers = {"Content-Type": "text/html"}
+            self.headers = {"Content-type": "text/html"}
 
         def raise_for_status(self):
             """No-op: simulates a successful HTTP response (no error to raise)."""
@@ -404,7 +406,7 @@ def test_stream_download_skips_empty_chunks(tmp_path, monkeypatch):
 
     class FakeResponse:
         def __init__(self):
-            self.headers = {"Content-Type": "application/octet-stream"}
+            self.headers = {"Content-type": "application/octet-stream"}
 
         def raise_for_status(self):
             """No-op: simulates a successful HTTP response (no error to raise)."""

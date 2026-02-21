@@ -13,9 +13,11 @@ Key Tasks:
     * Resource deallocation: GPU/MPS cache flushing and temporary artifact cleanup
 """
 
+from __future__ import annotations
+
 import logging
 import os
-from typing import Any, Optional, Protocol
+from typing import Any, Protocol
 
 import torch
 from pydantic import BaseModel, ConfigDict
@@ -84,7 +86,7 @@ class InfrastructureManager(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
 
     def prepare_environment(
-        self, cfg: HardwareAwareConfig, logger: Optional[logging.Logger] = None
+        self, cfg: HardwareAwareConfig, logger: logging.Logger | None = None
     ) -> None:
         """
         Prepare execution environment for experiment run.
@@ -126,7 +128,7 @@ class InfrastructureManager(BaseModel):
         log.debug(f" » Lock acquired at {cfg.hardware.lock_file_path}")
 
     def release_resources(
-        self, cfg: HardwareAwareConfig, logger: Optional[logging.Logger] = None
+        self, cfg: HardwareAwareConfig, logger: logging.Logger | None = None
     ) -> None:
         """
         Release system and hardware resources gracefully after experiment.
@@ -159,7 +161,7 @@ class InfrastructureManager(BaseModel):
         # Flush caches
         self._flush_compute_cache(log=log)
 
-    def _flush_compute_cache(self, log: Optional[logging.Logger] = None) -> None:
+    def _flush_compute_cache(self, log: logging.Logger | None = None) -> None:
         """
         Clear GPU/MPS memory caches to prevent fragmentation across runs.
 

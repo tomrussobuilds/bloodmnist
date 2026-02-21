@@ -5,6 +5,8 @@ Tests hyperparameter validation, LR bounds, batch size limits,
 and cross-field validation logic.
 """
 
+from __future__ import annotations
+
 import pytest
 from pydantic import ValidationError
 

@@ -5,6 +5,8 @@ Tests individual cross-domain validation checks in isolation.
 End-to-end validation through Config is tested in test_manifest.py.
 """
 
+from __future__ import annotations
+
 import pytest
 from pydantic import ValidationError
 

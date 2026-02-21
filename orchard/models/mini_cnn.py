@@ -16,6 +16,8 @@ Architecture:
                    → AdaptiveAvgPool [1×1×128] → Dropout → FC [num_classes]
 """
 
+from __future__ import annotations
+
 import torch
 import torch.nn as nn
 

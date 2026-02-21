@@ -10,6 +10,8 @@ a comprehensive baseline status report covering hardware, dataset, strategy,
 hyperparameters, and filesystem configuration.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING, Protocol
 

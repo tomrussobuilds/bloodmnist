@@ -9,7 +9,7 @@ Architecture:
     - Dependency Injection: All external dependencies are injectable for testability
     - 7-Phase Initialization: Sequential setup from seeding to environment reporting
     - Context Manager: Automatic resource acquisition and cleanup
-    - Protocol-Based: Type-safe abstractions for mockability
+    - Protocol-Based: type-safe abstractions for mockability
 
 Key Components:
     RootOrchestrator: Main lifecycle controller
@@ -27,6 +27,8 @@ Typical Usage:
     ...     paths = orchestrator.paths
     ...     # Run training pipeline phases
 """
+
+from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING, Callable, Literal, TypeVar
@@ -413,7 +415,7 @@ class RootOrchestrator:
             self._phase_3_filesystem_provisioning()
             self._phase_4_logging_initialization()
 
-            # Type guards: paths and logger are guaranteed after phases 3-4
+            # type guards: paths and logger are guaranteed after phases 3-4
             assert self.paths is not None, "Paths not initialized after phase 3"  # nosec B101
             assert self.run_logger is not None, "Logger not initialized after phase 4"  # nosec B101
 

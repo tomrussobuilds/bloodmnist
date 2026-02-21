@@ -10,7 +10,7 @@ Transform selection is deterministic and hardware-independent: the same
 inference runs on CPU, CUDA, or MPS, guaranteeing cross-platform reproducibility.
 """
 
-from typing import List
+from __future__ import annotations
 
 import torch
 import torch.nn as nn
@@ -21,7 +21,7 @@ from ..core import Config
 
 
 # TTA HELPERS
-def _get_tta_transforms(is_anatomical: bool, is_texture_based: bool, cfg: Config) -> List:
+def _get_tta_transforms(is_anatomical: bool, is_texture_based: bool, cfg: Config) -> list:
     """
     Internal factory to resolve the augmentation suite based on
     dataset constraints and configuration policy.
@@ -40,7 +40,7 @@ def _get_tta_transforms(is_anatomical: bool, is_texture_based: bool, cfg: Config
         cfg: Configuration with TTA parameters and tta_mode policy
 
     Returns:
-        List of transform functions to apply during TTA inference
+        list of transform functions to apply during TTA inference
     """
     tta_mode = cfg.augmentation.tta_mode
 
